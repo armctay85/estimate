@@ -9,7 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Compass } from "lucide-react";
 
 export default function Auth() {
-  const { login, register, isLoading } = useAuth();
+  // Temporarily disable auth for bypass mode
+  const login = async () => {};
+  const register = async () => {};
+  const isLoading = false;
+  // const { login, register, isLoading } = useAuth();
   const [, setLocation] = useLocation();
 
   // Login form state

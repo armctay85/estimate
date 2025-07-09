@@ -30,6 +30,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { data: user, isLoading } = useQuery({
     queryKey: ['/api/me'],
     retry: false,
+    staleTime: 0,
+    refetchOnMount: true,
   });
 
   const loginMutation = useMutation({
