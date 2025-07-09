@@ -1,5 +1,6 @@
 import { pgTable, text, serial, integer, boolean, timestamp, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
+import { relations } from "drizzle-orm";
 import { z } from "zod";
 
 export const users = pgTable("users", {
@@ -74,3 +75,23 @@ export const MATERIALS = {
 } as const;
 
 export type MaterialType = keyof typeof MATERIALS;
+
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  projects: many(projects),
+}));
+
+export const projectsRelations = relations(projects, ({ one, many }) => ({
+  user: one(users, {
+    fields: [projects.userId],
+    references: [users.id],
+  }),
+  rooms: many(rooms),
+}));
+
+export const roomsRelations = relations(rooms, ({ one }) => ({
+  project: one(projects, {
+    fields: [rooms.projectId],
+    references: [projects.id],
+  }),
+}));

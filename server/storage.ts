@@ -191,4 +191,139 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+import { db } from "./db";
+import { eq, sql } from "drizzle-orm";
+import * as schema from "@shared/schema";
+
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(schema.users).where(eq(schema.users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(schema.users).where(eq(schema.users.email, email));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(schema.users).where(eq(schema.users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(schema.users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async updateUserSubscription(id: number, tier: string, stripeCustomerId?: string, stripeSubscriptionId?: string): Promise<User> {
+    const [user] = await db
+      .update(schema.users)
+      .set({
+        subscriptionTier: tier,
+        stripeCustomerId,
+        stripeSubscriptionId,
+      })
+      .where(eq(schema.users.id, id))
+      .returning();
+    return user;
+  }
+
+  async incrementUserProjects(id: number): Promise<void> {
+    await db
+      .update(schema.users)
+      .set({
+        projectsThisMonth: sql`${schema.users.projectsThisMonth} + 1`,
+      })
+      .where(eq(schema.users.id, id));
+  }
+
+  async resetUserProjectsIfNeeded(id: number): Promise<void> {
+    const [user] = await db.select().from(schema.users).where(eq(schema.users.id, id));
+    if (user && user.lastProjectReset) {
+      const now = new Date();
+      const lastReset = new Date(user.lastProjectReset);
+      const monthsDiff = (now.getFullYear() - lastReset.getFullYear()) * 12 + (now.getMonth() - lastReset.getMonth());
+      
+      if (monthsDiff >= 1) {
+        await db
+          .update(schema.users)
+          .set({
+            projectsThisMonth: 0,
+            lastProjectReset: now,
+          })
+          .where(eq(schema.users.id, id));
+      }
+    }
+  }
+
+  async getProject(id: number): Promise<Project | undefined> {
+    const [project] = await db.select().from(schema.projects).where(eq(schema.projects.id, id));
+    return project || undefined;
+  }
+
+  async getUserProjects(userId: number): Promise<Project[]> {
+    return await db.select().from(schema.projects).where(eq(schema.projects.userId, userId));
+  }
+
+  async createProject(insertProject: InsertProject): Promise<Project> {
+    const [project] = await db
+      .insert(schema.projects)
+      .values({
+        ...insertProject,
+        updatedAt: new Date(),
+      })
+      .returning();
+    return project;
+  }
+
+  async updateProject(id: number, projectUpdate: Partial<InsertProject>): Promise<Project> {
+    const [project] = await db
+      .update(schema.projects)
+      .set({
+        ...projectUpdate,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.projects.id, id))
+      .returning();
+    return project;
+  }
+
+  async deleteProject(id: number): Promise<void> {
+    await db.delete(schema.projects).where(eq(schema.projects.id, id));
+  }
+
+  async getProjectRooms(projectId: number): Promise<Room[]> {
+    return await db.select().from(schema.rooms).where(eq(schema.rooms.projectId, projectId));
+  }
+
+  async createRoom(insertRoom: InsertRoom): Promise<Room> {
+    const [room] = await db
+      .insert(schema.rooms)
+      .values(insertRoom)
+      .returning();
+    return room;
+  }
+
+  async updateRoom(id: number, roomUpdate: Partial<InsertRoom>): Promise<Room> {
+    const [room] = await db
+      .update(schema.rooms)
+      .set(roomUpdate)
+      .where(eq(schema.rooms.id, id))
+      .returning();
+    return room;
+  }
+
+  async deleteRoom(id: number): Promise<void> {
+    await db.delete(schema.rooms).where(eq(schema.rooms.id, id));
+  }
+
+  async deleteProjectRooms(projectId: number): Promise<void> {
+    await db.delete(schema.rooms).where(eq(schema.rooms.projectId, projectId));
+  }
+}
+
+export const storage = new DatabaseStorage();
