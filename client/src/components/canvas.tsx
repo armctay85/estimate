@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { CanvasManager, type RoomData } from "@/lib/fabric";
+import { CanvasManager, type RoomData, type ShapeType } from "@/lib/fabric";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { ShapeSelector } from "@/components/shape-selector";
 import { 
   Square, 
   Eraser, 
@@ -31,6 +32,9 @@ export function Canvas({
   const canvasManagerRef = useRef<CanvasManager | null>(null);
   const [showGrid, setShowGrid] = useState(true);
   const [zoom, setZoom] = useState(100);
+  const [selectedShape, setSelectedShape] = useState<ShapeType>("rectangle");
+  const [hasBackground, setHasBackground] = useState(false);
+  const [backgroundOpacity, setBackgroundOpacity] = useState(0.7);
 
   useEffect(() => {
     if (canvasRef.current && !canvasManagerRef.current) {
@@ -56,6 +60,12 @@ export function Canvas({
     }
   }, [selectedMaterial]);
 
+  useEffect(() => {
+    if (canvasManagerRef.current) {
+      canvasManagerRef.current.setCurrentShape(selectedShape);
+    }
+  }, [selectedShape]);
+
   const handleAddRoom = () => {
     if (canvasManagerRef.current) {
       canvasManagerRef.current.addRoom();
@@ -74,6 +84,35 @@ export function Canvas({
 
   const handleZoomOut = () => {
     setZoom(prev => Math.max(prev - 25, 50));
+  };
+
+  const handleShapeSelect = (shape: ShapeType) => {
+    setSelectedShape(shape);
+  };
+
+  const handleBackgroundUpload = async (file: File) => {
+    if (canvasManagerRef.current) {
+      try {
+        await canvasManagerRef.current.loadBackgroundImage(file);
+        setHasBackground(true);
+      } catch (error) {
+        console.error("Failed to load background image:", error);
+      }
+    }
+  };
+
+  const handleBackgroundRemove = () => {
+    if (canvasManagerRef.current) {
+      canvasManagerRef.current.removeBackgroundImage();
+      setHasBackground(false);
+    }
+  };
+
+  const handleBackgroundOpacity = (opacity: number) => {
+    setBackgroundOpacity(opacity);
+    if (canvasManagerRef.current) {
+      canvasManagerRef.current.setBackgroundOpacity(opacity);
+    }
   };
 
   return (

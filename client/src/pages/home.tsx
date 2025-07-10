@@ -9,12 +9,13 @@ import { Canvas } from "@/components/canvas";
 import { MaterialSelector } from "@/components/material-selector";
 import { CostDisplay } from "@/components/cost-display";
 import { RoomDetails } from "@/components/room-details";
+import { ShapeSelector } from "@/components/shape-selector";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { type RoomData } from "@/lib/fabric";
+import { type RoomData, type ShapeType } from "@/lib/fabric";
 import { type MaterialType } from "@shared/schema";
 import { TriangleAlert } from "lucide-react";
 
@@ -42,9 +43,12 @@ export default function Home() {
   const [projectName, setProjectName] = useState("New Renovation");
   const [projectLocation, setProjectLocation] = useState("Sydney, NSW");
   const [selectedMaterial, setSelectedMaterial] = useState<MaterialType>("timber");
+  const [selectedShape, setSelectedShape] = useState<ShapeType>("rectangle");
   const [rooms, setRooms] = useState<RoomData[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<RoomData | null>(null);
   const [totalCost, setTotalCost] = useState(0);
+  const [hasBackground, setHasBackground] = useState(false);
+  const [backgroundOpacity, setBackgroundOpacity] = useState(0.7);
 
   // Skip authentication for now
   // useEffect(() => {
@@ -127,6 +131,19 @@ export default function Home() {
     saveProjectMutation.mutate();
   };
 
+  const handleBackgroundUpload = async (file: File) => {
+    // This will be handled by the Canvas component
+    setHasBackground(true);
+  };
+
+  const handleBackgroundRemove = () => {
+    setHasBackground(false);
+  };
+
+  const handleBackgroundOpacity = (opacity: number) => {
+    setBackgroundOpacity(opacity);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -195,6 +212,17 @@ export default function Home() {
             <MaterialSelector 
               selectedMaterial={selectedMaterial}
               onMaterialSelect={setSelectedMaterial}
+            />
+
+            {/* Shape Selector */}
+            <ShapeSelector 
+              selectedShape={selectedShape}
+              onShapeSelect={setSelectedShape}
+              onBackgroundUpload={handleBackgroundUpload}
+              onBackgroundRemove={handleBackgroundRemove}
+              onBackgroundOpacity={handleBackgroundOpacity}
+              hasBackground={hasBackground}
+              backgroundOpacity={backgroundOpacity}
             />
           </div>
 
