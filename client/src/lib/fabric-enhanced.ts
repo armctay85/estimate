@@ -434,48 +434,50 @@ export class CanvasManager {
       console.log('Canvas dimensions:', canvasWidth, 'x', canvasHeight);
       
       // Create a simple background rectangle with pattern fill
-      const backgroundRect = new fabric.Rect({
-        left: 0,
-        top: 0,
-        width: canvasWidth,
-        height: canvasHeight,
-        fill: '#fafafa',
-        stroke: '#9ca3af',
-        strokeWidth: 2,
-        selectable: false,
-        evented: false,
-        opacity: 0.9,
-        name: 'background-layer',
-      });
-      
-      this.backgroundImage = backgroundRect;
-      this.canvas.add(backgroundRect);
-      this.canvas.sendToBack(backgroundRect);
-      
-      // Hide the default grid
-      if (this.gridGroup) {
-        this.gridGroup.visible = false;
-        console.log('Default grid hidden');
+      console.log('Creating fabric.Rect object...');
+      try {
+        const backgroundRect = new fabric.Rect({
+          left: 0,
+          top: 0,
+          width: canvasWidth,
+          height: canvasHeight,
+          fill: '#fafafa',
+          stroke: '#9ca3af',
+          strokeWidth: 2,
+          selectable: false,
+          evented: false,
+          opacity: 0.9,
+          name: 'background-layer',
+        });
+        console.log('fabric.Rect created successfully');
+        
+        this.backgroundImage = backgroundRect;
+        this.canvas.add(backgroundRect);
+        console.log('Background rect added to canvas');
+        
+        this.canvas.sendToBack(backgroundRect);
+        console.log('Background rect sent to back');
+        
+        // Hide the default grid
+        if (this.gridGroup) {
+          this.gridGroup.visible = false;
+          console.log('Default grid hidden');
+        }
+        
+        // Skip text overlay for now to avoid issues
+        console.log('Skipping text overlay to avoid potential issues');
+        
+        this.canvas.renderAll();
+        console.log('Canvas render completed');
+        console.log('Simple background layer created and displayed successfully');
+      } catch (rectError) {
+        console.error('Error creating fabric objects:', rectError);
+        throw rectError;
       }
-      
-      // Add optional file name overlay
-      const textObj = new fabric.Text(`Background: ${file.name}`, {
-        left: 20,
-        top: 20,
-        fontSize: 14,
-        fill: '#6b7280',
-        selectable: false,
-        evented: false,
-        fontFamily: 'Arial, sans-serif'
-      });
-      
-      this.canvas.add(textObj);
-      console.log('Added file name overlay text');
-      
-      this.canvas.renderAll();
-      console.log('Simple background layer created and displayed successfully');
     } catch (error) {
       console.error('Error in createVisualBackgroundLayer:', error);
+      console.error('Error details:', error.message || error);
+      console.error('Error stack:', error.stack);
       throw error;
     }
   }
