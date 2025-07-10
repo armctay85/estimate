@@ -252,14 +252,24 @@ export class CanvasManager {
       reader.onload = (e) => {
         const imgElement = new Image();
         imgElement.onload = () => {
+          // Get canvas dimensions
+          const canvasWidth = this.canvas.getWidth();
+          const canvasHeight = this.canvas.getHeight();
+          
+          // Calculate scale to fit the image within canvas while maintaining aspect ratio
+          const scaleX = canvasWidth / imgElement.width;
+          const scaleY = canvasHeight / imgElement.height;
+          const scale = Math.min(scaleX, scaleY);
+          
           const img = new fabric.Image(imgElement, {
             left: 0,
             top: 0,
             selectable: false,
             evented: false,
             opacity: 0.7,
-            scaleX: this.canvas.width! / imgElement.width,
-            scaleY: this.canvas.height! / imgElement.height,
+            scaleX: scale,
+            scaleY: scale,
+            crossOrigin: 'anonymous'
           });
           
           if (this.backgroundImage) {
@@ -270,12 +280,25 @@ export class CanvasManager {
           this.canvas.add(img);
           this.canvas.sendToBack(img);
           this.canvas.renderAll();
+          
+          console.log('Background image loaded successfully', {
+            originalSize: { width: imgElement.width, height: imgElement.height },
+            canvasSize: { width: canvasWidth, height: canvasHeight },
+            scale: scale
+          });
+          
           resolve();
         };
-        imgElement.onerror = reject;
+        imgElement.onerror = (error) => {
+          console.error('Failed to load image:', error);
+          reject(error);
+        };
         imgElement.src = e.target?.result as string;
       };
-      reader.onerror = reject;
+      reader.onerror = (error) => {
+        console.error('Failed to read file:', error);
+        reject(error);
+      };
       reader.readAsDataURL(file);
     });
   }

@@ -132,7 +132,7 @@ export default function Home() {
   };
 
   const handleBackgroundUpload = async (file: File) => {
-    // This will be handled by the Canvas component
+    // File is handled by Canvas component, we just update state
     setHasBackground(true);
   };
 
@@ -233,6 +233,12 @@ export default function Home() {
               onRoomsChange={handleRoomsChange}
               onRoomSelect={handleRoomSelect}
               onSaveProject={handleSaveProject}
+              selectedShape={selectedShape}
+              onBackgroundUpload={handleBackgroundUpload}
+              onBackgroundRemove={handleBackgroundRemove}
+              onBackgroundOpacity={handleBackgroundOpacity}
+              hasBackground={hasBackground}
+              backgroundOpacity={backgroundOpacity}
             />
           </div>
 

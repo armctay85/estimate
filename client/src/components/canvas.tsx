@@ -20,21 +20,33 @@ interface CanvasProps {
   onRoomsChange: (rooms: RoomData[]) => void;
   onRoomSelect: (room: RoomData | null) => void;
   onSaveProject: () => void;
+  selectedShape?: ShapeType;
+  onBackgroundUpload?: (file: File) => void;
+  onBackgroundRemove?: () => void;
+  onBackgroundOpacity?: (opacity: number) => void;
+  hasBackground?: boolean;
+  backgroundOpacity?: number;
 }
 
 export function Canvas({ 
   selectedMaterial, 
   onRoomsChange, 
   onRoomSelect, 
-  onSaveProject 
+  onSaveProject,
+  selectedShape: propSelectedShape,
+  onBackgroundUpload: propOnBackgroundUpload,
+  onBackgroundRemove: propOnBackgroundRemove,
+  onBackgroundOpacity: propOnBackgroundOpacity,
+  hasBackground: propHasBackground,
+  backgroundOpacity: propBackgroundOpacity
 }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const canvasManagerRef = useRef<CanvasManager | null>(null);
   const [showGrid, setShowGrid] = useState(true);
   const [zoom, setZoom] = useState(100);
-  const [selectedShape, setSelectedShape] = useState<ShapeType>("rectangle");
-  const [hasBackground, setHasBackground] = useState(false);
-  const [backgroundOpacity, setBackgroundOpacity] = useState(0.7);
+  const [selectedShape, setSelectedShape] = useState<ShapeType>(propSelectedShape || "rectangle");
+  const [hasBackground, setHasBackground] = useState(propHasBackground || false);
+  const [backgroundOpacity, setBackgroundOpacity] = useState(propBackgroundOpacity || 0.7);
 
   useEffect(() => {
     if (canvasRef.current && !canvasManagerRef.current) {
@@ -91,13 +103,18 @@ export function Canvas({
   };
 
   const handleBackgroundUpload = async (file: File) => {
+    console.log('Canvas handleBackgroundUpload called with file:', file.name, file.type);
     if (canvasManagerRef.current) {
       try {
         await canvasManagerRef.current.loadBackgroundImage(file);
         setHasBackground(true);
+        propOnBackgroundUpload?.(file);
+        console.log('Background image loaded successfully');
       } catch (error) {
         console.error("Failed to load background image:", error);
       }
+    } else {
+      console.error('Canvas manager not available');
     }
   };
 
@@ -105,6 +122,7 @@ export function Canvas({
     if (canvasManagerRef.current) {
       canvasManagerRef.current.removeBackgroundImage();
       setHasBackground(false);
+      propOnBackgroundRemove?.();
     }
   };
 
@@ -113,6 +131,7 @@ export function Canvas({
     if (canvasManagerRef.current) {
       canvasManagerRef.current.setBackgroundOpacity(opacity);
     }
+    propOnBackgroundOpacity?.(opacity);
   };
 
   return (
