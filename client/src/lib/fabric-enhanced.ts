@@ -386,6 +386,7 @@ export class CanvasManager {
         if (result.success && result.dataUrl) {
           await this.loadImageFromDataUrl(result.dataUrl, file.name);
         } else {
+          console.log('Server processing failed, creating visual background layer');
           // Create visual background layer for unsupported formats
           await this.createVisualBackgroundLayer(file);
         }
@@ -425,153 +426,54 @@ export class CanvasManager {
         console.log('Removed existing background image');
       }
       
+      // Use simpler approach with fabric.Rect instead of image conversion
+      console.log('Creating simple background layer with fabric.Rect');
+      
       const canvasWidth = this.canvas.getWidth();
       const canvasHeight = this.canvas.getHeight();
       console.log('Canvas dimensions:', canvasWidth, 'x', canvasHeight);
       
-      // Create a canvas-based background that looks like a technical drawing
-      const backgroundCanvas = document.createElement('canvas');
-      backgroundCanvas.width = canvasWidth;
-      backgroundCanvas.height = canvasHeight;
-      const ctx = backgroundCanvas.getContext('2d');
-      console.log('Background canvas created:', backgroundCanvas.width, 'x', backgroundCanvas.height);
+      // Create a simple background rectangle with pattern fill
+      const backgroundRect = new fabric.Rect({
+        left: 0,
+        top: 0,
+        width: canvasWidth,
+        height: canvasHeight,
+        fill: '#fafafa',
+        stroke: '#9ca3af',
+        strokeWidth: 2,
+        selectable: false,
+        evented: false,
+        opacity: 0.9,
+        name: 'background-layer',
+      });
       
-      if (ctx) {
-        console.log('Drawing background pattern...');
-      // Fill with light background
-      ctx.fillStyle = '#fafafa';
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      this.backgroundImage = backgroundRect;
+      this.canvas.add(backgroundRect);
+      this.canvas.sendToBack(backgroundRect);
       
-      // Add technical grid pattern
-      ctx.strokeStyle = '#e5e7eb';
-      ctx.lineWidth = 0.5;
-      
-      // Main grid (20px spacing)
-      for (let x = 0; x < canvasWidth; x += 20) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvasHeight);
-        ctx.stroke();
-      }
-      for (let y = 0; y < canvasHeight; y += 20) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvasWidth, y);
-        ctx.stroke();
+      // Hide the default grid
+      if (this.gridGroup) {
+        this.gridGroup.visible = false;
+        console.log('Default grid hidden');
       }
       
-      // Major grid (100px spacing) - thicker lines
-      ctx.strokeStyle = '#d1d5db';
-      ctx.lineWidth = 1;
-      for (let x = 0; x < canvasWidth; x += 100) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvasHeight);
-        ctx.stroke();
-      }
-      for (let y = 0; y < canvasHeight; y += 100) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvasWidth, y);
-        ctx.stroke();
-      }
+      // Add optional file name overlay
+      const textObj = new fabric.Text(`Background: ${file.name}`, {
+        left: 20,
+        top: 20,
+        fontSize: 14,
+        fill: '#6b7280',
+        selectable: false,
+        evented: false,
+        fontFamily: 'Arial, sans-serif'
+      });
       
-      // Add border
-      ctx.strokeStyle = '#9ca3af';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+      this.canvas.add(textObj);
+      console.log('Added file name overlay text');
       
-      // Add file info in title block (bottom right)
-      const titleBlockWidth = 200;
-      const titleBlockHeight = 60;
-      const titleX = canvasWidth - titleBlockWidth - 10;
-      const titleY = canvasHeight - titleBlockHeight - 10;
-      
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-      ctx.fillRect(titleX, titleY, titleBlockWidth, titleBlockHeight);
-      ctx.strokeStyle = '#6b7280';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(titleX, titleY, titleBlockWidth, titleBlockHeight);
-      
-      // Add file information
-      ctx.fillStyle = '#374151';
-      ctx.font = 'bold 12px Arial';
-      ctx.textAlign = 'left';
-      ctx.fillText('BASE LAYER:', titleX + 8, titleY + 18);
-      
-      ctx.font = '11px Arial';
-      const filename = file.name.length > 20 ? file.name.substring(0, 17) + '...' : file.name;
-      ctx.fillText(filename, titleX + 8, titleY + 35);
-      
-      const fileType = file.type === 'application/pdf' ? 'PDF' : 
-                      file.name.toLowerCase().endsWith('.dwg') ? 'DWG' :
-                      file.name.toLowerCase().endsWith('.dxf') ? 'DXF' : 'IMAGE';
-      ctx.fillText(`Type: ${fileType}`, titleX + 8, titleY + 50);
-      
-      // Add architectural symbols in corners
-      ctx.font = '16px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#9ca3af';
-      
-      // North arrow (top left)
-      ctx.fillText('N', 30, 25);
-      ctx.beginPath();
-      ctx.moveTo(30, 10);
-      ctx.lineTo(35, 20);
-      ctx.lineTo(30, 15);
-      ctx.lineTo(25, 20);
-      ctx.closePath();
-      ctx.fill();
-      console.log('Background pattern drawing completed');
-      } else {
-        console.error('Could not get 2D context for background canvas');
-        throw new Error('Canvas context not available');
-      }
-    
-    // Convert to fabric image and add to canvas
-    const dataUrl = backgroundCanvas.toDataURL();
-    console.log('Background canvas created, converting to Fabric image...');
-    
-    return new Promise<void>((resolve) => {
-      fabric.Image.fromURL(dataUrl, (img) => {
-        console.log('Fabric image created from canvas');
-        
-        // Remove existing background if any
-        if (this.backgroundImage) {
-          this.canvas.remove(this.backgroundImage);
-          console.log('Removed existing background');
-        }
-        
-        img.set({
-          left: 0,
-          top: 0,
-          selectable: false,
-          evented: false,
-          opacity: 0.9,
-          name: 'background-layer',
-        });
-        
-        this.backgroundImage = img;
-        this.canvas.add(img);
-        console.log('Background image added to canvas');
-        
-        // Ensure it's behind everything else
-        this.canvas.sendToBack(img);
-        
-        // Hide the default grid since we have our own
-        if (this.gridGroup) {
-          this.gridGroup.visible = false;
-          console.log('Default grid hidden');
-        }
-        
-        this.canvas.renderAll();
-        console.log('Visual background layer created and displayed successfully');
-        resolve();
-      }, { crossOrigin: 'anonymous' });
-    }).catch(error => {
-      console.error('Error creating visual background layer:', error);
-      throw error;
-    });
+      this.canvas.renderAll();
+      console.log('Simple background layer created and displayed successfully');
     } catch (error) {
       console.error('Error in createVisualBackgroundLayer:', error);
       throw error;
