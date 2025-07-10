@@ -386,8 +386,8 @@ export class CanvasManager {
         if (result.success && result.dataUrl) {
           await this.loadImageFromDataUrl(result.dataUrl, file.name);
         } else {
-          // Create enhanced placeholder for unsupported formats
-          this.createCADPlaceholder(file);
+          // Create visual background layer for unsupported formats
+          await this.createVisualBackgroundLayer(file);
         }
         return;
       }
@@ -415,8 +415,8 @@ export class CanvasManager {
     }
   }
 
-  private createCADPlaceholder(file: File): void {
-    console.log('Creating enhanced CAD/PDF placeholder for:', file.name);
+  private async createVisualBackgroundLayer(file: File): Promise<void> {
+    console.log('Creating visual background layer for:', file.name);
     
     // Remove existing background
     if (this.backgroundImage) {
@@ -426,74 +426,117 @@ export class CanvasManager {
     const canvasWidth = this.canvas.getWidth();
     const canvasHeight = this.canvas.getHeight();
     
-    // Determine file type for appropriate icon and color
-    const fileType = file.name.toLowerCase().endsWith('.dwg') ? 'DWG CAD' :
-                     file.name.toLowerCase().endsWith('.dxf') ? 'DXF CAD' : 
-                     'PDF';
-    const icon = fileType.includes('CAD') ? '📐' : '📄';
-    const color = fileType.includes('CAD') ? '#10B981' : '#3B82F6';
+    // Create a canvas-based background that looks like a technical drawing
+    const backgroundCanvas = document.createElement('canvas');
+    backgroundCanvas.width = canvasWidth;
+    backgroundCanvas.height = canvasHeight;
+    const ctx = backgroundCanvas.getContext('2d');
     
-    // Create enhanced placeholder with construction grid pattern
-    const placeholder = new fabric.Rect({
-      left: 10,
-      top: 10,
-      width: canvasWidth - 20,
-      height: canvasHeight - 20,
-      fill: `rgba(${fileType.includes('CAD') ? '16, 185, 129' : '59, 130, 246'}, 0.08)`,
-      stroke: color,
-      strokeWidth: 2,
-      strokeDashArray: [10, 5],
-      selectable: false,
-      evented: false,
-    });
+    if (ctx) {
+      // Fill with light background
+      ctx.fillStyle = '#fafafa';
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      
+      // Add technical grid pattern
+      ctx.strokeStyle = '#e5e7eb';
+      ctx.lineWidth = 0.5;
+      
+      // Main grid (20px spacing)
+      for (let x = 0; x < canvasWidth; x += 20) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvasHeight);
+        ctx.stroke();
+      }
+      for (let y = 0; y < canvasHeight; y += 20) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvasWidth, y);
+        ctx.stroke();
+      }
+      
+      // Major grid (100px spacing) - thicker lines
+      ctx.strokeStyle = '#d1d5db';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvasWidth; x += 100) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvasHeight);
+        ctx.stroke();
+      }
+      for (let y = 0; y < canvasHeight; y += 100) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvasWidth, y);
+        ctx.stroke();
+      }
+      
+      // Add border
+      ctx.strokeStyle = '#9ca3af';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+      
+      // Add file info in title block (bottom right)
+      const titleBlockWidth = 200;
+      const titleBlockHeight = 60;
+      const titleX = canvasWidth - titleBlockWidth - 10;
+      const titleY = canvasHeight - titleBlockHeight - 10;
+      
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      ctx.fillRect(titleX, titleY, titleBlockWidth, titleBlockHeight);
+      ctx.strokeStyle = '#6b7280';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(titleX, titleY, titleBlockWidth, titleBlockHeight);
+      
+      // Add file information
+      ctx.fillStyle = '#374151';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText('BASE LAYER:', titleX + 8, titleY + 18);
+      
+      ctx.font = '11px Arial';
+      const filename = file.name.length > 20 ? file.name.substring(0, 17) + '...' : file.name;
+      ctx.fillText(filename, titleX + 8, titleY + 35);
+      
+      const fileType = file.type === 'application/pdf' ? 'PDF' : 
+                      file.name.toLowerCase().endsWith('.dwg') ? 'DWG' :
+                      file.name.toLowerCase().endsWith('.dxf') ? 'DXF' : 'IMAGE';
+      ctx.fillText(`Type: ${fileType}`, titleX + 8, titleY + 50);
+      
+      // Add architectural symbols in corners
+      ctx.font = '16px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#9ca3af';
+      
+      // North arrow (top left)
+      ctx.fillText('N', 30, 25);
+      ctx.beginPath();
+      ctx.moveTo(30, 10);
+      ctx.lineTo(35, 20);
+      ctx.lineTo(30, 15);
+      ctx.lineTo(25, 20);
+      ctx.closePath();
+      ctx.fill();
+    }
     
-    const text = new fabric.Text(`${icon} ${fileType}: ${file.name}\n\nReady for Drawing!\nDraw rooms and shapes over this base layer`, {
-      left: canvasWidth / 2,
-      top: canvasHeight / 2,
-      originX: 'center',
-      originY: 'center',
-      fontSize: 16,
-      fill: color,
-      textAlign: 'center',
-      fontFamily: 'Arial, sans-serif',
-      selectable: false,
-      evented: false,
-      backgroundColor: 'rgba(255, 255, 255, 0.9)',
-      padding: 15,
-    });
-    
-    // Add construction corner markers
-    const cornerSize = 20;
-    const corners = [
-      { x: 20, y: 20 },
-      { x: canvasWidth - 40, y: 20 },
-      { x: 20, y: canvasHeight - 40 },
-      { x: canvasWidth - 40, y: canvasHeight - 40 }
-    ];
-    
-    corners.forEach(corner => {
-      const marker = new fabric.Rect({
-        left: corner.x,
-        top: corner.y,
-        width: cornerSize,
-        height: cornerSize,
-        fill: 'transparent',
-        stroke: color,
-        strokeWidth: 2,
+    // Convert to fabric image and add to canvas
+    const dataUrl = backgroundCanvas.toDataURL();
+    fabric.Image.fromURL(dataUrl, (img) => {
+      img.set({
+        left: 0,
+        top: 0,
         selectable: false,
         evented: false,
+        opacity: 0.8,
       });
-      this.canvas.add(marker);
+      
+      this.backgroundImage = img;
+      this.canvas.add(img);
+      this.canvas.sendToBack(img);
+      this.canvas.renderAll();
+      
+      console.log('Visual background layer created successfully');
     });
-    
-    // Add elements to canvas
-    this.canvas.add(placeholder);
-    this.canvas.add(text);
-    
-    this.canvas.renderAll();
-    this.backgroundImage = placeholder;
-    
-    console.log('Enhanced CAD/PDF placeholder created successfully');
   }
 
   private async loadImageFromDataUrl(dataUrl: string, filename: string): Promise<void> {

@@ -324,14 +324,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         size: file.size,
         dataUrl: file.mimetype === 'application/pdf' ? null : dataUrl,
         isPdf: file.mimetype === 'application/pdf',
-        isCAD: fileName.endsWith('.dwg') || fileName.endsWith('.dxf'),
+        isCAD: file.originalname.toLowerCase().endsWith('.dwg') || file.originalname.toLowerCase().endsWith('.dxf'),
         fileType: file.mimetype === 'application/pdf' ? 'PDF' : 
-                 fileName.endsWith('.dwg') ? 'DWG' : 
-                 fileName.endsWith('.dxf') ? 'DXF' : 'Image',
+                 file.originalname.toLowerCase().endsWith('.dwg') ? 'DWG' : 
+                 file.originalname.toLowerCase().endsWith('.dxf') ? 'DXF' : 'Image',
         message: file.mimetype === 'application/pdf' 
           ? 'PDF uploaded successfully - ready as base layer!'
-          : fileName.endsWith('.dwg') ? 'DWG CAD file uploaded successfully - ready as base layer!'
-          : fileName.endsWith('.dxf') ? 'DXF CAD file uploaded successfully - ready as base layer!'
+          : file.originalname.toLowerCase().endsWith('.dwg') ? 'DWG CAD file uploaded successfully - ready as base layer!'
+          : file.originalname.toLowerCase().endsWith('.dxf') ? 'DXF CAD file uploaded successfully - ready as base layer!'
           : 'Image uploaded successfully'
       });
 
