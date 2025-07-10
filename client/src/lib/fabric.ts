@@ -271,6 +271,7 @@ export class CanvasManager {
       // Handle PDFs with placeholder for now
       if (result.isPdf) {
         this.loadPDFAsBackground(file);
+        console.log('PDF placeholder created successfully');
         return;
       }
       
@@ -391,10 +392,10 @@ export class CanvasManager {
     const canvasHeight = this.canvas.getHeight();
     
     const placeholder = new fabric.Rect({
-      left: 0,
-      top: 0,
-      width: canvasWidth,
-      height: canvasHeight,
+      left: 10,
+      top: 10,
+      width: canvasWidth - 20,
+      height: canvasHeight - 20,
       fill: 'rgba(59, 130, 246, 0.1)',
       stroke: '#3B82F6',
       strokeWidth: 2,
@@ -419,16 +420,15 @@ export class CanvasManager {
       this.canvas.remove(this.backgroundImage);
     }
     
-    // Group the placeholder and text
-    const group = new fabric.Group([placeholder, text], {
-      selectable: false,
-      evented: false,
-    });
-    
-    this.backgroundImage = group;
-    this.canvas.add(group);
-    this.canvas.sendToBack(group);
+    // Add elements individually instead of grouping
+    this.canvas.add(placeholder);
+    this.canvas.add(text);
+    this.canvas.sendToBack(placeholder);
+    this.canvas.sendToBack(text);
     this.canvas.renderAll();
+    
+    // Store reference to placeholder for removal
+    this.backgroundImage = placeholder;
     
     console.log('PDF placeholder created successfully');
   }
