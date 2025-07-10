@@ -271,8 +271,8 @@ export class CanvasManager {
       // Handle PDFs with placeholder for now
       if (result.isPdf) {
         console.log('Processing PDF file, creating placeholder...');
-        await this.loadPDFAsBackground(file);
-        return;
+        this.loadPDFAsBackground(file);
+        return; // Exit successfully for PDFs
       }
       
       // Handle regular images with server-processed data
@@ -283,8 +283,17 @@ export class CanvasManager {
       }
       
     } catch (error) {
-      console.error('Server upload failed, falling back to client processing:', error);
-      // Fallback to client-side processing
+      console.error('Server upload failed:', error);
+      
+      // Handle PDF files differently - always create placeholder
+      if (file.type === 'application/pdf') {
+        console.log('Creating PDF placeholder after server error...');
+        this.loadPDFAsBackground(file);
+        return;
+      }
+      
+      // For images, try client-side fallback
+      console.log('Attempting client-side fallback for image...');
       try {
         await this.loadImageClientSide(file);
       } catch (clientError) {
@@ -390,7 +399,7 @@ export class CanvasManager {
     });
   }
 
-  private async loadPDFAsBackground(file: File): Promise<void> {
+  private loadPDFAsBackground(file: File): void {
     console.log('Creating PDF placeholder for:', file.name);
     
     // Remove existing background
@@ -405,67 +414,53 @@ export class CanvasManager {
     
     console.log('Canvas dimensions:', canvasWidth, 'x', canvasHeight);
     
-    // Create a placeholder rectangle
+    // Create a visible placeholder rectangle
     const placeholder = new fabric.Rect({
       left: 20,
       top: 20,
       width: canvasWidth - 40,
       height: canvasHeight - 40,
-      fill: 'rgba(59, 130, 246, 0.15)',
+      fill: 'rgba(59, 130, 246, 0.2)',
       stroke: '#3B82F6',
-      strokeWidth: 3,
+      strokeWidth: 4,
       strokeDashArray: [15, 15],
       selectable: false,
       evented: false,
-      opacity: 0.8
     });
     
     // Create text with PDF info
-    const text = new fabric.Text(`📄 PDF Background\n${file.name}\n\nSuccessfully uploaded!\nFull PDF rendering coming soon...`, {
+    const text = new fabric.Text(`📄 PDF: ${file.name}\n\nSuccessfully uploaded!\nFull PDF rendering coming soon...`, {
       left: canvasWidth / 2,
       top: canvasHeight / 2,
       originX: 'center',
       originY: 'center',
-      fontSize: 16,
+      fontSize: 18,
       fill: '#1E40AF',
       textAlign: 'center',
       fontFamily: 'Arial, sans-serif',
       fontWeight: 'bold',
       selectable: false,
       evented: false,
-      backgroundColor: 'rgba(255, 255, 255, 0.9)',
-      padding: 10
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      padding: 15
     });
     
-    console.log('Adding placeholder to canvas...');
+    console.log('Adding placeholder elements to canvas...');
     
-    // Add elements to canvas
+    // Add placeholder first
     this.canvas.add(placeholder);
+    this.canvas.sendToBack(placeholder);
+    
+    // Add text on top
     this.canvas.add(text);
     
-    // Send to back so rooms can be drawn on top
-    this.canvas.sendToBack(placeholder);
-    this.canvas.sendToBack(text);
-    
-    // Force canvas to render
+    // Force render
     this.canvas.renderAll();
     
-    // Store both elements as background (store the group)
-    const group = new fabric.Group([placeholder, text], {
-      selectable: false,
-      evented: false,
-    });
+    // Store placeholder as background reference
+    this.backgroundImage = placeholder;
     
-    // Replace individual elements with grouped version
-    this.canvas.remove(placeholder);
-    this.canvas.remove(text);
-    this.canvas.add(group);
-    this.canvas.sendToBack(group);
-    this.canvas.renderAll();
-    
-    this.backgroundImage = group;
-    
-    console.log('PDF placeholder created and rendered successfully');
+    console.log('PDF placeholder created and displayed successfully');
   }
 
   public removeBackgroundImage(): void {
