@@ -55,6 +55,7 @@ export const Canvas = forwardRef<
   const [selectedShape, setSelectedShape] = useState<ShapeType>(propSelectedShape || "rectangle");
   const [hasBackground, setHasBackground] = useState(propHasBackground || false);
   const [backgroundOpacity, setBackgroundOpacity] = useState(propBackgroundOpacity || 0.7);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   useEffect(() => {
     if (canvasRef.current && !canvasManagerRef.current) {
@@ -173,6 +174,46 @@ export const Canvas = forwardRef<
     }
   };
 
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length === 0) return;
+
+    const file = files[0];
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml', 'application/pdf'];
+    const validExtensions = ['.dwg', '.dxf'];
+    
+    const isValidType = validTypes.includes(file.type);
+    const isValidExtension = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+
+    if (!isValidType && !isValidExtension) {
+      console.error('Invalid file type:', file.type, file.name);
+      return;
+    }
+
+    try {
+      await handleBackgroundUpload(file);
+    } catch (error) {
+      console.error('Drag and drop upload failed:', error);
+    }
+  };
+
   const handleBackgroundRemove = () => {
     if (canvasManagerRef.current) {
       canvasManagerRef.current.removeBackgroundImage();
@@ -204,11 +245,27 @@ export const Canvas = forwardRef<
       </CardHeader>
       
       <CardContent className="p-6">
-        {/* Canvas Container */}
+        {/* Canvas Container with Drag and Drop */}
         <div 
           className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 relative overflow-hidden mb-4"
           style={{ height: "500px" }}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
         >
+          {/* Drag and Drop Overlay */}
+          {isDragOver && (
+            <div className="absolute inset-0 bg-blue-600 bg-opacity-20 border-4 border-dashed border-blue-400 z-50 flex items-center justify-center">
+              <div className="text-center p-8 bg-white rounded-lg shadow-lg border-2 border-blue-400">
+                <div className="text-4xl text-blue-600 mb-4">📁</div>
+                <h3 className="text-xl font-semibold text-blue-800 mb-2">Drop Base Layer Here</h3>
+                <p className="text-blue-600">
+                  Supports: PDF, Images, CAD files (.dwg, .dxf)
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Canvas grid is now handled by fabric-enhanced.ts */}
           
           {/* Fabric.js Canvas */}

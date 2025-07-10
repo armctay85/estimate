@@ -234,7 +234,7 @@ export function ShapeSelector({
           <p><strong>Rectangle/Circle/Polygon:</strong> Click "Add Room" to create</p>
           <p><strong>Line:</strong> Click "Add Room" to create straight lines</p>
           <p><strong>Freehand:</strong> Click and drag to draw custom shapes</p>
-          <p><strong>Background:</strong> Upload PDF or image to trace over</p>
+          <p><strong>Background:</strong> Upload or drag & drop PDF/Image/CAD files</p>
         </div>
       </CardContent>
     </Card>

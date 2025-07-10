@@ -648,6 +648,10 @@ export class CanvasManager {
   }
 
   public dispose() {
-    this.canvas.dispose();
+    try {
+      this.canvas.dispose();
+    } catch (error) {
+      console.warn('Canvas disposal error:', error);
+    }
   }
 }
