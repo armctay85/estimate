@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import { CanvasManager, type RoomData, type ShapeType } from "@/lib/fabric";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +28,10 @@ interface CanvasProps {
   backgroundOpacity?: number;
 }
 
-export function Canvas({ 
+export const Canvas = forwardRef<
+  { uploadBackground: (file: File) => void },
+  CanvasProps
+>(function Canvas({ 
   selectedMaterial, 
   onRoomsChange, 
   onRoomSelect, 
@@ -39,7 +42,7 @@ export function Canvas({
   onBackgroundOpacity: propOnBackgroundOpacity,
   hasBackground: propHasBackground,
   backgroundOpacity: propBackgroundOpacity
-}: CanvasProps) {
+}, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const canvasManagerRef = useRef<CanvasManager | null>(null);
   const [showGrid, setShowGrid] = useState(true);
@@ -50,6 +53,7 @@ export function Canvas({
 
   useEffect(() => {
     if (canvasRef.current && !canvasManagerRef.current) {
+      console.log('Canvas: Initializing CanvasManager');
       canvasManagerRef.current = new CanvasManager(canvasRef.current);
       canvasManagerRef.current.onRoomsChangeCallback((rooms) => {
         onRoomsChange(rooms);
@@ -77,6 +81,24 @@ export function Canvas({
       canvasManagerRef.current.setCurrentShape(selectedShape);
     }
   }, [selectedShape]);
+
+  // Sync with prop values
+  useEffect(() => {
+    if (propSelectedShape !== undefined) setSelectedShape(propSelectedShape);
+  }, [propSelectedShape]);
+
+  useEffect(() => {
+    if (propHasBackground !== undefined) setHasBackground(propHasBackground);
+  }, [propHasBackground]);
+
+  useEffect(() => {
+    if (propBackgroundOpacity !== undefined) setBackgroundOpacity(propBackgroundOpacity);
+  }, [propBackgroundOpacity]);
+
+  // Expose methods via ref
+  useImperativeHandle(ref, () => ({
+    uploadBackground: handleBackgroundUpload
+  }), []);
 
   const handleAddRoom = () => {
     if (canvasManagerRef.current) {
@@ -250,4 +272,4 @@ export function Canvas({
       </CardContent>
     </Card>
   );
-}
+});

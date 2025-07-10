@@ -50,7 +50,10 @@ export function ShapeSelector({
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      console.log('ShapeSelector: File selected:', file.name, file.type);
       onBackgroundUpload(file);
+    } else {
+      console.log('ShapeSelector: No file selected');
     }
   };
 

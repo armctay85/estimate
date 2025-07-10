@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 // import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -38,6 +38,7 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const canvasRef = useRef<{ uploadBackground: (file: File) => void } | null>(null);
 
   // Project state
   const [projectName, setProjectName] = useState("New Renovation");
@@ -132,8 +133,13 @@ export default function Home() {
   };
 
   const handleBackgroundUpload = async (file: File) => {
-    // File is handled by Canvas component, we just update state
-    setHasBackground(true);
+    console.log('Home: handleBackgroundUpload called with file:', file.name);
+    if (canvasRef.current) {
+      canvasRef.current.uploadBackground(file);
+      setHasBackground(true);
+    } else {
+      console.error('Canvas ref not available');
+    }
   };
 
   const handleBackgroundRemove = () => {
@@ -229,6 +235,7 @@ export default function Home() {
           {/* Main Canvas Area */}
           <div className="lg:col-span-2">
             <Canvas
+              ref={canvasRef}
               selectedMaterial={selectedMaterial}
               onRoomsChange={handleRoomsChange}
               onRoomSelect={handleRoomSelect}

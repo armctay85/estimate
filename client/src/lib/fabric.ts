@@ -36,6 +36,7 @@ export class CanvasManager {
       enableRetinaScaling: true,
     });
 
+    console.log('CanvasManager: Canvas initialized with dimensions:', this.canvas.getWidth(), 'x', this.canvas.getHeight());
     this.setupEventListeners();
     this.setupDrawingEvents();
   }
