@@ -22,12 +22,14 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+    <div className="min-h-screen bg-gray-50">
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
           <Toaster />
           <Router />
-      </TooltipProvider>
-    </QueryClientProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </div>
   );
 }
 

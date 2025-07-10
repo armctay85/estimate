@@ -1,4 +1,4 @@
-import { useAuth } from "@/hooks/use-auth";
+// import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,7 +12,10 @@ import { Compass, Crown, ChevronDown, LogOut, Settings } from "lucide-react";
 import { useLocation } from "wouter";
 
 export function Header() {
-  const { user, logout } = useAuth();
+  // Bypass auth for demo mode
+  const user = null;
+  const logout = () => {};
+  // const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
 
   const getSubscriptionBadge = () => {

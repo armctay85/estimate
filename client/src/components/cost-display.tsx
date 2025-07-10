@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { type RoomData } from "@/lib/fabric";
 import { MATERIALS } from "@shared/schema";
 import { FileText, FileSpreadsheet, Share, Crown } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
+// import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 
 interface CostDisplayProps {
@@ -14,7 +14,9 @@ interface CostDisplayProps {
 }
 
 export function CostDisplay({ rooms, totalCost }: CostDisplayProps) {
-  const { user } = useAuth();
+  // Bypass auth for demo mode  
+  const user = null;
+  // const { user } = useAuth();
   const [, setLocation] = useLocation();
 
   const formatCurrency = (amount: number) => {

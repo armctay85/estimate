@@ -135,9 +135,10 @@ export default function Home() {
     );
   }
 
-  if (!user) {
-    return null; // Will redirect in useEffect
-  }
+  // Skip auth check for demo mode
+  // if (!user) {
+  //   return null; // Will redirect in useEffect
+  // }
 
   return (
     <div className="min-h-screen bg-background">
