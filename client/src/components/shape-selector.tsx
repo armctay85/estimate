@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { type ShapeType } from "@/lib/fabric";
+import { type ShapeType } from "@/lib/fabric-enhanced";
 import { 
   Square, 
   Circle, 

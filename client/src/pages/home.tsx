@@ -8,7 +8,8 @@ import { Header } from "@/components/header";
 import { Sidebar, SidebarHeader, SidebarContent, SidebarSection } from "@/components/ui/sidebar";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type { MaterialType, ShapeType, RoomData } from "@/lib/fabric";
+import type { MaterialType } from "@shared/schema";
+import type { ShapeType, RoomData } from "@/lib/fabric-enhanced";
 
 export default function Home() {
   const [selectedMaterial, setSelectedMaterial] = useState<MaterialType>("timber");

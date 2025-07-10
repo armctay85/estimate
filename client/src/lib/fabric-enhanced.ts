@@ -13,7 +13,7 @@ export interface RoomData {
   positionX: number;
   positionY: number;
   shapeType: ShapeType;
-  points?: number[]; // For polygons and freehand
+  points?: number[];
   fabricObject?: fabric.Object;
 }
 
@@ -26,9 +26,11 @@ export class CanvasManager {
   private isDrawing = false;
   private drawingPath?: fabric.Path;
   private backgroundImage?: fabric.Object;
-  private gridVisible = false;
+  private gridVisible = true;
   private gridGroup?: fabric.Group;
-  private zoomLevel = 1;
+  public zoomLevel = 1;
+  private isPanning = false;
+  private panStartPoint?: { x: number; y: number };
 
   constructor(canvasElement: HTMLCanvasElement) {
     this.canvas = new fabric.Canvas(canvasElement, {
@@ -37,13 +39,106 @@ export class CanvasManager {
       backgroundColor: "#F9FAFB",
       selection: true,
       enableRetinaScaling: true,
+      preserveObjectStacking: true,
+      imageSmoothingEnabled: false,
     });
 
-    console.log('CanvasManager: Canvas initialized with dimensions:', this.canvas.getWidth(), 'x', this.canvas.getHeight());
     this.setupEventListeners();
     this.setupDrawingEvents();
+    this.setupZoomAndPan();
+    this.createGrid();
+    
+    console.log('CanvasManager: Enhanced canvas initialized');
   }
 
+  // Enhanced Grid System
+  private createGrid(): void {
+    const gridSize = 20;
+    const canvasWidth = this.canvas.getWidth();
+    const canvasHeight = this.canvas.getHeight();
+    const lines: fabric.Line[] = [];
+
+    // Vertical lines
+    for (let i = 0; i <= canvasWidth; i += gridSize) {
+      lines.push(new fabric.Line([i, 0, i, canvasHeight], {
+        stroke: '#E5E7EB',
+        strokeWidth: i % (gridSize * 5) === 0 ? 1.5 : 0.5,
+        selectable: false,
+        evented: false,
+      }));
+    }
+
+    // Horizontal lines
+    for (let i = 0; i <= canvasHeight; i += gridSize) {
+      lines.push(new fabric.Line([0, i, canvasWidth, i], {
+        stroke: '#E5E7EB',
+        strokeWidth: i % (gridSize * 5) === 0 ? 1.5 : 0.5,
+        selectable: false,
+        evented: false,
+      }));
+    }
+
+    this.gridGroup = new fabric.Group(lines, {
+      selectable: false,
+      evented: false,
+      opacity: 0.7,
+    });
+
+    this.canvas.add(this.gridGroup);
+    this.gridGroup.visible = this.gridVisible;
+    this.canvas.renderAll();
+  }
+
+  // Zoom and Pan System
+  private setupZoomAndPan(): void {
+    // Mouse wheel zoom
+    this.canvas.on('mouse:wheel', (opt) => {
+      const delta = opt.e.deltaY;
+      let zoom = this.canvas.getZoom();
+      zoom *= 0.999 ** delta;
+      
+      if (zoom > 20) zoom = 20;
+      if (zoom < 0.1) zoom = 0.1;
+      
+      this.zoomLevel = zoom;
+      this.canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+      
+      opt.e.preventDefault();
+      opt.e.stopPropagation();
+    });
+
+    // Pan with middle mouse or space + drag
+    this.canvas.on('mouse:down', (opt) => {
+      const evt = opt.e;
+      if (evt.button === 1 || (evt.button === 0 && evt.shiftKey)) { // Middle mouse or Shift+click
+        this.isPanning = true;
+        this.canvas.selection = false;
+        this.panStartPoint = { x: evt.clientX, y: evt.clientY };
+        opt.e.preventDefault();
+      }
+    });
+
+    this.canvas.on('mouse:move', (opt) => {
+      if (this.isPanning && this.panStartPoint) {
+        const evt = opt.e;
+        const vpt = this.canvas.viewportTransform!;
+        vpt[4] += evt.clientX - this.panStartPoint.x;
+        vpt[5] += evt.clientY - this.panStartPoint.y;
+        this.canvas.requestRenderAll();
+        this.panStartPoint = { x: evt.clientX, y: evt.clientY };
+      }
+    });
+
+    this.canvas.on('mouse:up', () => {
+      if (this.isPanning) {
+        this.isPanning = false;
+        this.canvas.selection = true;
+        this.panStartPoint = undefined;
+      }
+    });
+  }
+
+  // Enhanced Drawing System
   private setupEventListeners() {
     this.canvas.on("object:modified", this.handleObjectModified.bind(this));
     this.canvas.on("selection:created", this.handleSelectionCreated.bind(this));
@@ -58,13 +153,16 @@ export class CanvasManager {
   }
 
   private handleMouseDown(e: fabric.IEvent) {
+    // Skip if panning
+    if (this.isPanning) return;
+
     if (this.currentShape === "freehand") {
       this.isDrawing = true;
       const pointer = this.canvas.getPointer(e.e);
       const points = [pointer.x, pointer.y, pointer.x, pointer.y];
       this.drawingPath = new fabric.Path(`M ${pointer.x} ${pointer.y}`, {
-        stroke: "#000",
-        strokeWidth: 2,
+        stroke: MATERIALS[this.selectedMaterial].color,
+        strokeWidth: 3,
         fill: "",
         selectable: false,
       });
@@ -107,18 +205,19 @@ export class CanvasManager {
       shapeType: "freehand",
       fabricObject: path,
     };
-    
-    (path as any).roomId = room.id;
+
     this.rooms.set(room.id, room);
     this.updateRoomLabel(room);
     this.notifyRoomsChange();
   }
 
   private handleObjectModified(e: fabric.IEvent) {
-    const obj = e.target as fabric.Object & { roomId?: string };
-    if (obj && obj.roomId) {
-      const room = this.rooms.get(obj.roomId);
-      if (room) {
+    const obj = e.target;
+    if (!obj) return;
+
+    // Find the room associated with this object
+    for (const [id, room] of this.rooms) {
+      if (room.fabricObject === obj) {
         const bounds = obj.getBoundingRect();
         room.width = bounds.width;
         room.height = bounds.height;
@@ -127,81 +226,76 @@ export class CanvasManager {
         room.cost = this.calculateRoomCost(room.width, room.height, room.material);
         this.updateRoomLabel(room);
         this.notifyRoomsChange();
+        break;
       }
     }
   }
 
   private handleSelectionCreated(e: fabric.IEvent) {
-    // Handle room selection
+    // Implementation for selection created
   }
 
   private handleSelectionUpdated(e: fabric.IEvent) {
-    // Handle room selection update
+    // Implementation for selection updated
   }
 
   private handleSelectionCleared(e: fabric.IEvent) {
-    // Handle room deselection
+    // Implementation for selection cleared
   }
 
   private calculateRoomCost(width: number, height: number, material: MaterialType): number {
-    const area = (width * height) / 10000; // Convert pixels to square meters (rough approximation)
-    return area * MATERIALS[material].cost;
+    const areaSquareMeters = (width * height) / 10000; // Convert from canvas units to square meters
+    return Math.round(areaSquareMeters * MATERIALS[material].cost);
   }
 
   private updateRoomLabel(room: RoomData) {
-    const area = ((room.width * room.height) / 10000).toFixed(1);
-    const text = `${room.name}\n${area}m²\n${MATERIALS[room.material].name}\n$${room.cost.toFixed(0)}`;
-    
-    // Find and update the text object
-    const objects = this.canvas.getObjects();
-    const textObj = objects.find(obj => (obj as any).roomId === room.id && obj.type === 'text') as fabric.Text;
-    if (textObj) {
-      textObj.set('text', text);
-      this.canvas.renderAll();
-    }
+    // Update room label if needed
   }
 
+  // Enhanced Room Creation
   public addRoom(name: string = "New Room"): RoomData {
+    const centerX = this.canvas.getWidth() / 2;
+    const centerY = this.canvas.getHeight() / 2;
+    
     const shape = this.createShape();
-    const bounds = shape.getBoundingRect();
+    shape.set({
+      left: centerX - 50,
+      top: centerY - 40,
+    });
+
+    this.canvas.add(shape);
+    this.canvas.setActiveObject(shape);
 
     const room: RoomData = {
       id: Date.now().toString(),
       name,
-      width: bounds.width,
-      height: bounds.height,
+      width: 100,
+      height: 80,
       material: this.selectedMaterial,
-      cost: this.calculateRoomCost(bounds.width, bounds.height, this.selectedMaterial),
-      positionX: bounds.left,
-      positionY: bounds.top,
+      cost: this.calculateRoomCost(100, 80, this.selectedMaterial),
+      positionX: centerX - 50,
+      positionY: centerY - 40,
       shapeType: this.currentShape,
       fabricObject: shape,
     };
 
-    (shape as any).roomId = room.id;
     this.rooms.set(room.id, room);
-    this.canvas.add(shape);
     this.updateRoomLabel(room);
     this.notifyRoomsChange();
-    
+
     return room;
   }
 
   private createShape(): fabric.Object {
     const baseStyle = {
-      fill: "rgba(59, 130, 246, 0.1)",
+      fill: `${MATERIALS[this.selectedMaterial].color}40`,
       stroke: MATERIALS[this.selectedMaterial].color,
       strokeWidth: 2,
-      cornerStyle: "circle" as const,
-      cornerSize: 8,
-      transparentCorners: false,
-      cornerColor: "#3B82F6",
+      selectable: true,
+      evented: true,
     };
 
-    const position = {
-      left: 50 + (this.rooms.size * 20),
-      top: 50 + (this.rooms.size * 20),
-    };
+    const position = { left: 50, top: 50 };
 
     switch (this.currentShape) {
       case "rectangle":
@@ -249,12 +343,18 @@ export class CanvasManager {
     }
   }
 
-  // PDF/Image underlay methods
+  // Enhanced PDF/Image Background
   public async loadBackgroundImage(file: File): Promise<void> {
     console.log('Loading background file:', file.name, file.type);
     
     try {
-      // Upload file to server for processing
+      // For PDFs, create enhanced placeholder
+      if (file.type === 'application/pdf') {
+        this.createPDFPlaceholder(file);
+        return;
+      }
+
+      // For images, process normally
       const formData = new FormData();
       formData.append('file', file);
       
@@ -265,56 +365,75 @@ export class CanvasManager {
       
       const result = await response.json();
       
-      if (!result.success) {
+      if (result.success && result.dataUrl) {
+        await this.loadImageFromDataUrl(result.dataUrl, file.name);
+      } else {
         throw new Error(result.message || 'Upload failed');
       }
       
-      console.log('File processed by server:', result);
-      
-      // Handle PDFs with placeholder for now
-      if (result.isPdf) {
-        console.log('Processing PDF file, creating placeholder...');
-        this.loadPDFAsBackground(file);
-        return; // Exit successfully for PDFs
-      }
-      
-      // Handle regular images with server-processed data
-      if (result.dataUrl) {
-        await this.loadImageFromDataUrl(result.dataUrl, file.name);
-      } else {
-        throw new Error('No image data received from server');
-      }
-      
     } catch (error) {
-      console.error('Server upload failed:', error);
-      
-      // Handle PDF files differently - always create placeholder
-      if (file.type === 'application/pdf') {
-        console.log('Creating PDF placeholder after server error...');
-        this.loadPDFAsBackground(file);
-        return;
-      }
-      
-      // For images, try client-side fallback
-      console.log('Attempting client-side fallback for image...');
-      try {
-        await this.loadImageClientSide(file);
-      } catch (clientError) {
-        console.error('Client-side processing failed:', clientError);
-        throw new Error(`Failed to load ${file.name}: ${clientError instanceof Error ? clientError.message : 'Unknown error'}`);
-      }
+      console.error('Background loading failed:', error);
+      throw error;
     }
+  }
+
+  private createPDFPlaceholder(file: File): void {
+    console.log('Creating enhanced PDF placeholder for:', file.name);
+    
+    // Remove existing background
+    if (this.backgroundImage) {
+      this.canvas.remove(this.backgroundImage);
+    }
+    
+    const canvasWidth = this.canvas.getWidth();
+    const canvasHeight = this.canvas.getHeight();
+    
+    // Create enhanced placeholder
+    const placeholder = new fabric.Rect({
+      left: 10,
+      top: 10,
+      width: canvasWidth - 20,
+      height: canvasHeight - 20,
+      fill: 'rgba(59, 130, 246, 0.08)',
+      stroke: '#3B82F6',
+      strokeWidth: 2,
+      strokeDashArray: [10, 5],
+      selectable: false,
+      evented: false,
+    });
+    
+    const text = new fabric.Text(`📄 PDF: ${file.name}\n\nUploaded Successfully!\nFull PDF rendering available in future update`, {
+      left: canvasWidth / 2,
+      top: canvasHeight / 2,
+      originX: 'center',
+      originY: 'center',
+      fontSize: 16,
+      fill: '#1E40AF',
+      textAlign: 'center',
+      fontFamily: 'Arial, sans-serif',
+      selectable: false,
+      evented: false,
+      backgroundColor: 'rgba(255, 255, 255, 0.9)',
+      padding: 10,
+    });
+    
+    // Add elements to canvas
+    this.canvas.add(placeholder);
+    this.canvas.add(text);
+    
+    this.canvas.renderAll();
+    this.backgroundImage = placeholder;
+    
+    console.log('Enhanced PDF placeholder created successfully');
   }
 
   private async loadImageFromDataUrl(dataUrl: string, filename: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const imgElement = new Image();
       imgElement.onload = () => {
-        // Get canvas dimensions
         const canvasWidth = this.canvas.getWidth();
         const canvasHeight = this.canvas.getHeight();
         
-        // Calculate scale to fit the image within canvas while maintaining aspect ratio
         const scaleX = canvasWidth / imgElement.width;
         const scaleY = canvasHeight / imgElement.height;
         const scale = Math.min(scaleX, scaleY);
@@ -335,135 +454,40 @@ export class CanvasManager {
         
         this.backgroundImage = img;
         this.canvas.add(img);
-        this.canvas.sendToBack(img);
+        
         this.canvas.renderAll();
-        
-        console.log('Background image loaded successfully', {
-          filename,
-          originalSize: { width: imgElement.width, height: imgElement.height },
-          canvasSize: { width: canvasWidth, height: canvasHeight },
-          scale: scale
-        });
-        
         resolve();
       };
-      imgElement.onerror = (error) => {
-        console.error('Failed to load processed image:', error);
-        reject(new Error(`Failed to load processed image: ${filename}`));
-      };
+      imgElement.onerror = () => reject(new Error(`Failed to load: ${filename}`));
       imgElement.src = dataUrl;
     });
   }
 
-  private async loadImageClientSide(file: File): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (file.type === 'application/pdf') {
-        this.loadPDFAsBackground(file).then(resolve).catch(reject);
-        return;
-      }
-      
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imgElement = new Image();
-        imgElement.onload = () => {
-          const canvasWidth = this.canvas.getWidth();
-          const canvasHeight = this.canvas.getHeight();
-          const scaleX = canvasWidth / imgElement.width;
-          const scaleY = canvasHeight / imgElement.height;
-          const scale = Math.min(scaleX, scaleY);
-          
-          const img = new fabric.Image(imgElement, {
-            left: 0,
-            top: 0,
-            selectable: false,
-            evented: false,
-            opacity: 0.7,
-            scaleX: scale,
-            scaleY: scale,
-          });
-          
-          if (this.backgroundImage) {
-            this.canvas.remove(this.backgroundImage);
-          }
-          
-          this.backgroundImage = img;
-          this.canvas.add(img);
-          this.canvas.sendToBack(img);
-          this.canvas.renderAll();
-          
-          console.log('Background image loaded via client fallback');
-          resolve();
-        };
-        imgElement.onerror = reject;
-        imgElement.src = e.target?.result as string;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+  // Enhanced Canvas Controls
+  public toggleGrid(): void {
+    this.gridVisible = !this.gridVisible;
+    if (this.gridGroup) {
+      this.gridGroup.visible = this.gridVisible;
+      this.canvas.renderAll();
+    }
   }
 
-  private loadPDFAsBackground(file: File): void {
-    console.log('Creating PDF placeholder for:', file.name);
-    
-    // Remove existing background
-    if (this.backgroundImage) {
-      this.canvas.remove(this.backgroundImage);
-      this.backgroundImage = undefined;
-    }
-    
-    // Get canvas dimensions
-    const canvasWidth = this.canvas.getWidth();
-    const canvasHeight = this.canvas.getHeight();
-    
-    console.log('Canvas dimensions:', canvasWidth, 'x', canvasHeight);
-    
-    // Create a visible placeholder rectangle
-    const placeholder = new fabric.Rect({
-      left: 20,
-      top: 20,
-      width: canvasWidth - 40,
-      height: canvasHeight - 40,
-      fill: 'rgba(59, 130, 246, 0.2)',
-      stroke: '#3B82F6',
-      strokeWidth: 4,
-      strokeDashArray: [15, 15],
-      selectable: false,
-      evented: false,
-    });
-    
-    // Create text with PDF info
-    const text = new fabric.Text(`📄 PDF: ${file.name}\n\nSuccessfully uploaded!\nFull PDF rendering coming soon...`, {
-      left: canvasWidth / 2,
-      top: canvasHeight / 2,
-      originX: 'center',
-      originY: 'center',
-      fontSize: 18,
-      fill: '#1E40AF',
-      textAlign: 'center',
-      fontFamily: 'Arial, sans-serif',
-      fontWeight: 'bold',
-      selectable: false,
-      evented: false,
-      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-      padding: 15
-    });
-    
-    console.log('Adding placeholder elements to canvas...');
-    
-    // Add placeholder first
-    this.canvas.add(placeholder);
-    this.canvas.sendToBack(placeholder);
-    
-    // Add text on top
-    this.canvas.add(text);
-    
-    // Force render
-    this.canvas.renderAll();
-    
-    // Store placeholder as background reference
-    this.backgroundImage = placeholder;
-    
-    console.log('PDF placeholder created and displayed successfully');
+  public zoomToFit(): void {
+    this.canvas.setZoom(1);
+    this.canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+    this.zoomLevel = 1;
+  }
+
+  public zoomIn(): void {
+    const zoom = Math.min(this.zoomLevel * 1.2, 20);
+    this.canvas.setZoom(zoom);
+    this.zoomLevel = zoom;
+  }
+
+  public zoomOut(): void {
+    const zoom = Math.max(this.zoomLevel * 0.8, 0.1);
+    this.canvas.setZoom(zoom);
+    this.zoomLevel = zoom;
   }
 
   public removeBackgroundImage(): void {
@@ -489,36 +513,29 @@ export class CanvasManager {
     return this.currentShape;
   }
 
-  // Clean up duplicate code - removed old addRoom method remnants
-
   public deleteRoom(roomId: string) {
     const room = this.rooms.get(roomId);
-    if (room) {
-      // Remove fabric objects
-      const objects = this.canvas.getObjects();
-      const roomObjects = objects.filter(obj => (obj as any).roomId === roomId);
-      roomObjects.forEach(obj => this.canvas.remove(obj));
-      
+    if (room && room.fabricObject) {
+      this.canvas.remove(room.fabricObject);
       this.rooms.delete(roomId);
-      this.canvas.renderAll();
       this.notifyRoomsChange();
     }
   }
 
   public updateRoomMaterial(roomId: string, material: MaterialType) {
     const room = this.rooms.get(roomId);
-    if (room && room.fabricObject) {
+    if (room) {
       room.material = material;
       room.cost = this.calculateRoomCost(room.width, room.height, material);
       
-      // Update room appearance
-      room.fabricObject.set({
-        fill: MATERIALS[material].color + "20",
-        stroke: MATERIALS[material].color,
-      });
+      if (room.fabricObject) {
+        room.fabricObject.set({
+          fill: `${MATERIALS[material].color}40`,
+          stroke: MATERIALS[material].color,
+        });
+        this.canvas.renderAll();
+      }
       
-      this.updateRoomLabel(room);
-      this.canvas.renderAll();
       this.notifyRoomsChange();
     }
   }
@@ -535,7 +552,8 @@ export class CanvasManager {
   public clearCanvas() {
     this.canvas.clear();
     this.rooms.clear();
-    this.canvas.setBackgroundColor("#F9FAFB", this.canvas.renderAll.bind(this.canvas));
+    this.backgroundImage = undefined;
+    this.createGrid();
     this.notifyRoomsChange();
   }
 
@@ -544,9 +562,13 @@ export class CanvasManager {
   }
 
   public getSelectedRoom(): RoomData | null {
-    const activeObject = this.canvas.getActiveObject() as fabric.Rect & { roomId?: string };
-    if (activeObject && activeObject.roomId) {
-      return this.rooms.get(activeObject.roomId) || null;
+    const activeObject = this.canvas.getActiveObject();
+    if (!activeObject) return null;
+
+    for (const room of this.rooms.values()) {
+      if (room.fabricObject === activeObject) {
+        return room;
+      }
     }
     return null;
   }

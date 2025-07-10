@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
-import { CanvasManager, type RoomData, type ShapeType } from "@/lib/fabric";
+import { CanvasManager, type RoomData, type ShapeType } from "@/lib/fabric-enhanced";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -11,6 +11,10 @@ import {
   Save, 
   ZoomIn, 
   ZoomOut, 
+  Grid3X3,
+  Move,
+  RotateCcw,
+  Home,
   Info 
 } from "lucide-react";
 import { type MaterialType } from "@shared/schema";
@@ -47,6 +51,7 @@ export const Canvas = forwardRef<
   const canvasManagerRef = useRef<CanvasManager | null>(null);
   const [showGrid, setShowGrid] = useState(true);
   const [zoom, setZoom] = useState(100);
+  const [isPanning, setIsPanning] = useState(false);
   const [selectedShape, setSelectedShape] = useState<ShapeType>(propSelectedShape || "rectangle");
   const [hasBackground, setHasBackground] = useState(propHasBackground || false);
   const [backgroundOpacity, setBackgroundOpacity] = useState(propBackgroundOpacity || 0.7);
@@ -113,11 +118,31 @@ export const Canvas = forwardRef<
   };
 
   const handleZoomIn = () => {
-    setZoom(prev => Math.min(prev + 25, 200));
+    if (canvasManagerRef.current) {
+      canvasManagerRef.current.zoomIn();
+      setZoom(Math.round(canvasManagerRef.current.zoomLevel * 100));
+    }
   };
 
   const handleZoomOut = () => {
-    setZoom(prev => Math.max(prev - 25, 50));
+    if (canvasManagerRef.current) {
+      canvasManagerRef.current.zoomOut();
+      setZoom(Math.round(canvasManagerRef.current.zoomLevel * 100));
+    }
+  };
+
+  const handleZoomToFit = () => {
+    if (canvasManagerRef.current) {
+      canvasManagerRef.current.zoomToFit();
+      setZoom(100);
+    }
+  };
+
+  const handleToggleGrid = (checked: boolean) => {
+    if (canvasManagerRef.current) {
+      canvasManagerRef.current.toggleGrid();
+      setShowGrid(checked);
+    }
   };
 
   const handleShapeSelect = (shape: ShapeType) => {
@@ -181,19 +206,7 @@ export const Canvas = forwardRef<
           className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 relative overflow-hidden mb-4"
           style={{ height: "500px" }}
         >
-          {/* Grid Background */}
-          {showGrid && (
-            <div 
-              className="absolute inset-0 opacity-20"
-              style={{
-                backgroundImage: `
-                  linear-gradient(#d1d5db 1px, transparent 1px),
-                  linear-gradient(90deg, #d1d5db 1px, transparent 1px)
-                `,
-                backgroundSize: "20px 20px"
-              }}
-            />
-          )}
+          {/* Canvas grid is now handled by fabric-enhanced.ts */}
           
           {/* Fabric.js Canvas */}
           <canvas 
@@ -201,7 +214,7 @@ export const Canvas = forwardRef<
             width={800}
             height={500}
             className="absolute inset-0 cursor-crosshair"
-            style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
+            style={{ width: '100%', height: '100%' }}
           />
         </div>
 
@@ -254,13 +267,25 @@ export const Canvas = forwardRef<
               </Button>
             </div>
 
-            {/* Grid Toggle */}
+            {/* Enhanced Controls */}
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">Grid:</span>
-              <Switch
-                checked={showGrid}
-                onCheckedChange={setShowGrid}
-              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleZoomToFit}
+                title="Zoom to Fit"
+              >
+                <Home className="w-4 h-4" />
+              </Button>
+              
+              <Button
+                variant={showGrid ? "default" : "ghost"}
+                size="sm"
+                onClick={() => handleToggleGrid(!showGrid)}
+                title="Toggle Grid"
+              >
+                <Grid3X3 className="w-4 h-4" />
+              </Button>
             </div>
           </div>
 

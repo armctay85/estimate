@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { type RoomData } from "@/lib/fabric";
+import { type RoomData } from "@/lib/fabric-enhanced";
 import { MATERIALS } from "@shared/schema";
 import { FileText, FileSpreadsheet, Share, Crown } from "lucide-react";
 // import { useAuth } from "@/hooks/use-auth";
