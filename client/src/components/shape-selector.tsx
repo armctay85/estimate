@@ -109,7 +109,7 @@ export function ShapeSelector({
               type="file"
               ref={fileInputRef}
               onChange={handleFileUpload}
-              accept=".pdf,.jpg,.jpeg,.png,.svg"
+              accept=".jpg,.jpeg,.png,.svg,.pdf"
               className="hidden"
             />
             

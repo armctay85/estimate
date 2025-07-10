@@ -5,6 +5,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcryptjs";
 import Stripe from "stripe";
+import multer from "multer";
 import { storage } from "./storage";
 import { insertUserSchema, insertProjectSchema, insertRoomSchema, MATERIALS } from "@shared/schema";
 
@@ -29,6 +30,22 @@ declare global {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Configure multer for file uploads
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB limit
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedMimes = ['image/jpeg', 'image/png', 'image/svg+xml', 'application/pdf'];
+      if (allowedMimes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only JPG, PNG, SVG, and PDF files are allowed.'));
+      }
+    }
+  });
+
   // Session configuration
   app.use(session({
     secret: process.env.SESSION_SECRET || 'fallback-secret-key',
@@ -282,6 +299,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Materials route
   app.get('/api/materials', (req, res) => {
     res.json(MATERIALS);
+  });
+
+  // File upload route for background images
+  app.post('/api/upload-background', upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+      }
+
+      const file = req.file;
+      console.log('File uploaded:', file.originalname, file.mimetype, file.size);
+
+      // Convert file to base64 for client
+      const base64 = file.buffer.toString('base64');
+      const dataUrl = `data:${file.mimetype};base64,${base64}`;
+
+      // For PDF files, we'd normally convert to image here
+      // For now, return the file info and let client handle it
+      res.json({
+        success: true,
+        filename: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+        dataUrl: file.mimetype === 'application/pdf' ? null : dataUrl,
+        isPdf: file.mimetype === 'application/pdf',
+        message: file.mimetype === 'application/pdf' 
+          ? 'PDF uploaded successfully. Full PDF support coming soon!'
+          : 'Image uploaded successfully'
+      });
+
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      res.status(500).json({ 
+        message: 'Upload failed', 
+        error: error.message 
+      });
+    }
   });
 
   // Subscription routes

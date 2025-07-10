@@ -248,16 +248,109 @@ export class CanvasManager {
 
   // PDF/Image underlay methods
   public async loadBackgroundImage(file: File): Promise<void> {
+    console.log('Loading background file:', file.name, file.type);
+    
+    try {
+      // Upload file to server for processing
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch('/api/upload-background', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Upload failed');
+      }
+      
+      console.log('File processed by server:', result);
+      
+      // Handle PDFs with placeholder for now
+      if (result.isPdf) {
+        this.loadPDFAsBackground(file);
+        return;
+      }
+      
+      // Handle regular images with server-processed data
+      if (result.dataUrl) {
+        await this.loadImageFromDataUrl(result.dataUrl, file.name);
+      } else {
+        throw new Error('No image data received from server');
+      }
+      
+    } catch (error) {
+      console.error('Server upload failed, falling back to client processing:', error);
+      // Fallback to client-side processing
+      await this.loadImageClientSide(file);
+    }
+  }
+
+  private async loadImageFromDataUrl(dataUrl: string, filename: string): Promise<void> {
     return new Promise((resolve, reject) => {
+      const imgElement = new Image();
+      imgElement.onload = () => {
+        // Get canvas dimensions
+        const canvasWidth = this.canvas.getWidth();
+        const canvasHeight = this.canvas.getHeight();
+        
+        // Calculate scale to fit the image within canvas while maintaining aspect ratio
+        const scaleX = canvasWidth / imgElement.width;
+        const scaleY = canvasHeight / imgElement.height;
+        const scale = Math.min(scaleX, scaleY);
+        
+        const img = new fabric.Image(imgElement, {
+          left: 0,
+          top: 0,
+          selectable: false,
+          evented: false,
+          opacity: 0.7,
+          scaleX: scale,
+          scaleY: scale,
+        });
+        
+        if (this.backgroundImage) {
+          this.canvas.remove(this.backgroundImage);
+        }
+        
+        this.backgroundImage = img;
+        this.canvas.add(img);
+        this.canvas.sendToBack(img);
+        this.canvas.renderAll();
+        
+        console.log('Background image loaded successfully', {
+          filename,
+          originalSize: { width: imgElement.width, height: imgElement.height },
+          canvasSize: { width: canvasWidth, height: canvasHeight },
+          scale: scale
+        });
+        
+        resolve();
+      };
+      imgElement.onerror = (error) => {
+        console.error('Failed to load processed image:', error);
+        reject(new Error(`Failed to load processed image: ${filename}`));
+      };
+      imgElement.src = dataUrl;
+    });
+  }
+
+  private async loadImageClientSide(file: File): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (file.type === 'application/pdf') {
+        this.loadPDFAsBackground(file);
+        resolve();
+        return;
+      }
+      
       const reader = new FileReader();
       reader.onload = (e) => {
         const imgElement = new Image();
         imgElement.onload = () => {
-          // Get canvas dimensions
           const canvasWidth = this.canvas.getWidth();
           const canvasHeight = this.canvas.getHeight();
-          
-          // Calculate scale to fit the image within canvas while maintaining aspect ratio
           const scaleX = canvasWidth / imgElement.width;
           const scaleY = canvasHeight / imgElement.height;
           const scale = Math.min(scaleX, scaleY);
@@ -270,7 +363,6 @@ export class CanvasManager {
             opacity: 0.7,
             scaleX: scale,
             scaleY: scale,
-            crossOrigin: 'anonymous'
           });
           
           if (this.backgroundImage) {
@@ -282,26 +374,63 @@ export class CanvasManager {
           this.canvas.sendToBack(img);
           this.canvas.renderAll();
           
-          console.log('Background image loaded successfully', {
-            originalSize: { width: imgElement.width, height: imgElement.height },
-            canvasSize: { width: canvasWidth, height: canvasHeight },
-            scale: scale
-          });
-          
+          console.log('Background image loaded via client fallback');
           resolve();
         };
-        imgElement.onerror = (error) => {
-          console.error('Failed to load image:', error);
-          reject(error);
-        };
+        imgElement.onerror = reject;
         imgElement.src = e.target?.result as string;
       };
-      reader.onerror = (error) => {
-        console.error('Failed to read file:', error);
-        reject(error);
-      };
+      reader.onerror = reject;
       reader.readAsDataURL(file);
     });
+  }
+
+  private loadPDFAsBackground(file: File) {
+    // Create a placeholder rectangle with PDF info
+    const canvasWidth = this.canvas.getWidth();
+    const canvasHeight = this.canvas.getHeight();
+    
+    const placeholder = new fabric.Rect({
+      left: 0,
+      top: 0,
+      width: canvasWidth,
+      height: canvasHeight,
+      fill: 'rgba(59, 130, 246, 0.1)',
+      stroke: '#3B82F6',
+      strokeWidth: 2,
+      strokeDashArray: [10, 10],
+      selectable: false,
+      evented: false,
+    });
+    
+    const text = new fabric.Text(`📄 PDF: ${file.name}\nUploaded successfully!\nFull PDF rendering coming soon...`, {
+      left: canvasWidth / 2,
+      top: canvasHeight / 2,
+      originX: 'center',
+      originY: 'center',
+      fontSize: 18,
+      fill: '#3B82F6',
+      textAlign: 'center',
+      selectable: false,
+      evented: false,
+    });
+    
+    if (this.backgroundImage) {
+      this.canvas.remove(this.backgroundImage);
+    }
+    
+    // Group the placeholder and text
+    const group = new fabric.Group([placeholder, text], {
+      selectable: false,
+      evented: false,
+    });
+    
+    this.backgroundImage = group;
+    this.canvas.add(group);
+    this.canvas.sendToBack(group);
+    this.canvas.renderAll();
+    
+    console.log('PDF placeholder created successfully');
   }
 
   public removeBackgroundImage(): void {
