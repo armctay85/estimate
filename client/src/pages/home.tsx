@@ -49,19 +49,15 @@ export default function Home() {
   const handleBackgroundUpload = async (file: File): Promise<void> => {
     console.log('Home: handleBackgroundUpload called with file:', file.name);
     if (canvasRef.current?.uploadBackground) {
-      return new Promise((resolve, reject) => {
-        canvasRef.current!.uploadBackground(file);
-        // Since the canvas method doesn't return a promise, we'll simulate success
-        // The actual success/failure will be handled by the canvas component
-        setTimeout(() => {
-          if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
-            setHasBackground(true);
-            resolve();
-          } else {
-            reject(new Error('Unsupported file type'));
-          }
-        }, 100);
-      });
+      try {
+        await canvasRef.current.uploadBackground(file);
+        setHasBackground(true);
+        console.log('Home: Background upload completed successfully');
+      } catch (error) {
+        console.error('Home: Background upload failed:', error);
+        setHasBackground(false);
+        throw error;
+      }
     } else {
       throw new Error('Canvas not available');
     }

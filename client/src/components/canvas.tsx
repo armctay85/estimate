@@ -130,14 +130,17 @@ export const Canvas = forwardRef<
       try {
         await canvasManagerRef.current.loadBackgroundImage(file);
         setHasBackground(true);
-        propOnBackgroundUpload?.(file);
+        if (propOnBackgroundUpload) {
+          propOnBackgroundUpload(file);
+        }
         console.log('Background loaded successfully for:', file.name);
       } catch (error) {
         console.error("Failed to load background:", error);
         setHasBackground(false);
-        throw error; // Re-throw to let the UI handle the error display
+        throw error;
       }
     } else {
+      console.error('Canvas manager not available');
       throw new Error('Canvas manager not available');
     }
   };
