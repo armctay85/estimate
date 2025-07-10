@@ -521,21 +521,37 @@ export class CanvasManager {
     
     // Convert to fabric image and add to canvas
     const dataUrl = backgroundCanvas.toDataURL();
-    fabric.Image.fromURL(dataUrl, (img) => {
-      img.set({
-        left: 0,
-        top: 0,
-        selectable: false,
-        evented: false,
-        opacity: 0.8,
+    return new Promise<void>((resolve) => {
+      fabric.Image.fromURL(dataUrl, (img) => {
+        // Remove existing background if any
+        if (this.backgroundImage) {
+          this.canvas.remove(this.backgroundImage);
+        }
+        
+        img.set({
+          left: 0,
+          top: 0,
+          selectable: false,
+          evented: false,
+          opacity: 0.9,
+          name: 'background-layer',
+        });
+        
+        this.backgroundImage = img;
+        this.canvas.add(img);
+        
+        // Ensure it's behind everything else
+        this.canvas.sendToBack(img);
+        
+        // Hide the default grid since we have our own
+        if (this.gridGroup) {
+          this.gridGroup.visible = false;
+        }
+        
+        this.canvas.renderAll();
+        console.log('Visual background layer created and displayed successfully');
+        resolve();
       });
-      
-      this.backgroundImage = img;
-      this.canvas.add(img);
-      this.canvas.sendToBack(img);
-      this.canvas.renderAll();
-      
-      console.log('Visual background layer created successfully');
     });
   }
 
@@ -606,6 +622,10 @@ export class CanvasManager {
     if (this.backgroundImage) {
       this.canvas.remove(this.backgroundImage);
       this.backgroundImage = undefined;
+      // Show the default grid again
+      if (this.gridGroup) {
+        this.gridGroup.visible = true;
+      }
       this.canvas.renderAll();
     }
   }
@@ -614,6 +634,7 @@ export class CanvasManager {
     if (this.backgroundImage) {
       this.backgroundImage.set('opacity', opacity);
       this.canvas.renderAll();
+      console.log('Background opacity set to:', opacity);
     }
   }
 
