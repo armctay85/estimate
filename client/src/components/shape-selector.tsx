@@ -144,7 +144,7 @@ export function ShapeSelector({
               type="file"
               ref={fileInputRef}
               onChange={handleFileUpload}
-              accept=".jpg,.jpeg,.png,.svg,.pdf"
+              accept=".jpg,.jpeg,.png,.svg,.pdf,.dwg,.dxf"
               className="hidden"
             />
             
@@ -162,7 +162,7 @@ export function ShapeSelector({
               ) : (
                 <>
                   <Upload className="w-4 h-4" />
-                  Upload PDF/Image
+                  Upload PDF/Image/CAD
                 </>
               )}
             </Button>

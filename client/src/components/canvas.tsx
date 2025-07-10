@@ -78,8 +78,11 @@ export const Canvas = forwardRef<
   useEffect(() => {
     if (canvasManagerRef.current) {
       canvasManagerRef.current.setSelectedMaterial(selectedMaterial);
+      if (propSelectedShape) {
+        canvasManagerRef.current.setCurrentShape(propSelectedShape);
+      }
     }
-  }, [selectedMaterial]);
+  }, [selectedMaterial, propSelectedShape]);
 
   useEffect(() => {
     if (canvasManagerRef.current) {

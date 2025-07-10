@@ -144,6 +144,10 @@ export class CanvasManager {
     this.canvas.on("selection:created", this.handleSelectionCreated.bind(this));
     this.canvas.on("selection:updated", this.handleSelectionUpdated.bind(this));
     this.canvas.on("selection:cleared", this.handleSelectionCleared.bind(this));
+    
+    // Enable object selection and movement
+    this.canvas.selection = true;
+    this.canvas.skipTargetFind = false;
   }
 
   private setupDrawingEvents() {
@@ -265,6 +269,7 @@ export class CanvasManager {
 
     this.canvas.add(shape);
     this.canvas.setActiveObject(shape);
+    this.canvas.renderAll();
 
     const room: RoomData = {
       id: Date.now().toString(),
@@ -343,18 +348,37 @@ export class CanvasManager {
     }
   }
 
-  // Enhanced PDF/Image Background
+  // Enhanced PDF/Image/CAD Background
   public async loadBackgroundImage(file: File): Promise<void> {
     console.log('Loading background file:', file.name, file.type);
     
     try {
-      // For PDFs, create enhanced placeholder
-      if (file.type === 'application/pdf') {
-        this.createPDFPlaceholder(file);
+      // Handle CAD files (DWG, DXF) and PDFs via server processing
+      if (file.type === 'application/pdf' || 
+          file.name.toLowerCase().endsWith('.dwg') || 
+          file.name.toLowerCase().endsWith('.dxf')) {
+        
+        // Upload to server for processing
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch('/api/upload-background', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.dataUrl) {
+          await this.loadImageFromDataUrl(result.dataUrl, file.name);
+        } else {
+          // Create enhanced placeholder for unsupported formats
+          this.createCADPlaceholder(file);
+        }
         return;
       }
 
-      // For images, process normally
+      // For regular images, process normally
       const formData = new FormData();
       formData.append('file', file);
       
@@ -377,8 +401,8 @@ export class CanvasManager {
     }
   }
 
-  private createPDFPlaceholder(file: File): void {
-    console.log('Creating enhanced PDF placeholder for:', file.name);
+  private createCADPlaceholder(file: File): void {
+    console.log('Creating enhanced CAD/PDF placeholder for:', file.name);
     
     // Remove existing background
     if (this.backgroundImage) {
@@ -388,33 +412,64 @@ export class CanvasManager {
     const canvasWidth = this.canvas.getWidth();
     const canvasHeight = this.canvas.getHeight();
     
-    // Create enhanced placeholder
+    // Determine file type for appropriate icon and color
+    const fileType = file.name.toLowerCase().endsWith('.dwg') ? 'DWG CAD' :
+                     file.name.toLowerCase().endsWith('.dxf') ? 'DXF CAD' : 
+                     'PDF';
+    const icon = fileType.includes('CAD') ? '📐' : '📄';
+    const color = fileType.includes('CAD') ? '#10B981' : '#3B82F6';
+    
+    // Create enhanced placeholder with construction grid pattern
     const placeholder = new fabric.Rect({
       left: 10,
       top: 10,
       width: canvasWidth - 20,
       height: canvasHeight - 20,
-      fill: 'rgba(59, 130, 246, 0.08)',
-      stroke: '#3B82F6',
+      fill: `rgba(${fileType.includes('CAD') ? '16, 185, 129' : '59, 130, 246'}, 0.08)`,
+      stroke: color,
       strokeWidth: 2,
       strokeDashArray: [10, 5],
       selectable: false,
       evented: false,
     });
     
-    const text = new fabric.Text(`📄 PDF: ${file.name}\n\nUploaded Successfully!\nFull PDF rendering available in future update`, {
+    const text = new fabric.Text(`${icon} ${fileType}: ${file.name}\n\nReady for Drawing!\nDraw rooms and shapes over this base layer`, {
       left: canvasWidth / 2,
       top: canvasHeight / 2,
       originX: 'center',
       originY: 'center',
       fontSize: 16,
-      fill: '#1E40AF',
+      fill: color,
       textAlign: 'center',
       fontFamily: 'Arial, sans-serif',
       selectable: false,
       evented: false,
       backgroundColor: 'rgba(255, 255, 255, 0.9)',
-      padding: 10,
+      padding: 15,
+    });
+    
+    // Add construction corner markers
+    const cornerSize = 20;
+    const corners = [
+      { x: 20, y: 20 },
+      { x: canvasWidth - 40, y: 20 },
+      { x: 20, y: canvasHeight - 40 },
+      { x: canvasWidth - 40, y: canvasHeight - 40 }
+    ];
+    
+    corners.forEach(corner => {
+      const marker = new fabric.Rect({
+        left: corner.x,
+        top: corner.y,
+        width: cornerSize,
+        height: cornerSize,
+        fill: 'transparent',
+        stroke: color,
+        strokeWidth: 2,
+        selectable: false,
+        evented: false,
+      });
+      this.canvas.add(marker);
     });
     
     // Add elements to canvas
@@ -424,7 +479,7 @@ export class CanvasManager {
     this.canvas.renderAll();
     this.backgroundImage = placeholder;
     
-    console.log('Enhanced PDF placeholder created successfully');
+    console.log('Enhanced CAD/PDF placeholder created successfully');
   }
 
   private async loadImageFromDataUrl(dataUrl: string, filename: string): Promise<void> {
@@ -507,6 +562,7 @@ export class CanvasManager {
 
   public setCurrentShape(shape: ShapeType): void {
     this.currentShape = shape;
+    console.log('Current shape set to:', shape);
   }
 
   public getCurrentShape(): ShapeType {
