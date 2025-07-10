@@ -285,12 +285,7 @@ export class CanvasManager {
     } catch (error) {
       console.error('Server upload failed, falling back to client processing:', error);
       // Fallback to client-side processing
-      try {
-        await this.loadImageClientSide(file);
-      } catch (fallbackError) {
-        console.error('Client-side processing also failed:', fallbackError);
-        throw new Error(`Failed to load background: ${file.name}`);
-      }
+      await this.loadImageClientSide(file);
     }
   }
 

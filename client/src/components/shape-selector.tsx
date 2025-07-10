@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { type ShapeType } from "@/lib/fabric";
 import { 
   Square, 
@@ -14,14 +15,17 @@ import {
   Pen, 
   Upload, 
   X, 
-  ImageIcon 
+  ImageIcon,
+  Loader2,
+  CheckCircle,
+  AlertCircle
 } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 interface ShapeSelectorProps {
   selectedShape: ShapeType;
   onShapeSelect: (shape: ShapeType) => void;
-  onBackgroundUpload: (file: File) => void;
+  onBackgroundUpload: (file: File) => Promise<void>;
   onBackgroundRemove: () => void;
   onBackgroundOpacity: (opacity: number) => void;
   hasBackground: boolean;
@@ -38,6 +42,9 @@ export function ShapeSelector({
   backgroundOpacity
 }: ShapeSelectorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
+  const [uploadMessage, setUploadMessage] = useState<string>('');
+  const [uploadedFileName, setUploadedFileName] = useState<string>('');
 
   const shapes = [
     { type: "rectangle" as const, icon: Square, label: "Rectangle" },
@@ -47,13 +54,41 @@ export function ShapeSelector({
     { type: "freehand" as const, icon: Pen, label: "Freehand" },
   ];
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       console.log('ShapeSelector: File selected:', file.name, file.type);
-      onBackgroundUpload(file);
+      setUploadStatus('uploading');
+      setUploadMessage('Processing file...');
+      setUploadedFileName(file.name);
+      
+      try {
+        await onBackgroundUpload(file);
+        setUploadStatus('success');
+        setUploadMessage(`${file.type === 'application/pdf' ? 'PDF uploaded successfully! Placeholder shown.' : 'Image uploaded successfully!'}`);
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setUploadStatus('idle');
+          setUploadMessage('');
+        }, 3000);
+      } catch (error) {
+        setUploadStatus('error');
+        setUploadMessage(`Failed to upload ${file.name}. Please try again.`);
+        
+        // Clear error message after 5 seconds
+        setTimeout(() => {
+          setUploadStatus('idle');
+          setUploadMessage('');
+        }, 5000);
+      }
     } else {
       console.log('ShapeSelector: No file selected');
+    }
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -116,11 +151,46 @@ export function ShapeSelector({
             <Button
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
+              disabled={uploadStatus === 'uploading'}
               className="w-full h-12 flex items-center gap-2"
             >
-              <Upload className="w-4 h-4" />
-              Upload PDF/Image
+              {uploadStatus === 'uploading' ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4" />
+                  Upload PDF/Image
+                </>
+              )}
             </Button>
+            
+            {/* Upload Status Messages */}
+            {uploadStatus !== 'idle' && uploadMessage && (
+              <Alert className={`${
+                uploadStatus === 'success' ? 'border-green-200 bg-green-50' :
+                uploadStatus === 'error' ? 'border-red-200 bg-red-50' :
+                'border-blue-200 bg-blue-50'
+              }`}>
+                <div className="flex items-center gap-2">
+                  {uploadStatus === 'uploading' && <Loader2 className="w-4 h-4 animate-spin text-blue-600" />}
+                  {uploadStatus === 'success' && <CheckCircle className="w-4 h-4 text-green-600" />}
+                  {uploadStatus === 'error' && <AlertCircle className="w-4 h-4 text-red-600" />}
+                  <AlertDescription className={`${
+                    uploadStatus === 'success' ? 'text-green-800' :
+                    uploadStatus === 'error' ? 'text-red-800' :
+                    'text-blue-800'
+                  }`}>
+                    {uploadedFileName && (
+                      <div className="font-medium text-xs mb-1">{uploadedFileName}</div>
+                    )}
+                    {uploadMessage}
+                  </AlertDescription>
+                </div>
+              </Alert>
+            )}
             
             {hasBackground && (
               <>

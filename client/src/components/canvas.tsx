@@ -135,11 +135,10 @@ export const Canvas = forwardRef<
       } catch (error) {
         console.error("Failed to load background:", error);
         setHasBackground(false);
-        // Show user feedback
-        alert(`Failed to load ${file.name}. ${error instanceof Error ? error.message : 'Unknown error'}`);
+        throw error; // Re-throw to let the UI handle the error display
       }
     } else {
-      console.error('Canvas manager not available');
+      throw new Error('Canvas manager not available');
     }
   };
 
