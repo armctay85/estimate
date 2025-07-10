@@ -33,22 +33,27 @@ export class CanvasManager {
   private panStartPoint?: { x: number; y: number };
 
   constructor(canvasElement: HTMLCanvasElement) {
-    this.canvas = new fabric.Canvas(canvasElement, {
-      width: 800,
-      height: 500,
-      backgroundColor: "#F9FAFB",
-      selection: true,
-      enableRetinaScaling: true,
-      preserveObjectStacking: true,
-      imageSmoothingEnabled: false,
-    });
+    try {
+      this.canvas = new fabric.Canvas(canvasElement, {
+        width: 800,
+        height: 500,
+        backgroundColor: "#F9FAFB",
+        selection: true,
+        enableRetinaScaling: true,
+        preserveObjectStacking: true,
+        imageSmoothingEnabled: false,
+      });
 
-    this.setupEventListeners();
-    this.setupDrawingEvents();
-    this.setupZoomAndPan();
-    this.createGrid();
-    
-    console.log('CanvasManager: Enhanced canvas initialized');
+      this.setupEventListeners();
+      this.setupDrawingEvents();
+      this.setupZoomAndPan();
+      this.createGrid();
+      
+      console.log('CanvasManager: Enhanced canvas initialized');
+    } catch (error) {
+      console.error('CanvasManager: Failed to initialize:', error);
+      throw error;
+    }
   }
 
   // Enhanced Grid System

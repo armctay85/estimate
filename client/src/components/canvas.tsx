@@ -60,21 +60,30 @@ export const Canvas = forwardRef<
   useEffect(() => {
     if (canvasRef.current && !canvasManagerRef.current) {
       console.log('Canvas: Initializing CanvasManager');
-      canvasManagerRef.current = new CanvasManager(canvasRef.current);
-      canvasManagerRef.current.onRoomsChangeCallback((rooms) => {
-        onRoomsChange(rooms);
-        const selectedRoom = canvasManagerRef.current?.getSelectedRoom();
-        onRoomSelect(selectedRoom);
-      });
+      try {
+        canvasManagerRef.current = new CanvasManager(canvasRef.current);
+        canvasManagerRef.current.onRoomsChangeCallback((rooms) => {
+          onRoomsChange(rooms);
+          const selectedRoom = canvasManagerRef.current?.getSelectedRoom();
+          onRoomSelect(selectedRoom);
+        });
+        console.log('Canvas: CanvasManager initialized successfully');
+      } catch (error) {
+        console.error('Canvas: Failed to initialize CanvasManager:', error);
+      }
     }
 
     return () => {
       if (canvasManagerRef.current) {
-        canvasManagerRef.current.dispose();
+        try {
+          canvasManagerRef.current.dispose();
+        } catch (error) {
+          console.warn('Canvas: Error during cleanup:', error);
+        }
         canvasManagerRef.current = null;
       }
     };
-  }, [onRoomsChange, onRoomSelect]);
+  }, []);
 
   useEffect(() => {
     if (canvasManagerRef.current) {
