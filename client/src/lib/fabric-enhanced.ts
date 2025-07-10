@@ -418,21 +418,26 @@ export class CanvasManager {
   private async createVisualBackgroundLayer(file: File): Promise<void> {
     console.log('Creating visual background layer for:', file.name);
     
-    // Remove existing background
-    if (this.backgroundImage) {
-      this.canvas.remove(this.backgroundImage);
-    }
-    
-    const canvasWidth = this.canvas.getWidth();
-    const canvasHeight = this.canvas.getHeight();
-    
-    // Create a canvas-based background that looks like a technical drawing
-    const backgroundCanvas = document.createElement('canvas');
-    backgroundCanvas.width = canvasWidth;
-    backgroundCanvas.height = canvasHeight;
-    const ctx = backgroundCanvas.getContext('2d');
-    
-    if (ctx) {
+    try {
+      // Remove existing background
+      if (this.backgroundImage) {
+        this.canvas.remove(this.backgroundImage);
+        console.log('Removed existing background image');
+      }
+      
+      const canvasWidth = this.canvas.getWidth();
+      const canvasHeight = this.canvas.getHeight();
+      console.log('Canvas dimensions:', canvasWidth, 'x', canvasHeight);
+      
+      // Create a canvas-based background that looks like a technical drawing
+      const backgroundCanvas = document.createElement('canvas');
+      backgroundCanvas.width = canvasWidth;
+      backgroundCanvas.height = canvasHeight;
+      const ctx = backgroundCanvas.getContext('2d');
+      console.log('Background canvas created:', backgroundCanvas.width, 'x', backgroundCanvas.height);
+      
+      if (ctx) {
+        console.log('Drawing background pattern...');
       // Fill with light background
       ctx.fillStyle = '#fafafa';
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
@@ -517,15 +522,24 @@ export class CanvasManager {
       ctx.lineTo(25, 20);
       ctx.closePath();
       ctx.fill();
-    }
+      console.log('Background pattern drawing completed');
+      } else {
+        console.error('Could not get 2D context for background canvas');
+        throw new Error('Canvas context not available');
+      }
     
     // Convert to fabric image and add to canvas
     const dataUrl = backgroundCanvas.toDataURL();
+    console.log('Background canvas created, converting to Fabric image...');
+    
     return new Promise<void>((resolve) => {
       fabric.Image.fromURL(dataUrl, (img) => {
+        console.log('Fabric image created from canvas');
+        
         // Remove existing background if any
         if (this.backgroundImage) {
           this.canvas.remove(this.backgroundImage);
+          console.log('Removed existing background');
         }
         
         img.set({
@@ -539,6 +553,7 @@ export class CanvasManager {
         
         this.backgroundImage = img;
         this.canvas.add(img);
+        console.log('Background image added to canvas');
         
         // Ensure it's behind everything else
         this.canvas.sendToBack(img);
@@ -546,13 +561,21 @@ export class CanvasManager {
         // Hide the default grid since we have our own
         if (this.gridGroup) {
           this.gridGroup.visible = false;
+          console.log('Default grid hidden');
         }
         
         this.canvas.renderAll();
         console.log('Visual background layer created and displayed successfully');
         resolve();
-      });
+      }, { crossOrigin: 'anonymous' });
+    }).catch(error => {
+      console.error('Error creating visual background layer:', error);
+      throw error;
     });
+    } catch (error) {
+      console.error('Error in createVisualBackgroundLayer:', error);
+      throw error;
+    }
   }
 
   private async loadImageFromDataUrl(dataUrl: string, filename: string): Promise<void> {
