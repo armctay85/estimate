@@ -270,7 +270,7 @@ export class CanvasManager {
       
       // Handle PDFs with placeholder for now
       if (result.isPdf) {
-        this.loadPDFAsBackground(file);
+        await this.loadPDFAsBackground(file);
         console.log('PDF placeholder created successfully');
         return;
       }
@@ -285,7 +285,12 @@ export class CanvasManager {
     } catch (error) {
       console.error('Server upload failed, falling back to client processing:', error);
       // Fallback to client-side processing
-      await this.loadImageClientSide(file);
+      try {
+        await this.loadImageClientSide(file);
+      } catch (fallbackError) {
+        console.error('Client-side processing also failed:', fallbackError);
+        throw new Error(`Failed to load background: ${file.name}`);
+      }
     }
   }
 
@@ -341,8 +346,7 @@ export class CanvasManager {
   private async loadImageClientSide(file: File): Promise<void> {
     return new Promise((resolve, reject) => {
       if (file.type === 'application/pdf') {
-        this.loadPDFAsBackground(file);
-        resolve();
+        this.loadPDFAsBackground(file).then(resolve).catch(reject);
         return;
       }
       
@@ -386,51 +390,59 @@ export class CanvasManager {
     });
   }
 
-  private loadPDFAsBackground(file: File) {
-    // Create a placeholder rectangle with PDF info
-    const canvasWidth = this.canvas.getWidth();
-    const canvasHeight = this.canvas.getHeight();
-    
-    const placeholder = new fabric.Rect({
-      left: 10,
-      top: 10,
-      width: canvasWidth - 20,
-      height: canvasHeight - 20,
-      fill: 'rgba(59, 130, 246, 0.1)',
-      stroke: '#3B82F6',
-      strokeWidth: 2,
-      strokeDashArray: [10, 10],
-      selectable: false,
-      evented: false,
+  private async loadPDFAsBackground(file: File): Promise<void> {
+    return new Promise((resolve) => {
+      // Remove existing background
+      if (this.backgroundImage) {
+        this.canvas.remove(this.backgroundImage);
+      }
+      
+      // Create a placeholder rectangle with PDF info
+      const canvasWidth = this.canvas.getWidth();
+      const canvasHeight = this.canvas.getHeight();
+      
+      const placeholder = new fabric.Rect({
+        left: 10,
+        top: 10,
+        width: canvasWidth - 20,
+        height: canvasHeight - 20,
+        fill: 'rgba(59, 130, 246, 0.1)',
+        stroke: '#3B82F6',
+        strokeWidth: 2,
+        strokeDashArray: [10, 10],
+        selectable: false,
+        evented: false,
+      });
+      
+      const text = new fabric.Text(`📄 PDF: ${file.name}\nUploaded successfully!\nFull PDF rendering coming soon...`, {
+        left: canvasWidth / 2,
+        top: canvasHeight / 2,
+        originX: 'center',
+        originY: 'center',
+        fontSize: 18,
+        fill: '#3B82F6',
+        textAlign: 'center',
+        fontFamily: 'Arial, sans-serif',
+        selectable: false,
+        evented: false,
+      });
+      
+      // Add placeholder rectangle
+      this.canvas.add(placeholder);
+      this.canvas.sendToBack(placeholder);
+      
+      // Add text on top
+      this.canvas.add(text);
+      this.canvas.sendToBack(text);
+      
+      this.canvas.renderAll();
+      
+      // Store reference to placeholder for removal
+      this.backgroundImage = placeholder;
+      
+      console.log('PDF placeholder created successfully');
+      resolve();
     });
-    
-    const text = new fabric.Text(`📄 PDF: ${file.name}\nUploaded successfully!\nFull PDF rendering coming soon...`, {
-      left: canvasWidth / 2,
-      top: canvasHeight / 2,
-      originX: 'center',
-      originY: 'center',
-      fontSize: 18,
-      fill: '#3B82F6',
-      textAlign: 'center',
-      selectable: false,
-      evented: false,
-    });
-    
-    if (this.backgroundImage) {
-      this.canvas.remove(this.backgroundImage);
-    }
-    
-    // Add elements individually instead of grouping
-    this.canvas.add(placeholder);
-    this.canvas.add(text);
-    this.canvas.sendToBack(placeholder);
-    this.canvas.sendToBack(text);
-    this.canvas.renderAll();
-    
-    // Store reference to placeholder for removal
-    this.backgroundImage = placeholder;
-    
-    console.log('PDF placeholder created successfully');
   }
 
   public removeBackgroundImage(): void {
