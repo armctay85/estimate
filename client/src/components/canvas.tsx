@@ -58,22 +58,38 @@ export const Canvas = forwardRef<
   const [isDragOver, setIsDragOver] = useState(false);
 
   useEffect(() => {
-    if (canvasRef.current && !canvasManagerRef.current) {
-      console.log('Canvas: Initializing CanvasManager');
-      try {
-        canvasManagerRef.current = new CanvasManager(canvasRef.current);
-        canvasManagerRef.current.onRoomsChangeCallback((rooms) => {
-          onRoomsChange(rooms);
-          const selectedRoom = canvasManagerRef.current?.getSelectedRoom();
-          onRoomSelect(selectedRoom);
-        });
-        console.log('Canvas: CanvasManager initialized successfully');
-      } catch (error) {
-        console.error('Canvas: Failed to initialize CanvasManager:', error);
+    let timeoutId: NodeJS.Timeout;
+    
+    const initializeCanvas = () => {
+      if (canvasRef.current && !canvasManagerRef.current) {
+        console.log('Canvas: Initializing CanvasManager');
+        try {
+          // Clear any existing canvas elements
+          const canvasElement = canvasRef.current;
+          while (canvasElement.nextSibling) {
+            canvasElement.parentNode?.removeChild(canvasElement.nextSibling);
+          }
+          
+          canvasManagerRef.current = new CanvasManager(canvasElement);
+          canvasManagerRef.current.onRoomsChangeCallback((rooms) => {
+            onRoomsChange(rooms);
+            const selectedRoom = canvasManagerRef.current?.getSelectedRoom();
+            onRoomSelect(selectedRoom);
+          });
+          console.log('Canvas: CanvasManager initialized successfully');
+        } catch (error) {
+          console.error('Canvas: Failed to initialize CanvasManager:', error);
+          // Retry after a delay
+          timeoutId = setTimeout(initializeCanvas, 100);
+        }
       }
-    }
+    };
+
+    // Initialize with a small delay to ensure DOM is ready
+    timeoutId = setTimeout(initializeCanvas, 50);
 
     return () => {
+      clearTimeout(timeoutId);
       if (canvasManagerRef.current) {
         try {
           canvasManagerRef.current.dispose();
@@ -187,12 +203,18 @@ export const Canvas = forwardRef<
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragOver(true);
+    if (!isDragOver) {
+      setIsDragOver(true);
+    }
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    // Only hide overlay if leaving the container, not child elements
+    if (e.currentTarget.contains(e.relatedTarget as Node)) {
+      return;
+    }
     setIsDragOver(false);
   };
 
@@ -201,22 +223,23 @@ export const Canvas = forwardRef<
     e.stopPropagation();
     setIsDragOver(false);
 
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length === 0) return;
-
-    const file = files[0];
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml', 'application/pdf'];
-    const validExtensions = ['.dwg', '.dxf'];
-    
-    const isValidType = validTypes.includes(file.type);
-    const isValidExtension = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-
-    if (!isValidType && !isValidExtension) {
-      console.error('Invalid file type:', file.type, file.name);
-      return;
-    }
-
     try {
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length === 0) return;
+
+      const file = files[0];
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml', 'application/pdf'];
+      const validExtensions = ['.dwg', '.dxf'];
+      
+      const isValidType = validTypes.includes(file.type);
+      const isValidExtension = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+
+      if (!isValidType && !isValidExtension) {
+        console.error('Invalid file type:', file.type, file.name);
+        return;
+      }
+
+      console.log('Processing dropped file:', file.name);
       await handleBackgroundUpload(file);
     } catch (error) {
       console.error('Drag and drop upload failed:', error);
@@ -262,9 +285,21 @@ export const Canvas = forwardRef<
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
+          {/* Fabric.js Canvas */}
+          <canvas 
+            ref={canvasRef}
+            width={800}
+            height={500}
+            className="absolute inset-0 cursor-crosshair"
+            style={{ width: '100%', height: '100%', pointerEvents: isDragOver ? 'none' : 'auto' }}
+          />
+
           {/* Drag and Drop Overlay */}
           {isDragOver && (
-            <div className="absolute inset-0 bg-blue-600 bg-opacity-20 border-4 border-dashed border-blue-400 z-50 flex items-center justify-center">
+            <div 
+              className="absolute inset-0 bg-blue-600 bg-opacity-20 border-4 border-dashed border-blue-400 z-50 flex items-center justify-center"
+              style={{ pointerEvents: 'none' }}
+            >
               <div className="text-center p-8 bg-white rounded-lg shadow-lg border-2 border-blue-400">
                 <div className="text-4xl text-blue-600 mb-4">📁</div>
                 <h3 className="text-xl font-semibold text-blue-800 mb-2">Drop Base Layer Here</h3>
@@ -274,17 +309,6 @@ export const Canvas = forwardRef<
               </div>
             </div>
           )}
-
-          {/* Canvas grid is now handled by fabric-enhanced.ts */}
-          
-          {/* Fabric.js Canvas */}
-          <canvas 
-            ref={canvasRef}
-            width={800}
-            height={500}
-            className="absolute inset-0 cursor-crosshair"
-            style={{ width: '100%', height: '100%' }}
-          />
         </div>
 
         {/* Canvas Controls */}

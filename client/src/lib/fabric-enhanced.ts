@@ -34,20 +34,29 @@ export class CanvasManager {
 
   constructor(canvasElement: HTMLCanvasElement) {
     try {
+      // Ensure clean initialization
+      if (canvasElement.fabric) {
+        canvasElement.fabric = null;
+      }
+
       this.canvas = new fabric.Canvas(canvasElement, {
         width: 800,
         height: 500,
         backgroundColor: "#F9FAFB",
         selection: true,
-        enableRetinaScaling: true,
+        enableRetinaScaling: false, // Disable to prevent DOM issues
         preserveObjectStacking: true,
         imageSmoothingEnabled: false,
+        renderOnAddRemove: false, // Manual rendering for better control
       });
 
       this.setupEventListeners();
       this.setupDrawingEvents();
       this.setupZoomAndPan();
       this.createGrid();
+      
+      // Force render after setup
+      this.canvas.renderAll();
       
       console.log('CanvasManager: Enhanced canvas initialized');
     } catch (error) {
@@ -654,6 +663,9 @@ export class CanvasManager {
 
   public dispose() {
     try {
+      // Clear all objects first
+      this.canvas.clear();
+      // Dispose canvas
       this.canvas.dispose();
     } catch (error) {
       console.warn('Canvas disposal error:', error);
