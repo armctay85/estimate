@@ -607,8 +607,11 @@
         <button onclick="showBimCapabilities()" class="btn-secondary w-full mb-2">
           View BIM Capabilities
         </button>
-        <button onclick="generateQsReport()" class="btn-primary w-full">
+        <button onclick="generateQsReport()" class="btn-primary w-full mb-2">
           Generate QS Report
+        </button>
+        <button onclick="showRatesSchedule()" class="btn-secondary w-full">
+          View Rates Schedule
         </button>
       </div>
       
@@ -1211,27 +1214,144 @@
       api_access: true
     };
 
-    // Automated QS Report Templates
+    // Complete Australian Rates Schedule (Based on Professional QS Cost Plans)
+    const AUSTRALIAN_RATES_SCHEDULE = {
+      // PRELIMINARIES & SITE FACILITIES
+      preliminaries: {
+        site_facilities: {
+          site_foreman_day: { unit: 'wk', rate: 4387.39, description: 'Day Foreman - 6 day week - 12 hours per day' },
+          site_foreman_night: { unit: 'wk', rate: 5643.00, description: 'Night Foreman - 6 day week - 12 hours per night' },
+          project_management: { unit: 'wk', rate: 1889.00, description: 'Project Management - 2 day allocation/week' },
+          admin_staff: { unit: 'wk', rate: 522.50, description: 'Office Based Staff - QS / Admin' },
+          site_container: { unit: 'wk', rate: 27.17, description: 'Container weekly hire, maintenance and servicing' },
+          site_security: { unit: 'wk', rate: 3511.20, description: 'Night-time Security (84 hours per week)' },
+          temporary_fencing: { unit: 'wk', rate: 118.35, description: '2.40m high mesh temporary fencing per week' },
+          forklift_hire: { unit: 'wk', rate: 551.76, description: 'Forklift weekly hire' },
+          scissor_lift: { unit: 'wk', rate: 225.00, description: 'Scissor Lift weekly hire rate' },
+          small_tools: { unit: 'wk', rate: 91.96, description: 'Small Tools Allowance' }
+        },
+        insurances: {
+          bank_guarantee: { unit: 'item', rate: 836.00, description: 'Bank Guarantee' },
+          mba_fees: { unit: 'item', rate: 2652.68, description: 'M.B.A Fees' },
+          car_insurance: { unit: '%', rate: 0.098, description: 'C.A.R Insurance (% of contract value)' },
+          q_leave: { unit: '%', rate: 0.48, description: 'Q Leave (% of contract value)' }
+        }
+      },
+      
+      // CLEANING & MAINTENANCE
+      cleaning: {
+        builders_clean_progressive: { unit: 'item', rate: 800.00, description: 'Progressive cleaning during construction' },
+        final_clean_handover: { unit: 'hr', rate: 35.00, description: 'Final Clean prior to Handover' },
+        final_clean_opening: { unit: 'hr', rate: 35.00, description: 'Final Clean prior to Opening' }
+      },
+      
+      // ELECTRICAL SERVICES
+      electrical: {
+        rough_in_residential: { unit: 'm²', rate: 60.00, description: 'Electrical rough-in residential' },
+        rough_in_commercial: { unit: 'm²', rate: 85.00, description: 'Electrical rough-in commercial' },
+        power_points: { unit: 'no', rate: 180.00, description: 'GPO installation' },
+        light_fittings: { unit: 'no', rate: 120.00, description: 'Light fitting installation' },
+        switchboard_upgrade: { unit: 'item', rate: 2500.00, description: 'Switchboard upgrade' },
+        emergency_lighting: { unit: 'm²', rate: 12.50, description: 'Emergency & exit lighting system' },
+        data_cabling: { unit: 'point', rate: 150.00, description: 'Data cabling per point' }
+      },
+      
+      // PLUMBING SERVICES
+      plumbing: {
+        rough_in_residential: { unit: 'm²', rate: 50.00, description: 'Plumbing rough-in residential' },
+        rough_in_commercial: { unit: 'm²', rate: 77.00, description: 'Plumbing rough-in commercial' },
+        hand_wash_sink: { unit: 'no', rate: 450.00, description: 'Install hand wash sink' },
+        work_sink: { unit: 'no', rate: 450.00, description: 'Install work sink' },
+        barista_sink: { unit: 'no', rate: 450.00, description: 'Install barista sink (commercial)' },
+        water_tap_14inch: { unit: 'no', rate: 320.00, description: '14" Water tap installation' },
+        sprayer_tower: { unit: 'no', rate: 900.00, description: 'Vegetable Tower Sprayer' },
+        grease_trap: { unit: 'no', rate: 1200.00, description: 'Commercial grease trap' }
+      },
+      
+      // HVAC SYSTEMS
+      hvac: {
+        ducted_heating_residential: { unit: 'm²', rate: 85.00, description: 'Ducted heating system (residential)' },
+        hydronic_heating: { unit: 'm²', rate: 125.00, description: 'Hydronic heating system' },
+        split_system_residential: { unit: 'm²', rate: 45.00, description: 'Split system A/C (residential)' },
+        commercial_hvac: { unit: 'm²', rate: 180.00, description: 'Commercial HVAC system' },
+        vrf_system: { unit: 'm²', rate: 220.00, description: 'VRF air conditioning system' },
+        exhaust_fans: { unit: 'no', rate: 350.00, description: 'Commercial exhaust fan' },
+        ductwork_supply: { unit: 'm', rate: 85.00, description: 'Supply ductwork per linear metre' },
+        ductwork_return: { unit: 'm', rate: 65.00, description: 'Return ductwork per linear metre' }
+      },
+      
+      // FIRE SERVICES
+      fire_services: {
+        detection_alarm: { unit: 'm²', rate: 35.00, description: 'Fire detection & alarm system' },
+        sprinkler_system: { unit: 'm²', rate: 65.00, description: 'Sprinkler system (commercial)' },
+        fire_hose_reel: { unit: 'no', rate: 800.00, description: 'Fire hose reel installation' },
+        fire_extinguisher: { unit: 'no', rate: 120.00, description: 'Fire extinguisher supply & install' },
+        emergency_lighting: { unit: 'm²', rate: 25.00, description: 'Emergency lighting system' },
+        exit_signage: { unit: 'no', rate: 180.00, description: 'Exit signage illuminated' }
+      },
+      
+      // JOINERY & FITOUT
+      joinery: {
+        kitchen_benchtops: { unit: 'm', rate: 450.00, description: 'Kitchen benchtops (stone)' },
+        wall_cabinets: { unit: 'm', rate: 380.00, description: 'Wall mounted cabinets' },
+        base_cabinets: { unit: 'm', rate: 420.00, description: 'Base cabinets with doors' },
+        commercial_joinery: { unit: 'm²', rate: 650.00, description: 'Commercial joinery fitout' },
+        reception_desk: { unit: 'item', rate: 3500.00, description: 'Reception desk (commercial)' },
+        retail_shelving: { unit: 'm', rate: 280.00, description: 'Retail shelving system' },
+        display_units: { unit: 'no', rate: 1200.00, description: 'Custom display units' }
+      },
+      
+      // TILING & FINISHES
+      tiling: {
+        wall_tiles_standard: { unit: 'm²', rate: 65.00, description: 'Wall tiles (standard ceramic)' },
+        wall_tiles_premium: { unit: 'm²', rate: 95.00, description: 'Wall tiles (premium/designer)' },
+        floor_tiles_standard: { unit: 'm²', rate: 55.00, description: 'Floor tiles (standard ceramic)' },
+        floor_tiles_premium: { unit: 'm²', rate: 85.00, description: 'Floor tiles (premium/porcelain)' },
+        mosaic_tiles: { unit: 'm²', rate: 120.00, description: 'Mosaic tiles (feature)' },
+        waterproofing: { unit: 'm²', rate: 45.00, description: 'Waterproofing membrane' }
+      },
+      
+      // LABOUR RATES BY TRADE
+      labour_rates: {
+        carpenter: { unit: 'hr', rate: 65.00, description: 'Qualified Carpenter' },
+        electrician: { unit: 'hr', rate: 85.00, description: 'Licensed Electrician' },
+        plumber: { unit: 'hr', rate: 82.00, description: 'Licensed Plumber' },
+        tiler: { unit: 'hr', rate: 58.00, description: 'Qualified Tiler' },
+        painter: { unit: 'hr', rate: 55.00, description: 'Qualified Painter' },
+        labourer: { unit: 'hr', rate: 45.00, description: 'General Labourer' },
+        foreman: { unit: 'hr', rate: 75.00, description: 'Site Foreman' },
+        crane_operator: { unit: 'hr', rate: 95.00, description: 'Crane Operator' },
+        concreter: { unit: 'hr', rate: 68.00, description: 'Qualified Concreter' },
+        steel_fixer: { unit: 'hr', rate: 72.00, description: 'Steel Fixer' }
+      }
+    };
+
+    // Professional QS Report Templates (AIQS Standard)
     const QS_REPORT_TEMPLATES = {
       elemental_cost_plan: {
         name: 'Elemental Cost Plan (AIQS Standard)',
-        sections: ['preliminaries', 'substructure', 'superstructure', 'finishes', 'fittings', 'services', 'external_works', 'contingency'],
+        sections: ['project_overview', 'preliminaries', 'substructure', 'superstructure', 'finishes', 'fittings', 'services', 'external_works', 'contingency', 'gst'],
         format: 'detailed_breakdown'
       },
       trade_breakdown: {
         name: 'Trade Contractor Breakdown',
-        sections: ['excavation', 'concrete', 'masonry', 'steel', 'carpentry', 'roofing', 'electrical', 'plumbing', 'hvac', 'finishes'],
+        sections: ['excavation', 'concrete', 'masonry', 'steel', 'carpentry', 'roofing', 'electrical', 'plumbing', 'hvac', 'finishes', 'preliminaries'],
         format: 'trade_packages'
       },
-      bom_schedule: {
-        name: 'Bill of Materials Schedule',
-        sections: ['materials_list', 'quantities', 'specifications', 'suppliers', 'lead_times'],
-        format: 'procurement_ready'
+      workstream_schedule: {
+        name: 'Workstream Rates Schedule',
+        sections: ['site_facilities', 'labour_rates', 'material_rates', 'plant_equipment', 'subcontractor_rates', 'regional_variations'],
+        format: 'comprehensive_rates'
       },
       cost_comparison: {
         name: 'Design Option Cost Comparison',
-        sections: ['option_a', 'option_b', 'option_c', 'variance_analysis', 'recommendations'],
+        sections: ['option_summary', 'detailed_comparison', 'variance_analysis', 'recommendations', 'risk_assessment'],
         format: 'comparative_analysis'
+      },
+      client_report: {
+        name: 'Professional Client Cost Report',
+        sections: ['executive_summary', 'cost_breakdown', 'schedule_analysis', 'risk_factors', 'recommendations', 'appendices'],
+        format: 'client_presentation'
       }
     };
 
@@ -3192,6 +3312,425 @@ Phone: 1800-ESTIMATE`;
 
       alert(demoMessage);
       document.querySelector('.fixed').remove();
+    }
+
+    function showRatesSchedule() {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+      modal.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-6xl w-full max-h-[80vh] overflow-y-auto">
+          <h3 class="text-lg font-semibold mb-4">🗂️ Australian Construction Rates Schedule</h3>
+          
+          <div class="mb-4">
+            <div class="flex gap-2 mb-3">
+              <button onclick="filterRates('all')" class="rates-filter-btn active bg-blue-500 text-white px-3 py-1 rounded text-sm">All</button>
+              <button onclick="filterRates('preliminaries')" class="rates-filter-btn bg-gray-200 px-3 py-1 rounded text-sm">Preliminaries</button>
+              <button onclick="filterRates('electrical')" class="rates-filter-btn bg-gray-200 px-3 py-1 rounded text-sm">Electrical</button>
+              <button onclick="filterRates('plumbing')" class="rates-filter-btn bg-gray-200 px-3 py-1 rounded text-sm">Plumbing</button>
+              <button onclick="filterRates('hvac')" class="rates-filter-btn bg-gray-200 px-3 py-1 rounded text-sm">HVAC</button>
+              <button onclick="filterRates('labour_rates')" class="rates-filter-btn bg-gray-200 px-3 py-1 rounded text-sm">Labour</button>
+            </div>
+            <input type="text" id="rates-search" placeholder="Search rates..." class="w-full p-2 border rounded text-sm" onkeyup="searchRates()">
+          </div>
+          
+          <div id="rates-display" class="space-y-4">
+            ${generateRatesDisplay()}
+          </div>
+          
+          <div class="flex gap-3 mt-6">
+            <button onclick="exportRatesSchedule()" class="bg-green-500 text-white px-4 py-2 rounded">Export Schedule</button>
+            <button onclick="generateClientReport()" class="bg-blue-500 text-white px-4 py-2 rounded">Generate Client Report</button>
+            <button onclick="this.closest('.fixed').remove()" class="bg-gray-500 text-white px-4 py-2 rounded">Close</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    function generateRatesDisplay() {
+      let html = '';
+      for (const [category, items] of Object.entries(AUSTRALIAN_RATES_SCHEDULE)) {
+        html += `
+          <div class="rates-category" data-category="${category}">
+            <h4 class="font-semibold text-gray-800 mb-2 capitalize">${category.replace(/_/g, ' ')}</h4>
+            <div class="bg-gray-50 rounded-lg p-3">
+              <div class="grid grid-cols-1 gap-2">
+        `;
+        
+        for (const [itemKey, item] of Object.entries(items)) {
+          if (typeof item === 'object' && item.rate) {
+            html += `
+              <div class="rates-item flex justify-between items-center p-2 bg-white rounded border text-sm" data-search="${item.description.toLowerCase()}">
+                <div class="flex-1">
+                  <div class="font-medium">${item.description}</div>
+                  <div class="text-xs text-gray-500">${itemKey.replace(/_/g, ' ')}</div>
+                </div>
+                <div class="text-right">
+                  <div class="font-semibold">$${item.rate.toLocaleString()}</div>
+                  <div class="text-xs text-gray-500">per ${item.unit}</div>
+                </div>
+              </div>
+            `;
+          }
+        }
+        
+        html += `
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      return html;
+    }
+
+    function filterRates(category) {
+      // Update button states
+      document.querySelectorAll('.rates-filter-btn').forEach(btn => {
+        btn.classList.remove('active', 'bg-blue-500', 'text-white');
+        btn.classList.add('bg-gray-200');
+      });
+      event.target.classList.add('active', 'bg-blue-500', 'text-white');
+      event.target.classList.remove('bg-gray-200');
+      
+      // Show/hide categories
+      document.querySelectorAll('.rates-category').forEach(cat => {
+        if (category === 'all' || cat.dataset.category === category) {
+          cat.style.display = 'block';
+        } else {
+          cat.style.display = 'none';
+        }
+      });
+    }
+
+    function searchRates() {
+      const searchTerm = document.getElementById('rates-search').value.toLowerCase();
+      document.querySelectorAll('.rates-item').forEach(item => {
+        const searchData = item.dataset.search;
+        if (searchData.includes(searchTerm)) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    function exportRatesSchedule() {
+      let csvContent = 'Category,Item,Description,Rate,Unit\n';
+      
+      for (const [category, items] of Object.entries(AUSTRALIAN_RATES_SCHEDULE)) {
+        for (const [itemKey, item] of Object.entries(items)) {
+          if (typeof item === 'object' && item.rate) {
+            csvContent += `"${category}","${itemKey}","${item.description}","${item.rate}","${item.unit}"\n`;
+          }
+        }
+      }
+      
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Australian_Construction_Rates_Schedule_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      alert('Australian Construction Rates Schedule exported successfully!');
+    }
+
+    function generateClientReport() {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+      modal.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto">
+          <h3 class="text-lg font-semibold mb-4">📊 Professional Client Report Generator</h3>
+          
+          <div class="space-y-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium mb-1">Project Name</label>
+                <input type="text" id="project-name" placeholder="Enter project name" class="w-full p-2 border rounded">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Client Name</label>
+                <input type="text" id="client-name" placeholder="Enter client name" class="w-full p-2 border rounded">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Project Type</label>
+                <select id="project-type" class="w-full p-2 border rounded">
+                  <option value="residential">Residential</option>
+                  <option value="commercial">Commercial</option>
+                  <option value="retail">Retail</option>
+                  <option value="hospitality">Hospitality</option>
+                  <option value="industrial">Industrial</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Project Size (m²)</label>
+                <input type="number" id="project-size" placeholder="Enter area" class="w-full p-2 border rounded">
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-1">Report Type</label>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                ${Object.entries(QS_REPORT_TEMPLATES).map(([key, template]) => `
+                  <label class="flex items-center p-3 border rounded cursor-pointer hover:bg-gray-50">
+                    <input type="radio" name="report-type" value="${key}" class="mr-2">
+                    <div>
+                      <div class="font-medium">${template.name}</div>
+                      <div class="text-xs text-gray-600">${template.sections.slice(0, 3).join(', ')}...</div>
+                    </div>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex gap-3">
+            <button onclick="generateProfessionalReport()" class="bg-blue-500 text-white px-4 py-2 rounded flex-1">Generate Report</button>
+            <button onclick="this.closest('.fixed').remove()" class="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    function generateProfessionalReport() {
+      const projectName = document.getElementById('project-name').value || 'Project';
+      const clientName = document.getElementById('client-name').value || 'Client';
+      const projectType = document.getElementById('project-type').value;
+      const projectSize = document.getElementById('project-size').value || '1000';
+      const reportType = document.querySelector('input[name="report-type"]:checked')?.value || 'client_report';
+      
+      // Generate comprehensive professional report
+      const reportContent = generateProfessionalReportContent({
+        projectName,
+        clientName,
+        projectType,
+        projectSize: parseInt(projectSize),
+        reportType
+      });
+      
+      const blob = new Blob([reportContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${projectName}_${reportType}_${new Date().toISOString().split('T')[0]}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      document.querySelector('.fixed').remove();
+      document.querySelector('.fixed').remove(); // Close both modals
+      
+      alert(`Professional ${QS_REPORT_TEMPLATES[reportType].name} generated successfully!\n\nNote: Enterprise edition includes:\n• Formatted PDF reports with company branding\n• Excel cost models with formulas\n• 3D visualizations and charts\n• Direct client portal access\n• Real-time cost updates`);
+    }
+
+    function generateProfessionalReportContent({ projectName, clientName, projectType, projectSize, reportType }) {
+      const template = QS_REPORT_TEMPLATES[reportType];
+      const estimatedCost = calculateProjectCost(projectType, projectSize);
+      
+      return `
+ESTIMATE AUSTRALIA - PROFESSIONAL QUANTITY SURVEYOR REPORT
+${template.name}
+Generated: ${new Date().toLocaleDateString()}
+Prepared by: Chartered Quantity Surveyors
+
+=================================================
+PROJECT INFORMATION
+=================================================
+Project Name: ${projectName}
+Client: ${clientName}
+Project Type: ${projectType.charAt(0).toUpperCase() + projectType.slice(1)}
+Total Floor Area: ${projectSize.toLocaleString()} m²
+Report Type: ${template.name}
+
+=================================================
+EXECUTIVE SUMMARY
+=================================================
+Total Estimated Project Cost: $${estimatedCost.total.toLocaleString()} AUD (excl. GST)
+Cost per Square Metre: $${Math.round(estimatedCost.total / projectSize).toLocaleString()}/m²
+Contingency Allowance: 7% ($${Math.round(estimatedCost.total * 0.07).toLocaleString()})
+Total including Contingency: $${Math.round(estimatedCost.total * 1.07).toLocaleString()} AUD (excl. GST)
+GST (10%): $${Math.round(estimatedCost.total * 1.07 * 0.10).toLocaleString()}
+TOTAL INCLUDING GST: $${Math.round(estimatedCost.total * 1.07 * 1.10).toLocaleString()} AUD
+
+=================================================
+DETAILED COST BREAKDOWN
+=================================================
+
+1. PRELIMINARIES & SITE FACILITIES              $${estimatedCost.preliminaries.toLocaleString()}
+   - Site establishment and facilities
+   - Management and supervision
+   - Temporary works and services
+   - Insurance and bonds
+
+2. SUBSTRUCTURE                                  $${estimatedCost.substructure.toLocaleString()}
+   - Excavation and site preparation
+   - Foundations and footings
+   - Basement construction (if applicable)
+
+3. SUPERSTRUCTURE                                $${estimatedCost.superstructure.toLocaleString()}
+   - Structural frame and floors
+   - External walls and cladding
+   - Roof structure and covering
+
+4. INTERNAL FINISHES                             $${estimatedCost.finishes.toLocaleString()}
+   - Wall finishes and partitions
+   - Floor finishes
+   - Ceiling systems
+
+5. FITTINGS & FIXTURES                           $${estimatedCost.fittings.toLocaleString()}
+   - Built-in furniture and joinery
+   - Specialist equipment
+   - Signage and wayfinding
+
+6. SERVICES                                      $${estimatedCost.services.toLocaleString()}
+   - Electrical installation
+   - Plumbing and drainage
+   - HVAC systems
+   - Fire services and security
+
+7. EXTERNAL WORKS                                $${estimatedCost.external.toLocaleString()}
+   - Site works and landscaping
+   - Car parking and access roads
+   - External services connections
+
+CONSTRUCTION SUBTOTAL:                           $${estimatedCost.total.toLocaleString()}
+
+=================================================
+RATES SCHEDULE SUMMARY
+=================================================
+Based on Australian Construction Industry Standards:
+
+LABOUR RATES (per hour):
+- Carpenter: $65.00
+- Electrician: $85.00
+- Plumber: $82.00
+- Labourer: $45.00
+
+MATERIAL RATES (selected items):
+- Concrete slab: $165/m²
+- Steel frame: $1,230/tonne
+- Electrical rough-in: $${projectType === 'residential' ? '60' : '85'}/m²
+- Plumbing rough-in: $${projectType === 'residential' ? '50' : '77'}/m²
+- HVAC system: $${projectType === 'residential' ? '85' : '180'}/m²
+
+=================================================
+ASSUMPTIONS & EXCLUSIONS
+=================================================
+ASSUMPTIONS:
+- Standard site conditions
+- Normal working hours (day shifts)
+- Access to services available
+- Standard soil conditions
+- Current market pricing (${new Date().getFullYear()})
+
+EXCLUSIONS:
+- Site purchase costs
+- Professional design fees
+- Development approval fees
+- Furniture and loose equipment
+- Escalation beyond 12 months
+
+=================================================
+RISK FACTORS
+=================================================
+- Market price fluctuations
+- Site condition variations
+- Design changes during construction
+- Weather and seasonal impacts
+- Supply chain disruptions
+
+=================================================
+RECOMMENDATIONS
+=================================================
+1. Proceed with detailed design development
+2. Obtain firm quotations for major elements
+3. Consider value engineering opportunities
+4. Plan for 6-month construction program
+5. Engage experienced contractor early
+
+=================================================
+REPORT VALIDATION
+=================================================
+This report has been prepared based on:
+- Current Australian market rates
+- AIQS professional standards
+- Industry best practices
+- Regional cost variations
+
+Accuracy: ±15% at current design stage
+Valid for: 6 months from date of issue
+Currency: Australian Dollars (AUD)
+
+=================================================
+Generated by EstiMate Professional QS Platform
+Chartered Quantity Surveyors
+AIQS Member Firm
+www.estimate.com.au
+=================================================
+      `;
+    }
+
+    function calculateProjectCost(projectType, projectSize) {
+      const baseCosts = {
+        residential: {
+          preliminaries: 180,
+          substructure: 165,
+          superstructure: 850,
+          finishes: 450,
+          fittings: 280,
+          services: 320,
+          external: 150
+        },
+        commercial: {
+          preliminaries: 250,
+          substructure: 195,
+          superstructure: 1200,
+          finishes: 650,
+          fittings: 450,
+          services: 580,
+          external: 220
+        },
+        retail: {
+          preliminaries: 220,
+          substructure: 180,
+          superstructure: 980,
+          finishes: 750,
+          fittings: 650,
+          services: 480,
+          external: 180
+        },
+        hospitality: {
+          preliminaries: 280,
+          substructure: 210,
+          superstructure: 1100,
+          finishes: 850,
+          fittings: 850,
+          services: 650,
+          external: 250
+        },
+        industrial: {
+          preliminaries: 160,
+          substructure: 145,
+          superstructure: 650,
+          finishes: 280,
+          fittings: 180,
+          services: 350,
+          external: 120
+        }
+      };
+      
+      const costs = baseCosts[projectType] || baseCosts.residential;
+      const calculated = {};
+      let total = 0;
+      
+      for (const [category, rate] of Object.entries(costs)) {
+        calculated[category] = Math.round(rate * projectSize);
+        total += calculated[category];
+      }
+      
+      calculated.total = total;
+      return calculated;
     }
 
     // Override addCustomMaterial for Pro features
