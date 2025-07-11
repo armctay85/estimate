@@ -5,9 +5,13 @@ import { Canvas } from "@/components/canvas";
 import { CostDisplay } from "@/components/cost-display";
 import { RoomDetails } from "@/components/room-details";
 import { Header } from "@/components/header";
+import { AICostPredictor } from "@/components/ai-cost-predictor";
+import { BIMProcessor } from "@/components/bim-processor";
 import { Sidebar, SidebarHeader, SidebarContent, SidebarSection } from "@/components/ui/sidebar";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { TrendingUp, FileBarChart, Users, Award } from "lucide-react";
 import type { MaterialType } from "@shared/schema";
 import type { ShapeType, RoomData } from "@/lib/fabric-enhanced";
 
@@ -82,6 +86,22 @@ export default function Home() {
           <Card>
             <CardContent className="p-4">
               <CostDisplay rooms={rooms} totalCost={totalCost} />
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              <h3 className="font-semibold text-lg mb-3">Professional Tools</h3>
+              <AICostPredictor />
+              <BIMProcessor />
+              <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                <FileBarChart className="w-4 h-4 mr-2" />
+                Generate QS Report
+              </Button>
+              <Button className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700">
+                <Users className="w-4 h-4 mr-2" />
+                Share Project
+              </Button>
             </CardContent>
           </Card>
           
