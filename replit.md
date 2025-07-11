@@ -7,6 +7,7 @@ BuildCost Sketch is a web-based mini take-off tool for property and construction
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+UI/UX Preferences: User prefers cleaner, more professional interface design and typography. Requested complete app code export and strategy summary for external review.
 
 ## System Architecture
 
