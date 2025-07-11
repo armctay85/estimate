@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, orientation=landscape">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="screen-orientation" content="landscape">
   <title>EstiMate Mobile - Construction Cost Estimator App Australia</title>
   <meta name="description" content="Professional mobile construction cost estimator and takeoff app for Australian builders. Calculate material costs, measure floor plans on-site. Free PWA app for iOS and Android.">
   <meta name="keywords" content="construction app, mobile estimator, building cost calculator, Australian contractors, takeoff app, construction mobile app, builder tools">
@@ -55,6 +59,184 @@
       -moz-user-select: none;
       -ms-user-select: none;
       user-select: none;
+      margin: 0;
+      padding: 0;
+    }
+    
+    /* Landscape mode optimization */
+    @media screen and (orientation: portrait) {
+      .portrait-warning {
+        display: flex !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #1e293b;
+        color: white;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        font-size: 18px;
+        text-align: center;
+        padding: 20px;
+      }
+      .main-app { display: none !important; }
+    }
+    
+    @media screen and (orientation: landscape) {
+      .portrait-warning { display: none !important; }
+      .main-app { display: flex !important; }
+    }
+    
+    /* AI Assistant Styles */
+    .ai-assistant {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+      transition: all 0.3s ease;
+      z-index: 1000;
+      animation: pulse 2s infinite;
+    }
+    
+    .ai-assistant:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 25px rgba(16, 185, 129, 0.6);
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    .ai-chat {
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      width: 300px;
+      max-height: 400px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      border: 1px solid #e2e8f0;
+      display: none;
+      flex-direction: column;
+      z-index: 1001;
+      overflow: hidden;
+    }
+    
+    .ai-chat.active {
+      display: flex;
+      animation: slideUp 0.3s ease;
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .ai-header {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      padding: 12px 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .ai-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      max-height: 250px;
+      min-height: 150px;
+    }
+    
+    .ai-message {
+      margin-bottom: 12px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    
+    .ai-message.assistant {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+    }
+    
+    .ai-message.user {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+      margin-left: 20px;
+    }
+    
+    .ai-actions {
+      padding: 12px 16px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .ai-action-btn {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      color: #475569;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .ai-action-btn:hover {
+      background: #e2e8f0;
+      border-color: #94a3b8;
+    }
+    
+    .hint-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .hint-overlay.active {
+      display: flex;
+    }
+    
+    .hint-content {
+      background: rgba(255,255,255,0.1);
+      padding: 24px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.2);
+      max-width: 90%;
     }
     
     .mobile-header {
@@ -232,10 +414,29 @@
       0%, 100% { opacity: 0; }
       50% { opacity: 1; }
     }
+    
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
   </style>
 </head>
 <body>
-  <!-- Mobile Header -->
+  <!-- Portrait Mode Warning -->
+  <div class="portrait-warning" style="display: none;">
+    <div style="font-size: 48px; margin-bottom: 20px;">📱</div>
+    <h2 style="margin-bottom: 16px;">Please Rotate Your Device</h2>
+    <p style="opacity: 0.8; max-width: 300px; line-height: 1.5;">
+      EstiMate Mobile works best in landscape mode for optimal drawing and professional tools experience.
+    </p>
+    <div style="margin-top: 20px; font-size: 24px; animation: bounce 1s infinite;">
+      🔄
+    </div>
+  </div>
+
+  <!-- Main Mobile App Container -->
+  <div class="main-app">
+    <!-- Mobile Header -->
   <div class="mobile-header">
     <div class="flex items-center">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" class="mr-2">
@@ -1358,6 +1559,169 @@
         hideAllModals();
       }
     });
+    
+    // AI Assistant System - Better than Word Clippy
+    let aiAssistantActive = false;
+    let aiContext = {
+      mode: 'drawing',
+      elementsCount: 0,
+      lastAction: null,
+      hints: [],
+      userPreferences: JSON.parse(localStorage.getItem('aiPreferences') || '{"enabled": true, "level": "helpful"}')
+    };
+
+    function createAIAssistant() {
+      const assistant = document.createElement('div');
+      assistant.className = 'ai-assistant';
+      assistant.innerHTML = '🤖';
+      assistant.onclick = toggleAIChat;
+      document.body.appendChild(assistant);
+
+      const chat = document.createElement('div');
+      chat.className = 'ai-chat';
+      chat.id = 'ai-chat';
+      chat.innerHTML = `
+        <div class="ai-header">
+          <span>🤖</span>
+          <span>EstiMate Assistant</span>
+          <button onclick="toggleAIChat()" style="background: none; border: none; color: white; font-size: 16px; cursor: pointer; margin-left: auto;">×</button>
+        </div>
+        <div class="ai-messages" id="ai-messages">
+          <div class="ai-message assistant">
+            👋 Hi! I'm your EstiMate assistant. I can help you with:
+            <br>• Drawing tools and techniques
+            <br>• Material selection tips
+            <br>• Cost calculation guidance
+            <br>• Professional QS workflows
+          </div>
+        </div>
+        <div class="ai-actions">
+          <button class="ai-action-btn" onclick="aiHelp('drawing')">Drawing Help</button>
+          <button class="ai-action-btn" onclick="aiHelp('materials')">Materials</button>
+          <button class="ai-action-btn" onclick="aiHelp('costs')">Cost Tips</button>
+          <button class="ai-action-btn" onclick="aiHelp('professional')">Pro Tips</button>
+          <button class="ai-action-btn" onclick="toggleAIPreferences()">Settings</button>
+        </div>
+      `;
+      document.body.appendChild(chat);
+    }
+
+    function toggleAIChat() {
+      const chat = document.getElementById('ai-chat');
+      aiAssistantActive = !aiAssistantActive;
+      if (aiAssistantActive) {
+        chat.classList.add('active');
+        updateAIContext();
+      } else {
+        chat.classList.remove('active');
+      }
+    }
+
+    function aiHelp(topic) {
+      const messages = document.getElementById('ai-messages');
+      let response = '';
+      
+      switch(topic) {
+        case 'drawing':
+          response = `📝 <strong>Drawing in Landscape Mode:</strong><br>
+            • Use two fingers to pan around your project<br>
+            • Pinch to zoom in/out for precision<br>
+            • Tap shapes in the toolbar to switch tools<br>
+            • Double-tap to finish polygon shapes<br>
+            • Hold and drag for smooth lines`;
+          break;
+        case 'materials':
+          response = `🏗️ <strong>Material Selection Tips:</strong><br>
+            • Timber: $120/m² - Great for residential floors<br>
+            • Concrete: $165/m² - Commercial grade durability<br>
+            • Tiles: $70/m² - Wet areas and high traffic<br>
+            • Consider project type for material filtering<br>
+            • Pro tip: Real Australian rates included!`;
+          break;
+        case 'costs':
+          response = `💰 <strong>Cost Calculation Guide:</strong><br>
+            • Costs auto-calculate based on area × material rate<br>
+            • Include 15% overheads + 12% profit + 10% GST<br>
+            • Use calibration for accurate measurements<br>
+            • Export to CSV for detailed breakdowns<br>
+            • Professional QS reports available in Pro version`;
+          break;
+        case 'professional':
+          response = `⭐ <strong>Professional QS Workflows:</strong><br>
+            • Start with site calibration for accuracy<br>
+            • Use templates for common room types<br>
+            • Apply consistent naming conventions<br>
+            • Regular project saves prevent data loss<br>
+            • Upgrade to Pro for 200+ materials + BIM processing`;
+          break;
+      }
+      
+      const messageEl = document.createElement('div');
+      messageEl.className = 'ai-message assistant';
+      messageEl.innerHTML = response;
+      messages.appendChild(messageEl);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function updateAIContext() {
+      if (!aiContext.userPreferences.enabled) return;
+      
+      const elementsCount = rooms.length;
+      if (elementsCount > aiContext.elementsCount && elementsCount === 1) {
+        showAITip("Great start! 🎯 Pro tip: Use calibration to ensure accurate measurements for your first element.");
+      } else if (elementsCount > aiContext.elementsCount && elementsCount === 3) {
+        showAITip("You're building well! 🏗️ Consider grouping similar elements and applying consistent materials for professional results.");
+      }
+      aiContext.elementsCount = elementsCount;
+    }
+
+    function showAITip(message) {
+      if (!aiContext.userPreferences.enabled) return;
+      
+      const messages = document.getElementById('ai-messages');
+      if (!messages) return;
+      
+      const tipEl = document.createElement('div');
+      tipEl.className = 'ai-message assistant';
+      tipEl.innerHTML = message;
+      messages.appendChild(tipEl);
+      
+      // Auto-show chat for important tips
+      if (!aiAssistantActive && aiContext.userPreferences.level === 'helpful') {
+        toggleAIChat();
+        setTimeout(() => {
+          if (aiAssistantActive) toggleAIChat();
+        }, 4000);
+      }
+    }
+
+    function toggleAIPreferences() {
+      const current = aiContext.userPreferences.enabled;
+      aiContext.userPreferences.enabled = !current;
+      localStorage.setItem('aiPreferences', JSON.stringify(aiContext.userPreferences));
+      
+      const messages = document.getElementById('ai-messages');
+      const statusEl = document.createElement('div');
+      statusEl.className = 'ai-message assistant';
+      statusEl.innerHTML = `AI Assistant ${aiContext.userPreferences.enabled ? 'enabled' : 'disabled'} ✓`;
+      messages.appendChild(statusEl);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    // Initialize AI Assistant
+    document.addEventListener('DOMContentLoaded', function() {
+      createAIAssistant();
+      
+      // Smart contextual hints
+      setTimeout(() => {
+        if (aiContext.userPreferences.enabled && rooms.length === 0) {
+          showAITip("Welcome to EstiMate Mobile! 🚀 Try drawing your first room with the rectangle tool below. Rotate to landscape for the best experience!");
+        }
+      }, 2000);
+    });
+
+    // Ensure proper mobile app closing
+    
   </script>
 </body>
 </html>

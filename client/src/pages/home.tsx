@@ -7,6 +7,7 @@ import { RoomDetails } from "@/components/room-details";
 import { Header } from "@/components/header";
 import { AICostPredictor } from "@/components/ai-cost-predictor";
 import { BIMProcessor } from "@/components/bim-processor";
+import { IntelligentAssistant } from "@/components/intelligent-assistant";
 import { Sidebar, SidebarHeader, SidebarContent, SidebarSection } from "@/components/ui/sidebar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -213,6 +214,9 @@ export default function Home() {
           </div>
         </div>
       </div>
+      
+      {/* Intelligent Assistant - Better than Word Clippy */}
+      <IntelligentAssistant />
     </div>
   );
 }
