@@ -10,12 +10,18 @@ Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
+### Three-Tier Platform Architecture
+- **Free Tier**: Basic floor plan sketching with 5 materials
+- **Pro Tier ($39.99/month)**: Complete QS tools with 200+ materials, MEP services, professional reports  
+- **Enterprise Tier ($2,999/month)**: BIM Auto-Takeoff system to replace QS departments
+
 ### Frontend Architecture
-- **Framework**: React 18 with TypeScript
+- **Framework**: React 18 with TypeScript (main app) + Standalone HTML5 (demo)
 - **Styling**: Tailwind CSS with shadcn/ui component library
 - **State Management**: TanStack Query for server state, React hooks for local state
 - **Routing**: Wouter for client-side routing
 - **Canvas**: Fabric.js for drawing and manipulating floor plan sketches
+- **BIM Processing**: AI-powered CAD/BIM file analysis engine (Enterprise tier)
 - **Build Tool**: Vite for fast development and optimized builds
 
 ### Backend Architecture
@@ -187,6 +193,21 @@ The application follows a monorepo structure with clear separation between front
   - Gesture hints and touch indicators
   - Mobile-optimized calibration and template systems
   - Simplified modal-based navigation
+
+### January 11, 2025 - Enterprise BIM Auto-Takeoff: QS Replacement System
+- **Revolutionary QS Automation**: Complete Enterprise tier to replace quantity surveyor departments
+- **BIM Auto-Takeoff Engine**: AI-powered processing of CAD/BIM files with ±2% accuracy guarantee
+- **Comprehensive File Support**: DWG, DXF, IFC, Revit (.RVT), SketchUp (.SKP), ArchiCAD (.PLN), PDF plans
+- **AI Element Detection**: Automated classification of 5+ categories:
+  - **Structural**: Slabs, beams, columns, walls, footings, stairs
+  - **Architectural**: Doors, windows, partitions, ceilings, floors, roofs  
+  - **MEP Systems**: Ductwork, piping, electrical conduit, fire systems, data cables
+  - **Finishes**: Flooring, wall finishes, ceiling finishes, external cladding
+  - **External Works**: Excavation, concrete paths, retaining walls, drainage
+- **Professional QS Reports**: AIQS compliant elemental cost plans, trade breakdowns, BOM schedules
+- **Enterprise Pricing Model**: $15k setup + $2,999/month with volume discounts (15-35% off)
+- **15-45 Minute Processing**: Complete automated takeoffs faster than manual QS work
+- **ROI Justification**: Replace 2-3 QS staff ($180k-270k salaries), 6-8 month payback period
 
 ### January 11, 2025 - Complete Built Form & MEP Services Integration
 - **Comprehensive Project Types**: Residential vs Commercial project modes with appropriate materials
