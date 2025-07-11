@@ -30,6 +30,10 @@ declare global {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Serve standalone HTML application
+  app.get('/standalone.html', (req, res) => {
+    res.sendFile('standalone.html', { root: '.' });
+  });
   // Configure multer for file uploads
   const upload = multer({
     storage: multer.memoryStorage(),
