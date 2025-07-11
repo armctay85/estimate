@@ -12,7 +12,7 @@ import { Sidebar, SidebarHeader, SidebarContent, SidebarSection } from "@/compon
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { TrendingUp, FileBarChart, Users, Award } from "lucide-react";
+import { TrendingUp, FileBarChart, Users, Award, BarChart3, Upload } from "lucide-react";
 import type { MaterialType } from "@shared/schema";
 import type { ShapeType, RoomData } from "@/lib/fabric-enhanced";
 
@@ -183,9 +183,9 @@ export default function Home() {
 
             <div className="flex items-center gap-4">
               {/* Subscription Status */}
-              <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-full">
-                <Award className="w-3 h-3 text-emerald-600" />
-                <span className="text-xs font-medium text-emerald-700">Free Tier</span>
+              <div className="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-full">
+                <Award className="w-3 h-3 text-purple-600" />
+                <span className="text-xs font-medium text-purple-700">Enterprise</span>
               </div>
               
               {/* Cost Display */}
@@ -297,18 +297,86 @@ export default function Home() {
               </Card>
             </div>
 
-            {/* Upgrade Prompt */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+            {/* Enterprise Features */}
+            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-4">
               <div className="text-center">
-                <Award className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                <h4 className="text-sm font-semibold text-blue-900 mb-1">Upgrade to Pro</h4>
-                <p className="text-xs text-blue-700 mb-3">
-                  200+ materials • BIM auto-takeoff • Professional reports
+                <Award className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                <h4 className="text-sm font-semibold text-purple-900 mb-1">Enterprise Active</h4>
+                <p className="text-xs text-purple-700 mb-2">
+                  Full BIM Auto-Takeoff • 500+ Materials • QS Department Replacement
                 </p>
-                <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
-                  Upgrade $39.99/mo
-                </Button>
+                <div className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded mb-2">
+                  ROI: $180k-270k savings annually
+                </div>
+                <div className="flex gap-1 text-xs">
+                  <div className="flex-1 bg-green-100 text-green-700 px-2 py-1 rounded">✓ BIM Processing</div>
+                  <div className="flex-1 bg-green-100 text-green-700 px-2 py-1 rounded">✓ AIQS Reports</div>
+                </div>
               </div>
+            </div>
+
+            {/* Enterprise Analytics */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                <div className="w-2 h-2 bg-indigo-600 rounded-full"></div>
+                Analytics Dashboard
+              </h3>
+              <Card className="border-gray-200">
+                <CardContent className="p-3 space-y-3">
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-blue-50 p-2 rounded">
+                      <div className="font-medium text-blue-900">Projects This Month</div>
+                      <div className="text-lg font-bold text-blue-600">127</div>
+                    </div>
+                    <div className="bg-green-50 p-2 rounded">
+                      <div className="font-medium text-green-900">Cost Saved</div>
+                      <div className="text-lg font-bold text-green-600">$2.1M</div>
+                    </div>
+                    <div className="bg-purple-50 p-2 rounded">
+                      <div className="font-medium text-purple-900">BIM Files Processed</div>
+                      <div className="text-lg font-bold text-purple-600">89</div>
+                    </div>
+                    <div className="bg-orange-50 p-2 rounded">
+                      <div className="font-medium text-orange-900">Accuracy Rate</div>
+                      <div className="text-lg font-bold text-orange-600">98.7%</div>
+                    </div>
+                  </div>
+                  <Button size="sm" className="w-full bg-gradient-to-r from-indigo-600 to-purple-600">
+                    <BarChart3 className="w-3 h-3 mr-1" />
+                    Full Analytics
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* BIM Auto-Takeoff Status */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                <div className="w-2 h-2 bg-yellow-600 rounded-full"></div>
+                BIM Processing Queue
+              </h3>
+              <Card className="border-gray-200">
+                <CardContent className="p-3 space-y-2">
+                  <div className="text-xs space-y-1">
+                    <div className="flex items-center justify-between p-2 bg-green-50 rounded">
+                      <span className="text-green-700">Office Tower.rvt</span>
+                      <span className="text-green-600 font-medium">✓ Complete</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                      <span className="text-blue-700">Warehouse.dwg</span>
+                      <span className="text-blue-600 font-medium">⏳ Processing 89%</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <span className="text-gray-700">Retail Store.ifc</span>
+                      <span className="text-gray-600 font-medium">📁 Queued</span>
+                    </div>
+                  </div>
+                  <Button size="sm" className="w-full bg-gradient-to-r from-yellow-600 to-orange-600">
+                    <Upload className="w-3 h-3 mr-1" />
+                    Upload BIM Files
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
