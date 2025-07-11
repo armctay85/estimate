@@ -1,0 +1,338 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Construction Takeoff App</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .sidebar { width: 300px; }
+    .canvas-container { flex: 1; position: relative; }
+    #canvas { border: 1px solid #e5e7eb; }
+    .premium-feature { opacity: 0.7; pointer-events: none; }
+    .premium-feature::after { content: 'Premium'; position: absolute; top: 0; right: 0; background: gold; padding: 2px 4px; font-size: 10px; }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <div class="sidebar bg-white p-4 overflow-y-auto border-r border-gray-200">
+      <h1 class="text-xl font-bold mb-4">Construction Takeoff</h1>
+      
+      <!-- Tools -->
+      <div class="mb-4">
+        <h2 class="font-semibold mb-2">Tools</h2>
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="setShape('rectangle')" class="bg-gray-200 p-2 rounded">Rect</button>
+          <button onclick="setShape('circle')" class="bg-gray-200 p-2 rounded">Circle</button>
+          <button onclick="setShape('polygon')" class="bg-gray-200 p-2 rounded">Poly</button>
+          <button onclick="setShape('line')" class="bg-gray-200 p-2 rounded">Line</button>
+          <button onclick="setShape('freehand')" class="bg-gray-200 p-2 rounded">Free</button>
+        </div>
+      </div>
+      
+      <!-- Materials -->
+      <div class="mb-4">
+        <h2 class="font-semibold mb-2">Material</h2>
+        <select id="material-select" onchange="setMaterial(this.value)" class="w-full p-2 border rounded">
+          <option value="timber">Timber ($50/m²)</option>
+          <option value="concrete">Concrete ($100/m²)</option>
+          <option value="steel">Steel ($150/m²)</option>
+          <!-- Add more from MATERIALS -->
+        </select>
+      </div>
+      
+      <!-- Rooms List -->
+      <div class="mb-4">
+        <h2 class="font-semibold mb-2">Elements</h2>
+        <div id="rooms-list"></div>
+      </div>
+      
+      <!-- Total Cost -->
+      <div class="mb-4">
+        <h2 class="font-semibold mb-2">Total Cost</h2>
+        <p id="total-cost" class="text-lg font-bold">$0</p>
+      </div>
+      
+      <!-- Controls -->
+      <div class="mb-4">
+        <h2 class="font-semibold mb-2">Controls</h2>
+        <button onclick="addElement()" class="bg-blue-500 text-white p-2 rounded w-full mb-2">Add Element</button>
+        <button onclick="clearCanvas()" class="bg-red-500 text-white p-2 rounded w-full mb-2">Clear</button>
+        <button onclick="toggleGrid()" class="bg-gray-500 text-white p-2 rounded w-full mb-2">Toggle Grid</button>
+        <button onclick="zoomIn()" class="bg-gray-500 text-white p-2 rounded w-1/2">Zoom +</button>
+        <button onclick="zoomOut()" class="bg-gray-500 text-white p-2 rounded w-1/2">Zoom -</button>
+        <button onclick="zoomToFit()" class="bg-gray-500 text-white p-2 rounded w-full mb-2">Fit</button>
+      </div>
+      
+      <!-- Background -->
+      <div class="mb-4">
+        <h2 class="font-semibold mb-2">Background</h2>
+        <input type="file" id="bg-file" onchange="loadBackground()" class="mb-2">
+        <button onclick="removeBackground()" class="bg-red-500 text-white p-2 rounded w-full mb-2">Remove BG</button>
+        <label>Opacity: <input type="range" min="0" max="1" step="0.1" value="0.7" onchange="setBgOpacity(this.value)"></label>
+      </div>
+      
+      <!-- Export/Save -->
+      <div class="mb-4">
+        <h2 class="font-semibold mb-2">Export & Save</h2>
+        <button onclick="exportToPDF()" class="bg-green-500 text-white p-2 rounded w-full mb-2 premium-feature">Export PDF</button>
+        <button onclick="exportToCSV()" class="bg-green-500 text-white p-2 rounded w-full mb-2">Export CSV</button>
+        <button onclick="saveProject()" class="bg-blue-500 text-white p-2 rounded w-full mb-2">Save Project</button>
+        <input type="file" id="load-file" onchange="loadProject()" class="mb-2">
+      </div>
+      
+      <!-- Revenue Features -->
+      <div class="mb-4 border-t pt-4">
+        <h2 class="font-semibold mb-2 text-yellow-600">Premium Features</h2>
+        <p class="text-sm mb-2">Unlock advanced tools for $9.99/month</p>
+        <button onclick="subscribe()" class="bg-yellow-500 text-white p-2 rounded w-full">Subscribe Now</button>
+        <ul class="text-sm mt-2">
+          <li>Unlimited Exports</li>
+          <li>Collaboration</li>
+          <li>Template Library</li>
+          <li>Ad-Free Experience</li>
+        </ul>
+      </div>
+      
+      <!-- Share -->
+      <div>
+        <h2 class="font-semibold mb-2">Share</h2>
+        <button onclick="shareProject()" class="bg-indigo-500 text-white p-2 rounded w-full">Generate Share Link</button>
+      </div>
+    </div>
+    
+    <!-- Canvas -->
+    <div class="canvas-container">
+      <canvas id="canvas"></canvas>
+    </div>
+  </div>
+
+  <script type="module">
+    import { CanvasManager, MATERIALS } from './CanvasManager.js';  // Assume CanvasManager is in separate file
+
+    let canvasManager;
+
+    function init() {
+      const canvasElement = document.getElementById('canvas');
+      canvasManager = new CanvasManager(canvasElement);
+      canvasManager.onRoomsChangeCallback(updateUI);
+
+      // Populate materials
+      const select = document.getElementById('material-select');
+      Object.keys(MATERIALS).forEach(key => {
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = `${key.charAt(0).toUpperCase() + key.slice(1)} ($${MATERIALS[key].cost}/m²)`;
+        select.appendChild(opt);
+      });
+    }
+
+    function updateUI(rooms) {
+      const list = document.getElementById('rooms-list');
+      list.innerHTML = '';
+      rooms.forEach(room => {
+        const div = document.createElement('div');
+        div.className = 'border p-2 mb-2 rounded';
+        div.innerHTML = `
+          <input type="text" value="${room.name}" onchange="updateName('${room.id}', this.value)" class="w-full mb-1">
+          <p>Size: ${Math.round(room.width)}x${Math.round(room.height)}</p>
+          <p>Material: ${room.material}</p>
+          <p>Cost: $${room.cost}</p>
+          <select onchange="updateMaterial('${room.id}', this.value)" class="w-full mb-1">
+            ${Object.keys(MATERIALS).map(k => `<option value="${k}" ${k === room.material ? 'selected' : ''}>${k}</option>`).join('')}
+          </select>
+          <button onclick="deleteRoom('${room.id}')" class="bg-red-500 text-white p-1 rounded w-full">Delete</button>
+        `;
+        list.appendChild(div);
+      });
+
+      document.getElementById('total-cost').textContent = `$${canvasManager.getTotalCost()}`;
+    }
+
+    // UI Functions
+    window.setShape = (shape) => canvasManager.setCurrentShape(shape);
+    window.setMaterial = (mat) => canvasManager.setSelectedMaterial(mat);
+    window.addElement = () => canvasManager.addRoom();
+    window.clearCanvas = () => canvasManager.clearCanvas();
+    window.toggleGrid = () => canvasManager.toggleGrid();
+    window.zoomIn = () => canvasManager.zoomIn();
+    window.zoomOut = () => canvasManager.zoomOut();
+    window.zoomToFit = () => canvasManager.zoomToFit();
+    window.loadBackground = () => {
+      const file = document.getElementById('bg-file').files[0];
+      if (file) canvasManager.loadBackgroundImage(file);
+    };
+    window.removeBackground = () => canvasManager.removeBackgroundImage();
+    window.setBgOpacity = (val) => canvasManager.setBackgroundOpacity(parseFloat(val));
+    window.deleteRoom = (id) => canvasManager.deleteRoom(id);
+    window.updateMaterial = (id, mat) => canvasManager.updateRoomMaterial(id, mat);
+    window.updateName = (id, name) => canvasManager.updateRoomName(id, name);
+
+    // Enhanced Functionality
+    window.exportToCSV = () => {
+      const rooms = canvasManager.getRooms();
+      const csv = ['Name,Width,Height,Material,Cost'];
+      rooms.forEach(r => csv.push(`${r.name},${r.width},${r.height},${r.material},${r.cost}`));
+      const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'takeoff.csv';
+      a.click();
+    };
+
+    window.exportToPDF = () => {
+      // For premium: Use jsPDF or similar, but simulate for now
+      alert('Premium feature: Exporting to PDF...');
+      // Integrate jsPDF: const { jsPDF } = window.jspdf;
+      // const doc = new jsPDF();
+      // Add canvas image, rooms table, etc.
+      // doc.save('takeoff.pdf');
+    };
+
+    window.saveProject = () => {
+      const data = {
+        rooms: canvasManager.getRooms().map(r => ({
+          ...r,
+          fabricObject: undefined,  // Can't serialize
+          points: r.points,
+        })),
+        // Add more state like background if needed
+      };
+      const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'project.json';
+      a.click();
+    };
+
+    window.loadProject = () => {
+      const file = document.getElementById('load-file').files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = JSON.parse(e.target.result);
+        canvasManager.clearCanvas();
+        data.rooms.forEach(r => {
+          // Re-create fabric objects based on type and points
+          let obj;
+          const base = {
+            left: r.positionX,
+            top: r.positionY,
+            fill: `${MATERIALS[r.material].color}40`,
+            stroke: MATERIALS[r.material].color,
+            strokeWidth: r.shapeType === 'line' ? 4 : 2,
+            selectable: true,
+            evented: true,
+          };
+          switch (r.shapeType) {
+            case 'rectangle':
+              obj = new fabric.Rect({ ...base, width: r.width, height: r.height });
+              break;
+            case 'circle':
+              obj = new fabric.Circle({ ...base, radius: r.width / 2 });
+              break;
+            case 'polygon':
+              const points = [];
+              for (let i = 0; i < r.points.length; i += 2) {
+                points.push({ x: r.points[i], y: r.points[i+1] });
+              }
+              obj = new fabric.Polygon(points, base);
+              break;
+            case 'line':
+              obj = new fabric.Line([0, 0, r.width, r.height], base);
+              break;
+            case 'freehand':
+              let pathStr = 'M ' + r.points[0] + ' ' + r.points[1];
+              for (let i = 2; i < r.points.length; i += 2) {
+                pathStr += ' L ' + r.points[i] + ' ' + r.points[i+1];
+              }
+              obj = new fabric.Path(pathStr, { ...base, fill: '' });
+              break;
+          }
+          if (obj) {
+            canvasManager.canvas.add(obj);
+            r.fabricObject = obj;
+            canvasManager.rooms.set(r.id, r);
+          }
+        });
+        canvasManager.notifyRoomsChange();
+      };
+      reader.readAsText(file);
+    };
+
+    // Marketability & Revenue
+    window.shareProject = () => {
+      // Simulate sharing: Generate a link, perhaps upload to server or use URL params
+      alert('Share link: https://example.com/project?id=123 (Implement server for real sharing)');
+    };
+
+    window.subscribe = () => {
+      // Integrate Stripe or similar
+      alert('Redirecting to subscription...');
+      // Example: stripe.redirectToCheckout({ sessionId: '...' });
+    };
+
+    // Ad placeholder (for free users)
+    setTimeout(() => {
+      const ad = document.createElement('div');
+      ad.className = 'fixed bottom-0 left-0 bg-white p-2 shadow';
+      ad.innerHTML = 'Ad: Upgrade to remove ads!';
+      document.body.appendChild(ad);
+    }, 5000);
+
+    init();
+  </script>
+</body>
+</html>
+```
+
+### Directions for Deployment
+
+1. **Setup in Replit**:
+   - Create a new Repl with HTML/CSS/JS template.
+   - Copy the above HTML code into `index.html`.
+   - Copy your updated `CanvasManager.ts` (compiled to JS if needed) into the project as `CanvasManager.js`. If using TS, add a build step with `tsc` or use Replit's Node.js with esbuild.
+   - For `@shared/schema`, create a file `schema.ts` with your MATERIALS definition, e.g.:
+     ```typescript
+     export type MaterialType = 'timber' | 'concrete' | 'steel'; // Add more
+     export const MATERIALS = {
+       timber: { color: '#D2B48C', cost: 50 },
+       concrete: { color: '#A9A9A9', cost: 100 },
+       steel: { color: '#708090', cost: 150 },
+     };
+     ```
+     Compile if necessary.
+
+2. **UI Updates**:
+   - The sidebar now includes tools for shapes, material selection, elements list with edit/delete, total cost, controls for zoom/grid, background upload, export/save/load.
+   - Elements are interactive: Draw on canvas, edit in list.
+
+3. **Added Functionality**:
+   - Drawing modes fully integrated.
+   - Save/load projects as JSON (re-creates shapes).
+   - Export to CSV (basic bill of materials).
+   - PDF export marked as premium (implement with jsPDF library: Add `<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>` and code in exportToPDF).
+
+4. **Marketability**:
+   - Share project button (simulated; for real, use Firebase or Replit DB to store and generate links).
+   - Template library can be added as premium: Pre-load example projects.
+   - Clean, modern UI with Tailwind for appeal.
+
+5. **Revenue Raising**:
+   - Premium section with subscribe button (integrate Stripe: Add Stripe.js script and backend endpoint in Replit).
+   - Some features like PDF export disabled for free users.
+   - Ad placeholder shown after delay (replace with Google AdSense for real ads).
+   - Freemium model: Basic free, advanced paid.
+
+6. **Deployment**:
+   - Run the Repl; it should host on *.replit.app.
+   - For custom domain or production, export to Glitch/Vercel/Netlify by weekend.
+   - Test: Draw shapes, calculate costs, save/load, export.
+   - For server-side (background processing, sharing), add Node.js backend in Replit with Express for /api/upload-background (use pdf-lib or sharp for processing).
+
+This should be deployable by Sunday. If issues, provide error logs.
