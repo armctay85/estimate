@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BuildCost Sketch - Construction Takeoff Tool</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .sidebar { width: 320px; }
+    .canvas-container { flex: 1; position: relative; }
+    #canvas { border: 1px solid #e5e7eb; background: #f9fafb; }
+    .premium-feature { opacity: 0.7; pointer-events: none; position: relative; }
+    .premium-feature::after { 
+      content: 'Premium'; 
+      position: absolute; 
+      top: 0; 
+      right: 0; 
+      background: #fbbf24; 
+      color: white;
+      padding: 2px 6px; 
+      font-size: 10px; 
+      border-radius: 0 4px 0 4px;
+      font-weight: bold;
+    }
+    .tool-btn { transition: all 0.2s; }
+    .tool-btn:hover { transform: translateY(-1px); }
+    .tool-btn.active { background: #3b82f6; color: white; }
+    .ad-banner {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(90deg, #1e40af, #3b82f6);
+      color: white;
+      padding: 8px;
+      text-align: center;
+      font-size: 14px;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <div class="sidebar bg-white p-4 overflow-y-auto border-r border-gray-200 shadow-sm">
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-1">BuildCost Sketch</h1>
+        <p class="text-sm text-gray-600">Australian Construction Takeoff Tool</p>
+      </div>
+      
+      <!-- Tools -->
+      <div class="mb-6">
+        <h2 class="font-semibold mb-3 text-gray-700">Drawing Tools</h2>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="setShape('rectangle')" class="tool-btn bg-gray-200 hover:bg-gray-300 p-3 rounded-lg text-sm font-medium" id="rect-btn">Rectangle</button>
+          <button onclick="setShape('circle')" class="tool-btn bg-gray-200 hover:bg-gray-300 p-3 rounded-lg text-sm font-medium" id="circle-btn">Circle</button>
+          <button onclick="setShape('polygon')" class="tool-btn bg-gray-200 hover:bg-gray-300 p-3 rounded-lg text-sm font-medium" id="polygon-btn">Polygon</button>
+          <button onclick="setShape('line')" class="tool-btn bg-gray-200 hover:bg-gray-300 p-3 rounded-lg text-sm font-medium" id="line-btn">Line</button>
+          <button onclick="setShape('freehand')" class="tool-btn bg-gray-200 hover:bg-gray-300 p-3 rounded-lg text-sm font-medium" id="freehand-btn">Freehand</button>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">💡 Polygon: Click points, double-click to finish</p>
+      </div>
+      
+      <!-- Materials -->
+      <div class="mb-6">
+        <h2 class="font-semibold mb-3 text-gray-700">Floor Materials</h2>
+        <select id="material-select" onchange="setMaterial(this.value)" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+          <option value="timber">🌳 Timber ($100/m²)</option>
+          <option value="carpet">🪑 Carpet ($40/m²)</option>
+          <option value="tiles">🏺 Tiles ($60/m²)</option>
+          <option value="laminate">📋 Laminate ($30/m²)</option>
+          <option value="vinyl">💿 Vinyl ($25/m²)</option>
+        </select>
+      </div>
+      
+      <!-- Rooms List -->
+      <div class="mb-6">
+        <h2 class="font-semibold mb-3 text-gray-700">Project Elements</h2>
+        <div id="rooms-list" class="max-h-64 overflow-y-auto"></div>
+      </div>
+      
+      <!-- Total Cost -->
+      <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <h2 class="font-semibold mb-2 text-blue-800">Total Project Cost</h2>
+        <p id="total-cost" class="text-2xl font-bold text-blue-600">$0 AUD</p>
+      </div>
+      
+      <!-- Controls -->
+      <div class="mb-6">
+        <h2 class="font-semibold mb-3 text-gray-700">Canvas Controls</h2>
+        <div class="grid grid-cols-2 gap-2 mb-3">
+          <button onclick="addElement()" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg text-sm font-medium">Add Element</button>
+          <button onclick="clearCanvas()" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg text-sm font-medium">Clear All</button>
+          <button onclick="toggleGrid()" class="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded-lg text-sm font-medium">Toggle Grid</button>
+          <button onclick="zoomToFit()" class="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded-lg text-sm font-medium">Zoom Fit</button>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="zoomIn()" class="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded-lg text-sm font-medium">Zoom +</button>
+          <button onclick="zoomOut()" class="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded-lg text-sm font-medium">Zoom -</button>
+        </div>
+      </div>
+      
+      <!-- Background -->
+      <div class="mb-6">
+        <h2 class="font-semibold mb-3 text-gray-700">Base Layer</h2>
+        <input type="file" id="bg-file" onchange="loadBackground()" class="w-full mb-2 text-sm" accept=".pdf,.dwg,.dxf,.jpg,.jpeg,.png">
+        <button onclick="removeBackground()" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg w-full mb-3 text-sm font-medium">Remove Background</button>
+        <label class="block text-sm text-gray-600">
+          Opacity: 
+          <input type="range" min="0" max="1" step="0.1" value="0.7" onchange="setBgOpacity(this.value)" class="w-full">
+        </label>
+      </div>
+      
+      <!-- Export/Save -->
+      <div class="mb-6">
+        <h2 class="font-semibold mb-3 text-gray-700">Export & Save</h2>
+        <button onclick="exportToPDF()" class="bg-green-500 text-white p-2 rounded-lg w-full mb-2 text-sm font-medium premium-feature">Export PDF Report</button>
+        <button onclick="exportToCSV()" class="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg w-full mb-2 text-sm font-medium">Export CSV</button>
+        <button onclick="saveProject()" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg w-full mb-2 text-sm font-medium">Save Project</button>
+        <input type="file" id="load-file" onchange="loadProject()" class="w-full text-sm" accept=".json">
+      </div>
+      
+      <!-- Premium Features -->
+      <div class="mb-6 border-t pt-4">
+        <h2 class="font-semibold mb-2 text-yellow-600">Premium Features</h2>
+        <p class="text-sm mb-3 text-gray-600">Unlock professional tools for $19.99/month</p>
+        <button onclick="subscribe()" class="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white p-3 rounded-lg w-full font-semibold mb-3">Upgrade to Pro</button>
+        <ul class="text-sm text-gray-600 space-y-1">
+          <li>✨ Unlimited PDF Exports</li>
+          <li>🤝 Team Collaboration</li>
+          <li>📚 Template Library</li>
+          <li>🚫 Ad-Free Experience</li>
+          <li>📊 Advanced Reports</li>
+        </ul>
+      </div>
+      
+      <!-- Share -->
+      <div>
+        <h2 class="font-semibold mb-3 text-gray-700">Share Project</h2>
+        <button onclick="shareProject()" class="bg-indigo-500 hover:bg-indigo-600 text-white p-2 rounded-lg w-full text-sm font-medium">Generate Share Link</button>
+      </div>
+    </div>
+    
+    <!-- Canvas -->
+    <div class="canvas-container flex flex-col">
+      <div class="p-4 bg-white border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <h3 class="font-semibold text-gray-700">Drawing Canvas</h3>
+          <div class="text-sm text-gray-500">
+            Drag to draw shapes • Shift+click to pan • Scroll to zoom
+          </div>
+        </div>
+      </div>
+      <div class="flex-1 p-4">
+        <canvas id="canvas" class="rounded-lg shadow-sm"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Australian Materials with proper costs
+    const MATERIALS = {
+      timber: { color: '#D2B48C', cost: 100 },
+      carpet: { color: '#8B4513', cost: 40 },
+      tiles: { color: '#708090', cost: 60 },
+      laminate: { color: '#DEB887', cost: 30 },
+      vinyl: { color: '#2F4F4F', cost: 25 }
+    };
+
+    // Enhanced CanvasManager Implementation
+    class CanvasManager {
+      constructor(canvasElement) {
+        this.canvas = new fabric.Canvas(canvasElement, {
+          width: 800,
+          height: 500,
+          backgroundColor: "#F9FAFB",
+          selection: true,
+          enableRetinaScaling: false,
+          preserveObjectStacking: true,
+          imageSmoothingEnabled: false,
+          renderOnAddRemove: false,
+        });
+
+        this.rooms = new Map();
+        this.selectedMaterial = "timber";
+        this.currentShape = "rectangle";
+        this.isDrawing = false;
+        this.drawingStartPoint = null;
+        this.previewShape = null;
+        this.polygonPoints = [];
+        this.drawingPath = null;
+        this.backgroundImage = null;
+        this.gridVisible = true;
+        this.gridGroup = null;
+        this.zoomLevel = 1;
+        this.isPanning = false;
+        this.panStartPoint = null;
+        this.onRoomsChange = null;
+
+        this.setupEventListeners();
+        this.setupDrawingEvents();
+        this.setupZoomAndPan();
+        this.createGrid();
+        this.canvas.renderAll();
+      }
+
+      createGrid() {
+        const gridSize = 20;
+        const canvasWidth = this.canvas.getWidth();
+        const canvasHeight = this.canvas.getHeight();
+        const lines = [];
+
+        for (let i = 0; i <= canvasWidth; i += gridSize) {
+          lines.push(new fabric.Line([i, 0, i, canvasHeight], {
+            stroke: '#E5E7EB',
+            strokeWidth: i % (gridSize * 5) === 0 ? 1.5 : 0.5,
+            selectable: false,
+            evented: false,
+          }));
+        }
+
+        for (let i = 0; i <= canvasHeight; i += gridSize) {
+          lines.push(new fabric.Line([0, i, canvasWidth, i], {
+            stroke: '#E5E7EB',
+            strokeWidth: i % (gridSize * 5) === 0 ? 1.5 : 0.5,
+            selectable: false,
+            evented: false,
+          }));
+        }
+
+        this.gridGroup = new fabric.Group(lines, {
+          selectable: false,
+          evented: false,
+          opacity: 0.7,
+        });
+
+        this.canvas.add(this.gridGroup);
+        this.gridGroup.visible = this.gridVisible;
+        this.canvas.renderAll();
+      }
+
+      setupZoomAndPan() {
+        this.canvas.on('mouse:wheel', (opt) => {
+          const delta = opt.e.deltaY;
+          let zoom = this.canvas.getZoom();
+          zoom *= 0.999 ** delta;
+          
+          if (zoom > 20) zoom = 20;
+          if (zoom < 0.1) zoom = 0.1;
+          
+          this.zoomLevel = zoom;
+          this.canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+          
+          opt.e.preventDefault();
+          opt.e.stopPropagation();
+        });
+
+        this.canvas.on('mouse:down', (opt) => {
+          const evt = opt.e;
+          if (evt.button === 1 || (evt.button === 0 && evt.shiftKey)) {
+            this.isPanning = true;
+            this.canvas.selection = false;
+            this.panStartPoint = { x: evt.clientX, y: evt.clientY };
+            opt.e.preventDefault();
+          }
+        });
+
+        this.canvas.on('mouse:move', (opt) => {
+          if (this.isPanning && this.panStartPoint) {
+            const evt = opt.e;
+            const vpt = this.canvas.viewportTransform;
+            vpt[4] += evt.clientX - this.panStartPoint.x;
+            vpt[5] += evt.clientY - this.panStartPoint.y;
+            this.canvas.requestRenderAll();
+            this.panStartPoint = { x: evt.clientX, y: evt.clientY };
+          }
+        });
+
+        this.canvas.on('mouse:up', () => {
+          if (this.isPanning) {
+            this.isPanning = false;
+            this.canvas.selection = true;
+            this.panStartPoint = null;
+          }
+        });
+      }
+
+      setupEventListeners() {
+        this.canvas.on("object:modified", this.handleObjectModified.bind(this));
+        this.canvas.on("mouse:dblclick", this.handleMouseDoubleClick.bind(this));
+        this.canvas.selection = true;
+        this.canvas.skipTargetFind = false;
+      }
+
+      setupDrawingEvents() {
+        this.canvas.on("mouse:down", this.handleMouseDown.bind(this));
+        this.canvas.on("mouse:move", this.handleMouseMove.bind(this));
+        this.canvas.on("mouse:up", this.handleMouseUp.bind(this));
+      }
+
+      handleMouseDown(e) {
+        if (this.isPanning) return;
+
+        const pointer = this.canvas.getPointer(e.e);
+
+        switch (this.currentShape) {
+          case "freehand":
+            this.isDrawing = true;
+            this.drawingPath = new fabric.Path(`M ${pointer.x} ${pointer.y}`, {
+              stroke: MATERIALS[this.selectedMaterial].color,
+              strokeWidth: 3,
+              fill: "",
+              selectable: false,
+            });
+            this.canvas.add(this.drawingPath);
+            break;
+
+          case "rectangle":
+            this.drawingStartPoint = pointer;
+            this.isDrawing = true;
+            this.previewShape = new fabric.Rect({
+              left: pointer.x,
+              top: pointer.y,
+              width: 0,
+              height: 0,
+              fill: `${MATERIALS[this.selectedMaterial].color}40`,
+              stroke: MATERIALS[this.selectedMaterial].color,
+              strokeWidth: 2,
+              selectable: false,
+              evented: false,
+            });
+            this.canvas.add(this.previewShape);
+            break;
+
+          case "circle":
+            this.drawingStartPoint = pointer;
+            this.isDrawing = true;
+            this.previewShape = new fabric.Circle({
+              left: pointer.x,
+              top: pointer.y,
+              radius: 0,
+              fill: `${MATERIALS[this.selectedMaterial].color}40`,
+              stroke: MATERIALS[this.selectedMaterial].color,
+              strokeWidth: 2,
+              selectable: false,
+              evented: false,
+            });
+            this.canvas.add(this.previewShape);
+            break;
+
+          case "line":
+            this.drawingStartPoint = pointer;
+            this.isDrawing = true;
+            this.previewShape = new fabric.Line([pointer.x, pointer.y, pointer.x, pointer.y], {
+              stroke: MATERIALS[this.selectedMaterial].color,
+              strokeWidth: 4,
+              selectable: false,
+              evented: false,
+            });
+            this.canvas.add(this.previewShape);
+            break;
+
+          case "polygon":
+            this.polygonPoints.push(pointer);
+            if (this.polygonPoints.length === 1) {
+              this.isDrawing = true;
+            }
+            break;
+        }
+      }
+
+      handleMouseMove(e) {
+        const pointer = this.canvas.getPointer(e.e);
+
+        if (this.currentShape === "freehand" && this.isDrawing && this.drawingPath) {
+          const path = this.drawingPath.path;
+          path.push(["L", pointer.x, pointer.y]);
+          this.drawingPath.path = path;
+          this.canvas.renderAll();
+          return;
+        }
+
+        if (!this.isDrawing || !this.drawingStartPoint) return;
+
+        switch (this.currentShape) {
+          case "rectangle":
+            const width = pointer.x - this.drawingStartPoint.x;
+            const height = pointer.y - this.drawingStartPoint.y;
+            this.previewShape.set({
+              left: width < 0 ? pointer.x : this.drawingStartPoint.x,
+              top: height < 0 ? pointer.y : this.drawingStartPoint.y,
+              width: Math.abs(width),
+              height: Math.abs(height),
+            });
+            this.canvas.renderAll();
+            break;
+
+          case "circle":
+            const dx = pointer.x - this.drawingStartPoint.x;
+            const dy = pointer.y - this.drawingStartPoint.y;
+            const radius = Math.sqrt(dx * dx + dy * dy);
+            this.previewShape.set({
+              left: this.drawingStartPoint.x - radius,
+              top: this.drawingStartPoint.y - radius,
+              radius,
+            });
+            this.canvas.renderAll();
+            break;
+
+          case "line":
+            this.previewShape.set({
+              x2: pointer.x,
+              y2: pointer.y,
+            });
+            this.canvas.renderAll();
+            break;
+        }
+      }
+
+      handleMouseUp(e) {
+        if (this.currentShape === "freehand" && this.isDrawing) {
+          this.isDrawing = false;
+          if (this.drawingPath) {
+            this.drawingPath.selectable = true;
+            this.convertPathToRoom(this.drawingPath);
+            this.drawingPath = null;
+          }
+          return;
+        }
+
+        if (!this.isDrawing || !this.previewShape) return;
+
+        this.previewShape.selectable = true;
+        this.previewShape.evented = true;
+        const bounds = this.previewShape.getBoundingRect();
+        const room = {
+          id: Date.now().toString(),
+          name: `${this.currentShape.charAt(0).toUpperCase() + this.currentShape.slice(1)} Room`,
+          width: bounds.width,
+          height: bounds.height,
+          material: this.selectedMaterial,
+          cost: 0,
+          positionX: bounds.left,
+          positionY: bounds.top,
+          shapeType: this.currentShape,
+          fabricObject: this.previewShape,
+        };
+        room.cost = this.calculateRoomCost(room);
+        this.rooms.set(room.id, room);
+        this.notifyRoomsChange();
+
+        this.previewShape = null;
+        this.drawingStartPoint = null;
+        this.isDrawing = false;
+        this.canvas.renderAll();
+      }
+
+      handleMouseDoubleClick(e) {
+        if (this.currentShape !== "polygon" || !this.isDrawing || this.polygonPoints.length < 3) return;
+
+        if (this.previewShape) {
+          this.canvas.remove(this.previewShape);
+          this.previewShape = null;
+        }
+
+        const poly = new fabric.Polygon(this.polygonPoints, {
+          fill: `${MATERIALS[this.selectedMaterial].color}40`,
+          stroke: MATERIALS[this.selectedMaterial].color,
+          strokeWidth: 2,
+          selectable: true,
+          evented: true,
+        });
+        this.canvas.add(poly);
+        const bounds = poly.getBoundingRect();
+        const room = {
+          id: Date.now().toString(),
+          name: "Polygon Room",
+          width: bounds.width,
+          height: bounds.height,
+          material: this.selectedMaterial,
+          cost: 0,
+          positionX: bounds.left,
+          positionY: bounds.top,
+          shapeType: "polygon",
+          points: this.polygonPoints.flatMap((p) => [p.x, p.y]),
+          fabricObject: poly,
+        };
+        room.cost = this.calculateRoomCost(room);
+        this.rooms.set(room.id, room);
+        this.notifyRoomsChange();
+
+        this.polygonPoints = [];
+        this.isDrawing = false;
+        this.canvas.renderAll();
+      }
+
+      convertPathToRoom(path) {
+        const bounds = path.getBoundingRect();
+        const pathCommands = path.path || [];
+        const points = [];
+        pathCommands.forEach((cmd) => {
+          if (cmd[0] === "M" || cmd[0] === "L") {
+            points.push({ x: cmd[1], y: cmd[2] });
+          }
+        });
+        const room = {
+          id: Date.now().toString(),
+          name: "Freehand Room",
+          width: bounds.width,
+          height: bounds.height,
+          material: this.selectedMaterial,
+          cost: 0,
+          positionX: bounds.left,
+          positionY: bounds.top,
+          shapeType: "freehand",
+          points: points.flatMap((p) => [p.x, p.y]),
+          fabricObject: path,
+        };
+        room.cost = this.calculateRoomCost(room);
+        this.rooms.set(room.id, room);
+        this.notifyRoomsChange();
+      }
+
+      handleObjectModified(e) {
+        const obj = e.target;
+        if (!obj) return;
+
+        for (const [id, room] of this.rooms) {
+          if (room.fabricObject === obj) {
+            const bounds = obj.getBoundingRect();
+            room.width = bounds.width;
+            room.height = bounds.height;
+            room.positionX = bounds.left;
+            room.positionY = bounds.top;
+            room.cost = this.calculateRoomCost(room);
+            this.notifyRoomsChange();
+            break;
+          }
+        }
+      }
+
+      calculateRoomCost(room) {
+        const areaSquareMeters = (room.width * room.height) / 10000;
+        return Math.round(areaSquareMeters * MATERIALS[room.material].cost);
+      }
+
+      // Public methods
+      setCurrentShape(shape) {
+        this.currentShape = shape;
+        document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(shape + '-btn').classList.add('active');
+      }
+
+      setSelectedMaterial(material) {
+        this.selectedMaterial = material;
+      }
+
+      addRoom() {
+        const centerX = this.canvas.getWidth() / 2;
+        const centerY = this.canvas.getHeight() / 2;
+        
+        const shape = this.createShape();
+        shape.set({
+          left: centerX - 50,
+          top: centerY - 40,
+        });
+
+        this.canvas.add(shape);
+        this.canvas.setActiveObject(shape);
+        this.canvas.renderAll();
+
+        const bounds = shape.getBoundingRect();
+        const room = {
+          id: Date.now().toString(),
+          name: "New Room",
+          width: bounds.width,
+          height: bounds.height,
+          material: this.selectedMaterial,
+          cost: this.calculateRoomCost({ width: bounds.width, height: bounds.height, material: this.selectedMaterial }),
+          positionX: centerX - 50,
+          positionY: centerY - 40,
+          shapeType: this.currentShape,
+          fabricObject: shape,
+        };
+
+        this.rooms.set(room.id, room);
+        this.notifyRoomsChange();
+        return room;
+      }
+
+      createShape() {
+        const baseStyle = {
+          fill: `${MATERIALS[this.selectedMaterial].color}40`,
+          stroke: MATERIALS[this.selectedMaterial].color,
+          strokeWidth: 2,
+          selectable: true,
+          evented: true,
+        };
+
+        switch (this.currentShape) {
+          case "rectangle":
+            return new fabric.Rect({ ...baseStyle, width: 100, height: 80 });
+          case "circle":
+            return new fabric.Circle({ ...baseStyle, radius: 50 });
+          case "polygon":
+            const points = [
+              { x: 50, y: 0 }, { x: 100, y: 25 }, { x: 75, y: 75 }, { x: 25, y: 75 }, { x: 0, y: 25 }
+            ];
+            return new fabric.Polygon(points, baseStyle);
+          case "line":
+            return new fabric.Line([0, 0, 100, 100], { ...baseStyle, strokeWidth: 4 });
+          default:
+            return new fabric.Rect({ ...baseStyle, width: 100, height: 80 });
+        }
+      }
+
+      clearCanvas() {
+        this.canvas.clear();
+        this.rooms.clear();
+        this.backgroundImage = null;
+        this.createGrid();
+        this.canvas.renderAll();
+        this.notifyRoomsChange();
+      }
+
+      toggleGrid() {
+        this.gridVisible = !this.gridVisible;
+        if (this.gridGroup) {
+          this.gridGroup.visible = this.gridVisible;
+          this.canvas.renderAll();
+        }
+      }
+
+      zoomIn() {
+        const zoom = Math.min(this.zoomLevel * 1.2, 20);
+        this.canvas.setZoom(zoom);
+        this.zoomLevel = zoom;
+      }
+
+      zoomOut() {
+        const zoom = Math.max(this.zoomLevel * 0.8, 0.1);
+        this.canvas.setZoom(zoom);
+        this.zoomLevel = zoom;
+      }
+
+      zoomToFit() {
+        this.canvas.setZoom(1);
+        this.canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+        this.zoomLevel = 1;
+      }
+
+      async loadBackgroundImage(file) {
+        try {
+          const dataUrl = await this.fileToDataUrl(file);
+          await this.loadImageFromDataUrl(dataUrl, file.name);
+        } catch (error) {
+          // Create visual placeholder for unsupported formats
+          this.createVisualBackgroundLayer(file);
+        }
+      }
+
+      fileToDataUrl(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      loadImageFromDataUrl(dataUrl, filename) {
+        return new Promise((resolve, reject) => {
+          const imgElement = new Image();
+          imgElement.onload = () => {
+            const canvasWidth = this.canvas.getWidth();
+            const canvasHeight = this.canvas.getHeight();
+            
+            const scaleX = canvasWidth / imgElement.width;
+            const scaleY = canvasHeight / imgElement.height;
+            const scale = Math.min(scaleX, scaleY);
+            
+            const img = new fabric.Image(imgElement, {
+              left: 0,
+              top: 0,
+              selectable: false,
+              evented: false,
+              opacity: 0.7,
+              scaleX: scale,
+              scaleY: scale,
+            });
+            
+            if (this.backgroundImage) {
+              this.canvas.remove(this.backgroundImage);
+            }
+            
+            this.backgroundImage = img;
+            this.canvas.add(img);
+            this.canvas.sendToBack(img);
+            this.canvas.renderAll();
+            resolve();
+          };
+          imgElement.onerror = () => reject(new Error(`Failed to load: ${filename}`));
+          imgElement.src = dataUrl;
+        });
+      }
+
+      createVisualBackgroundLayer(file) {
+        if (this.backgroundImage) {
+          this.canvas.remove(this.backgroundImage);
+        }
+        
+        const canvasWidth = this.canvas.getWidth();
+        const canvasHeight = this.canvas.getHeight();
+        
+        const backgroundRect = new fabric.Rect({
+          left: 0,
+          top: 0,
+          width: canvasWidth,
+          height: canvasHeight,
+          fill: '#fafafa',
+          stroke: '#9ca3af',
+          strokeWidth: 2,
+          selectable: false,
+          evented: false,
+          opacity: 0.9,
+        });
+        
+        const text = new fabric.Text(`Background: ${file.name}\n(Visual placeholder)`, {
+          left: canvasWidth / 2,
+          top: canvasHeight / 2,
+          fontSize: 16,
+          fill: '#6b7280',
+          textAlign: 'center',
+          selectable: false,
+          evented: false,
+          originX: 'center',
+          originY: 'center',
+        });
+        
+        this.backgroundImage = new fabric.Group([backgroundRect, text], {
+          selectable: false,
+          evented: false,
+        });
+        
+        this.canvas.add(this.backgroundImage);
+        this.canvas.sendToBack(this.backgroundImage);
+        
+        if (this.gridGroup) {
+          this.gridGroup.visible = false;
+        }
+        
+        this.canvas.renderAll();
+      }
+
+      removeBackgroundImage() {
+        if (this.backgroundImage) {
+          this.canvas.remove(this.backgroundImage);
+          this.backgroundImage = null;
+          this.canvas.renderAll();
+          if (this.gridGroup) {
+            this.gridGroup.visible = this.gridVisible;
+          }
+        }
+      }
+
+      setBackgroundOpacity(opacity) {
+        if (this.backgroundImage) {
+          this.backgroundImage.set('opacity', opacity);
+          this.canvas.renderAll();
+        }
+      }
+
+      deleteRoom(roomId) {
+        const room = this.rooms.get(roomId);
+        if (room && room.fabricObject) {
+          this.canvas.remove(room.fabricObject);
+          this.rooms.delete(roomId);
+          this.canvas.renderAll();
+          this.notifyRoomsChange();
+        }
+      }
+
+      updateRoomMaterial(roomId, material) {
+        const room = this.rooms.get(roomId);
+        if (room) {
+          room.material = material;
+          room.cost = this.calculateRoomCost(room);
+          
+          if (room.fabricObject) {
+            room.fabricObject.set({
+              fill: `${MATERIALS[material].color}40`,
+              stroke: MATERIALS[material].color,
+            });
+            this.canvas.renderAll();
+          }
+          
+          this.notifyRoomsChange();
+        }
+      }
+
+      updateRoomName(roomId, name) {
+        const room = this.rooms.get(roomId);
+        if (room) {
+          room.name = name;
+          this.notifyRoomsChange();
+        }
+      }
+
+      getRooms() {
+        return Array.from(this.rooms.values());
+      }
+
+      getTotalCost() {
+        return Array.from(this.rooms.values()).reduce((total, room) => total + room.cost, 0);
+      }
+
+      onRoomsChangeCallback(callback) {
+        this.onRoomsChange = callback;
+      }
+
+      notifyRoomsChange() {
+        if (this.onRoomsChange) {
+          this.onRoomsChange(this.getRooms());
+        }
+      }
+    }
+
+    // Global variables
+    let canvasManager;
+
+    // Initialize the application
+    function init() {
+      const canvasElement = document.getElementById('canvas');
+      canvasManager = new CanvasManager(canvasElement);
+      canvasManager.onRoomsChangeCallback(updateUI);
+      
+      // Set default active tool
+      document.getElementById('rect-btn').classList.add('active');
+    }
+
+    function updateUI(rooms) {
+      const list = document.getElementById('rooms-list');
+      list.innerHTML = '';
+      
+      if (rooms.length === 0) {
+        list.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">No elements yet. Draw on canvas or click "Add Element"</p>';
+      } else {
+        rooms.forEach(room => {
+          const div = document.createElement('div');
+          div.className = 'border border-gray-200 p-3 mb-2 rounded-lg bg-gray-50';
+          div.innerHTML = `
+            <input type="text" value="${room.name}" onchange="updateName('${room.id}', this.value)" class="w-full mb-2 p-1 border rounded text-sm">
+            <div class="text-xs text-gray-600 mb-2">
+              <p>Size: ${Math.round(room.width)} × ${Math.round(room.height)} units</p>
+              <p>Area: ${Math.round((room.width * room.height) / 10000 * 100) / 100} m²</p>
+            </div>
+            <select onchange="updateMaterial('${room.id}', this.value)" class="w-full mb-2 p-1 border rounded text-sm">
+              ${Object.keys(MATERIALS).map(k => `<option value="${k}" ${k === room.material ? 'selected' : ''}>${k.charAt(0).toUpperCase() + k.slice(1)}</option>`).join('')}
+            </select>
+            <div class="flex justify-between items-center">
+              <span class="font-semibold text-green-600">$${room.cost}</span>
+              <button onclick="deleteRoom('${room.id}')" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">Delete</button>
+            </div>
+          `;
+          list.appendChild(div);
+        });
+      }
+
+      document.getElementById('total-cost').textContent = `$${canvasManager.getTotalCost()} AUD`;
+    }
+
+    // UI Functions
+    window.setShape = (shape) => canvasManager.setCurrentShape(shape);
+    window.setMaterial = (mat) => canvasManager.setSelectedMaterial(mat);
+    window.addElement = () => canvasManager.addRoom();
+    window.clearCanvas = () => canvasManager.clearCanvas();
+    window.toggleGrid = () => canvasManager.toggleGrid();
+    window.zoomIn = () => canvasManager.zoomIn();
+    window.zoomOut = () => canvasManager.zoomOut();
+    window.zoomToFit = () => canvasManager.zoomToFit();
+    window.loadBackground = () => {
+      const file = document.getElementById('bg-file').files[0];
+      if (file) canvasManager.loadBackgroundImage(file);
+    };
+    window.removeBackground = () => canvasManager.removeBackgroundImage();
+    window.setBgOpacity = (val) => canvasManager.setBackgroundOpacity(parseFloat(val));
+    window.deleteRoom = (id) => canvasManager.deleteRoom(id);
+    window.updateMaterial = (id, mat) => canvasManager.updateRoomMaterial(id, mat);
+    window.updateName = (id, name) => canvasManager.updateRoomName(id, name);
+
+    // Export Functions
+    window.exportToCSV = () => {
+      const rooms = canvasManager.getRooms();
+      const csv = ['Name,Width,Height,Area (m²),Material,Cost (AUD)'];
+      rooms.forEach(r => {
+        const area = Math.round((r.width * r.height) / 10000 * 100) / 100;
+        csv.push(`"${r.name}",${r.width},${r.height},${area},${r.material},${r.cost}`);
+      });
+      csv.push(`,,,,Total,${canvasManager.getTotalCost()}`);
+      
+      const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'construction_takeoff.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    window.exportToPDF = () => {
+      alert('Premium Feature: PDF export includes detailed reports, measurements, and professional formatting. Upgrade to Pro to unlock this feature!');
+    };
+
+    window.saveProject = () => {
+      const data = {
+        rooms: canvasManager.getRooms().map(r => ({
+          ...r,
+          fabricObject: undefined,
+          points: r.points,
+        })),
+        timestamp: new Date().toISOString(),
+        version: '1.0'
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `buildcost_project_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    window.loadProject = () => {
+      const file = document.getElementById('load-file').files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          canvasManager.clearCanvas();
+          
+          data.rooms.forEach(r => {
+            let obj;
+            const base = {
+              left: r.positionX,
+              top: r.positionY,
+              fill: `${MATERIALS[r.material].color}40`,
+              stroke: MATERIALS[r.material].color,
+              strokeWidth: r.shapeType === 'line' ? 4 : 2,
+              selectable: true,
+              evented: true,
+            };
+            
+            switch (r.shapeType) {
+              case 'rectangle':
+                obj = new fabric.Rect({ ...base, width: r.width, height: r.height });
+                break;
+              case 'circle':
+                obj = new fabric.Circle({ ...base, radius: r.width / 2 });
+                break;
+              case 'polygon':
+                const points = [];
+                for (let i = 0; i < r.points.length; i += 2) {
+                  points.push({ x: r.points[i], y: r.points[i+1] });
+                }
+                obj = new fabric.Polygon(points, base);
+                break;
+              case 'line':
+                obj = new fabric.Line([0, 0, r.width, r.height], base);
+                break;
+              case 'freehand':
+                let pathStr = 'M ' + r.points[0] + ' ' + r.points[1];
+                for (let i = 2; i < r.points.length; i += 2) {
+                  pathStr += ' L ' + r.points[i] + ' ' + r.points[i+1];
+                }
+                obj = new fabric.Path(pathStr, { ...base, fill: '' });
+                break;
+            }
+            
+            if (obj) {
+              canvasManager.canvas.add(obj);
+              r.fabricObject = obj;
+              canvasManager.rooms.set(r.id, r);
+            }
+          });
+          
+          canvasManager.notifyRoomsChange();
+          alert('Project loaded successfully!');
+        } catch (error) {
+          alert('Error loading project file. Please check the file format.');
+        }
+      };
+      reader.readAsText(file);
+    };
+
+    // Marketing Functions
+    window.shareProject = () => {
+      const url = window.location.href + '?shared=true';
+      navigator.clipboard.writeText(url).then(() => {
+        alert('Share link copied to clipboard! Note: Actual sharing requires server implementation.');
+      }).catch(() => {
+        alert('Share link: ' + url + '\n\nCopy this link to share your project!');
+      });
+    };
+
+    window.subscribe = () => {
+      alert('Redirecting to subscription page...\n\nPremium features include:\n• Unlimited PDF exports\n• Team collaboration\n• Template library\n• Priority support\n• Advanced reporting');
+    };
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', init);
+
+    // Add advertisement for free users
+    setTimeout(() => {
+      const ad = document.createElement('div');
+      ad.className = 'ad-banner';
+      ad.innerHTML = '🏗️ BuildCost Sketch - Professional takeoff tools for Australian builders • <strong>Upgrade to Pro</strong> to remove ads and unlock premium features!';
+      document.body.appendChild(ad);
+      
+      // Auto-hide after 10 seconds
+      setTimeout(() => {
+        if (ad.parentNode) {
+          ad.style.transform = 'translateY(100%)';
+          setTimeout(() => ad.remove(), 300);
+        }
+      }, 10000);
+    }, 3000);
+  </script>
+</body>
+</html>

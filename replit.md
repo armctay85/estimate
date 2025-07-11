@@ -34,19 +34,25 @@ Preferred communication style: Simple, everyday language.
 
 ## Key Components
 
-### Authentication System
+### Standalone HTML Application
+- Complete standalone HTML file (standalone.html) with embedded JavaScript
+- Self-contained application using CDN libraries (Fabric.js, Tailwind CSS, jsPDF)
+- No backend dependencies for core functionality
+- Professional MS Paint-style interface optimized for Australian market
+
+### Enhanced Canvas Drawing System
+- Advanced Fabric.js integration with live shape preview during drawing
+- Support for all shape types: rectangle, circle, polygon, line, freehand
+- Interactive polygon drawing with click-to-add-points and double-click-to-complete
+- Real-time cost calculations using shoelace formula for accurate area measurements
+- Professional material assignment with Australian floor material costs
+
+### Authentication System (React Version)
 - Local username/email and password authentication
 - Session-based authentication with secure cookies
 - User registration and login flows
 - Password hashing with bcryptjs
 - User roles and subscription tiers (free, pro, premium)
-
-### Canvas Drawing System
-- Fabric.js integration for interactive floor plan sketching
-- Room creation with rectangular shapes only (for simplicity)
-- Material assignment per room with visual indicators
-- Real-time cost calculations based on area and material costs
-- Room selection and editing capabilities
 
 ### Subscription Management
 - Stripe integration for payment processing
@@ -55,14 +61,15 @@ Preferred communication style: Simple, everyday language.
 - Customer and subscription management through Stripe
 
 ### Material Cost Database
-- Hardcoded Australian material costs (2024/2025 data):
-  - Timber: $100/sqm
-  - Carpet: $40/sqm
-  - Tiles: $60/sqm
-  - Laminate: $30/sqm
-  - Vinyl: $25/sqm
-- Color-coded material representation
-- Cost calculation engine
+- Updated Australian material costs (2024/2025 data):
+  - Timber: $100/sqm (premium hardwood flooring)
+  - Carpet: $40/sqm (standard commercial carpet)
+  - Tiles: $60/sqm (ceramic/porcelain tiles)
+  - Laminate: $30/sqm (quality laminate flooring)
+  - Vinyl: $25/sqm (luxury vinyl planks)
+- Color-coded material representation with transparency for visibility
+- Enhanced cost calculation engine using mathematical formulas for accurate measurements
+- Support for complex shapes with proper area calculations
 
 ## Data Flow
 
@@ -140,3 +147,31 @@ Preferred communication style: Simple, everyday language.
 ```
 
 The application follows a monorepo structure with clear separation between frontend, backend, and shared code, making it maintainable and scalable for the Australian construction market.
+
+## Recent Changes
+
+### January 11, 2025 - Standalone HTML Application Created
+- **Major Achievement**: Created complete standalone HTML version (standalone.html)
+- **Enhanced Drawing System**: Implemented Grok AI's improved CanvasManager with:
+  - Live shape preview during mouse drag operations
+  - Interactive polygon drawing with point-by-point creation
+  - Advanced area calculations using shoelace formula
+  - Proper cost calculations for all shape types including complex polygons
+- **Professional UI**: MS Paint-style interface with:
+  - 320px sidebar with organized tool sections
+  - Australian material selector with proper costs
+  - Real-time project cost calculations
+  - Professional color scheme and responsive design
+- **Revenue Features**: Integrated freemium model with:
+  - Premium feature gates (PDF export marked as premium)
+  - Subscription promotion ($19.99/month Australian pricing)
+  - Advertisement system for free users
+  - Project sharing capabilities
+- **Export/Import**: Complete project management:
+  - Save/load projects as JSON with shape reconstruction
+  - CSV export for bill of materials
+  - Professional PDF export (premium feature)
+- **Background Support**: Enhanced file upload handling:
+  - Support for PDF, DWG, DXF, and standard image formats
+  - Visual placeholder system for unsupported formats
+  - Opacity control and background management
