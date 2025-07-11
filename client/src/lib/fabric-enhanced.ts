@@ -24,6 +24,9 @@ export class CanvasManager {
   private selectedMaterial: MaterialType = "timber";
   private currentShape: ShapeType = "rectangle";
   private isDrawing = false;
+  private drawingStartPoint?: { x: number; y: number };
+  private previewShape?: fabric.Object;
+  private polygonPoints: { x: number; y: number }[] = [];
   private drawingPath?: fabric.Path;
   private backgroundImage?: fabric.Object;
   private gridVisible = true;
@@ -121,7 +124,7 @@ export class CanvasManager {
       opt.e.stopPropagation();
     });
 
-    // Pan with middle mouse or space + drag
+    // Pan with middle mouse or shift + drag
     this.canvas.on('mouse:down', (opt) => {
       const evt = opt.e;
       if (evt.button === 1 || (evt.button === 0 && evt.shiftKey)) { // Middle mouse or Shift+click
@@ -152,12 +155,13 @@ export class CanvasManager {
     });
   }
 
-  // Enhanced Drawing System
+  // Enhanced Event Listeners
   private setupEventListeners() {
     this.canvas.on("object:modified", this.handleObjectModified.bind(this));
     this.canvas.on("selection:created", this.handleSelectionCreated.bind(this));
     this.canvas.on("selection:updated", this.handleSelectionUpdated.bind(this));
     this.canvas.on("selection:cleared", this.handleSelectionCleared.bind(this));
+    this.canvas.on("mouse:dblclick", this.handleMouseDoubleClick.bind(this));
     
     // Enable object selection and movement
     this.canvas.selection = true;
@@ -171,31 +175,123 @@ export class CanvasManager {
   }
 
   private handleMouseDown(e: fabric.IEvent) {
-    // Skip if panning
     if (this.isPanning) return;
 
-    if (this.currentShape === "freehand") {
-      this.isDrawing = true;
-      const pointer = this.canvas.getPointer(e.e);
-      const points = [pointer.x, pointer.y, pointer.x, pointer.y];
-      this.drawingPath = new fabric.Path(`M ${pointer.x} ${pointer.y}`, {
-        stroke: MATERIALS[this.selectedMaterial].color,
-        strokeWidth: 3,
-        fill: "",
-        selectable: false,
-      });
-      this.canvas.add(this.drawingPath);
+    const pointer = this.canvas.getPointer(e.e);
+
+    switch (this.currentShape) {
+      case "freehand":
+        this.isDrawing = true;
+        const points = [pointer.x, pointer.y, pointer.x, pointer.y];
+        this.drawingPath = new fabric.Path(`M ${pointer.x} ${pointer.y}`, {
+          stroke: MATERIALS[this.selectedMaterial].color,
+          strokeWidth: 3,
+          fill: "",
+          selectable: false,
+        });
+        this.canvas.add(this.drawingPath);
+        break;
+
+      case "rectangle":
+        this.drawingStartPoint = pointer;
+        this.isDrawing = true;
+        this.previewShape = new fabric.Rect({
+          left: pointer.x,
+          top: pointer.y,
+          width: 0,
+          height: 0,
+          fill: `${MATERIALS[this.selectedMaterial].color}40`,
+          stroke: MATERIALS[this.selectedMaterial].color,
+          strokeWidth: 2,
+          selectable: false,
+          evented: false,
+        });
+        this.canvas.add(this.previewShape);
+        break;
+
+      case "circle":
+        this.drawingStartPoint = pointer;
+        this.isDrawing = true;
+        this.previewShape = new fabric.Circle({
+          left: pointer.x,
+          top: pointer.y,
+          radius: 0,
+          fill: `${MATERIALS[this.selectedMaterial].color}40`,
+          stroke: MATERIALS[this.selectedMaterial].color,
+          strokeWidth: 2,
+          selectable: false,
+          evented: false,
+        });
+        this.canvas.add(this.previewShape);
+        break;
+
+      case "line":
+        this.drawingStartPoint = pointer;
+        this.isDrawing = true;
+        this.previewShape = new fabric.Line([pointer.x, pointer.y, pointer.x, pointer.y], {
+          stroke: MATERIALS[this.selectedMaterial].color,
+          strokeWidth: 4,
+          selectable: false,
+          evented: false,
+        });
+        this.canvas.add(this.previewShape);
+        break;
+
+      case "polygon":
+        this.polygonPoints.push(pointer);
+        if (this.polygonPoints.length === 1) {
+          this.isDrawing = true;
+        }
+        break;
     }
   }
 
   private handleMouseMove(e: fabric.IEvent) {
-    if (!this.isDrawing || this.currentShape !== "freehand" || !this.drawingPath) return;
-    
     const pointer = this.canvas.getPointer(e.e);
-    const path = this.drawingPath.path!;
-    path.push(["L", pointer.x, pointer.y]);
-    this.drawingPath.path = path;
-    this.canvas.renderAll();
+
+    if (this.currentShape === "freehand" && this.isDrawing && this.drawingPath) {
+      const path = this.drawingPath.path!;
+      path.push(["L", pointer.x, pointer.y]);
+      this.drawingPath.path = path;
+      this.canvas.renderAll();
+      return;
+    }
+
+    if (!this.isDrawing || !this.drawingStartPoint) return;
+
+    switch (this.currentShape) {
+      case "rectangle":
+        const width = pointer.x - this.drawingStartPoint.x;
+        const height = pointer.y - this.drawingStartPoint.y;
+        this.previewShape?.set({
+          left: width < 0 ? pointer.x : this.drawingStartPoint.x,
+          top: height < 0 ? pointer.y : this.drawingStartPoint.y,
+          width: Math.abs(width),
+          height: Math.abs(height),
+        });
+        this.canvas.renderAll();
+        break;
+
+      case "circle":
+        const dx = pointer.x - this.drawingStartPoint.x;
+        const dy = pointer.y - this.drawingStartPoint.y;
+        const radius = Math.sqrt(dx * dx + dy * dy);
+        this.previewShape?.set({
+          left: this.drawingStartPoint.x - radius,
+          top: this.drawingStartPoint.y - radius,
+          radius,
+        });
+        this.canvas.renderAll();
+        break;
+
+      case "line":
+        this.previewShape?.set({
+          x2: pointer.x,
+          y2: pointer.y,
+        });
+        this.canvas.renderAll();
+        break;
+    }
   }
 
   private handleMouseUp(e: fabric.IEvent) {
@@ -206,24 +302,100 @@ export class CanvasManager {
         this.convertPathToRoom(this.drawingPath);
         this.drawingPath = undefined;
       }
+      return;
     }
+
+    if (!this.isDrawing || !this.previewShape) return;
+
+    this.previewShape.selectable = true;
+    this.previewShape.evented = true;
+    const bounds = this.previewShape.getBoundingRect();
+    const room: RoomData = {
+      id: Date.now().toString(),
+      name: `${this.currentShape.charAt(0).toUpperCase() + this.currentShape.slice(1)} Element`,
+      width: bounds.width,
+      height: bounds.height,
+      material: this.selectedMaterial,
+      cost: 0, // Will be calculated
+      positionX: bounds.left,
+      positionY: bounds.top,
+      shapeType: this.currentShape,
+      fabricObject: this.previewShape,
+    };
+    room.cost = this.calculateRoomCost(room);
+    this.rooms.set(room.id, room);
+    this.updateRoomLabel(room);
+    this.notifyRoomsChange();
+
+    this.previewShape = undefined;
+    this.drawingStartPoint = undefined;
+    this.isDrawing = false;
+    this.canvas.renderAll();
+  }
+
+  private handleMouseDoubleClick(e: fabric.IEvent) {
+    if (this.currentShape !== "polygon" || !this.isDrawing || this.polygonPoints.length < 3) return;
+
+    if (this.previewShape) {
+      this.canvas.remove(this.previewShape);
+      this.previewShape = undefined;
+    }
+
+    const poly = new fabric.Polygon(this.polygonPoints, {
+      fill: `${MATERIALS[this.selectedMaterial].color}40`,
+      stroke: MATERIALS[this.selectedMaterial].color,
+      strokeWidth: 2,
+      selectable: true,
+      evented: true,
+    });
+    this.canvas.add(poly);
+    const bounds = poly.getBoundingRect();
+    const room: RoomData = {
+      id: Date.now().toString(),
+      name: "Polygon Element",
+      width: bounds.width,
+      height: bounds.height,
+      material: this.selectedMaterial,
+      cost: 0,
+      positionX: bounds.left,
+      positionY: bounds.top,
+      shapeType: "polygon",
+      points: this.polygonPoints.flatMap((p) => [p.x, p.y]),
+      fabricObject: poly,
+    };
+    room.cost = this.calculateRoomCost(room);
+    this.rooms.set(room.id, room);
+    this.updateRoomLabel(room);
+    this.notifyRoomsChange();
+
+    this.polygonPoints = [];
+    this.isDrawing = false;
+    this.canvas.renderAll();
   }
 
   private convertPathToRoom(path: fabric.Path) {
     const bounds = path.getBoundingRect();
+    const pathCommands = path.path || [];
+    const points: { x: number; y: number }[] = [];
+    pathCommands.forEach((cmd) => {
+      if (cmd[0] === "M" || cmd[0] === "L") {
+        points.push({ x: cmd[1], y: cmd[2] });
+      }
+    });
     const room: RoomData = {
       id: Date.now().toString(),
-      name: "Freehand Room",
+      name: "Freehand Element",
       width: bounds.width,
       height: bounds.height,
       material: this.selectedMaterial,
-      cost: this.calculateRoomCost(bounds.width, bounds.height, this.selectedMaterial),
+      cost: 0,
       positionX: bounds.left,
       positionY: bounds.top,
       shapeType: "freehand",
+      points: points.flatMap((p) => [p.x, p.y]),
       fabricObject: path,
     };
-
+    room.cost = this.calculateRoomCost(room);
     this.rooms.set(room.id, room);
     this.updateRoomLabel(room);
     this.notifyRoomsChange();
@@ -233,7 +405,6 @@ export class CanvasManager {
     const obj = e.target;
     if (!obj) return;
 
-    // Find the room associated with this object
     for (const [id, room] of this.rooms) {
       if (room.fabricObject === obj) {
         const bounds = obj.getBoundingRect();
@@ -241,7 +412,7 @@ export class CanvasManager {
         room.height = bounds.height;
         room.positionX = bounds.left;
         room.positionY = bounds.top;
-        room.cost = this.calculateRoomCost(room.width, room.height, room.material);
+        room.cost = this.calculateRoomCost(room);
         this.updateRoomLabel(room);
         this.notifyRoomsChange();
         break;
@@ -250,28 +421,86 @@ export class CanvasManager {
   }
 
   private handleSelectionCreated(e: fabric.IEvent) {
-    // Implementation for selection created
+    // Can implement selection logic, e.g., highlight or show properties
   }
 
   private handleSelectionUpdated(e: fabric.IEvent) {
-    // Implementation for selection updated
+    // Can implement updated selection logic
   }
 
   private handleSelectionCleared(e: fabric.IEvent) {
-    // Implementation for selection cleared
+    // Can implement cleared selection logic
   }
 
-  private calculateRoomCost(width: number, height: number, material: MaterialType): number {
-    const areaSquareMeters = (width * height) / 10000; // Convert from canvas units to square meters
-    return Math.round(areaSquareMeters * MATERIALS[material].cost);
+  private shoelace(points: { x: number; y: number }[]): number {
+    if (points.length < 3) return 0;
+    let area = 0;
+    for (let i = 0; i < points.length; i++) {
+      const j = (i + 1) % points.length;
+      area += points[i].x * points[j].y - points[j].x * points[i].y;
+    }
+    return Math.abs(area) / 2;
+  }
+
+  private calculateQuantity(room: RoomData): number {
+    const obj = room.fabricObject;
+    if (!obj) return 0;
+
+    const scaleX = obj.scaleX || 1;
+    const scaleY = obj.scaleY || 1;
+
+    if (room.shapeType === "line") {
+      const line = obj as fabric.Line;
+      const p1 = fabric.util.transformPoint(
+        { x: line.x1 || 0, y: line.y1 || 0 },
+        obj.calcOwnMatrix()
+      );
+      const p2 = fabric.util.transformPoint(
+        { x: line.x2 || 0, y: line.y2 || 0 },
+        obj.calcOwnMatrix()
+      );
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      return Math.sqrt(dx * dx + dy * dy);
+    } else {
+      let origArea = 0;
+      if (room.shapeType === "rectangle") {
+        origArea = (obj.width || 0) * (obj.height || 0);
+      } else if (room.shapeType === "circle") {
+        const r = obj.radius || 0;
+        origArea = Math.PI * r * r;
+      } else if (room.shapeType === "polygon") {
+        origArea = this.shoelace((obj as fabric.Polygon).points || []);
+      } else if (room.shapeType === "freehand") {
+        const path = (obj as fabric.Path).path || [];
+        const points: { x: number; y: number }[] = [];
+        path.forEach((cmd: any) => {
+          if (cmd[0] === "M" || cmd[0] === "L") {
+            points.push({ x: cmd[1], y: cmd[2] });
+          }
+        });
+        if (points.length > 1 && (points[0].x !== points[points.length - 1].x || points[0].y !== points[points.length - 1].y)) {
+          points.push(points[0]);
+        }
+        origArea = this.shoelace(points);
+      }
+      return origArea * Math.abs(scaleX * scaleY);
+    }
+  }
+
+  private calculateRoomCost(room: RoomData): number {
+    const quantity = this.calculateQuantity(room);
+    const scale = room.shapeType === "line" ? 100 : 10000; // Assuming 100 pixels = 1 meter
+    const unitQuantity = quantity / scale;
+    return Math.round(unitQuantity * MATERIALS[room.material].cost);
   }
 
   private updateRoomLabel(room: RoomData) {
     // Update room label if needed
   }
 
-  // Enhanced Room Creation
-  public addRoom(name: string = "New Room"): RoomData {
+  // Add fixed shape (legacy support, drawing is preferred)
+  public addRoom(name: string = "New Element"): RoomData {
     const centerX = this.canvas.getWidth() / 2;
     const centerY = this.canvas.getHeight() / 2;
     
@@ -285,18 +514,23 @@ export class CanvasManager {
     this.canvas.setActiveObject(shape);
     this.canvas.renderAll();
 
+    const bounds = shape.getBoundingRect();
     const room: RoomData = {
       id: Date.now().toString(),
       name,
-      width: 100,
-      height: 80,
+      width: bounds.width,
+      height: bounds.height,
       material: this.selectedMaterial,
-      cost: this.calculateRoomCost(100, 80, this.selectedMaterial),
+      cost: this.calculateRoomCost({ ...room, fabricObject: shape, shapeType: this.currentShape }), // Temp for calc
       positionX: centerX - 50,
       positionY: centerY - 40,
       shapeType: this.currentShape,
       fabricObject: shape,
     };
+
+    if (this.currentShape === "polygon") {
+      room.points = [50, 0, 100, 25, 75, 75, 25, 75, 0, 25]; // From hardcoded points
+    }
 
     this.rooms.set(room.id, room);
     this.updateRoomLabel(room);
@@ -314,13 +548,10 @@ export class CanvasManager {
       evented: true,
     };
 
-    const position = { left: 50, top: 50 };
-
     switch (this.currentShape) {
       case "rectangle":
         return new fabric.Rect({
           ...baseStyle,
-          ...position,
           width: 100,
           height: 80,
         });
@@ -328,7 +559,6 @@ export class CanvasManager {
       case "circle":
         return new fabric.Circle({
           ...baseStyle,
-          ...position,
           radius: 50,
         });
 
@@ -342,20 +572,17 @@ export class CanvasManager {
         ];
         return new fabric.Polygon(points, {
           ...baseStyle,
-          ...position,
         });
 
       case "line":
         return new fabric.Line([0, 0, 100, 100], {
           ...baseStyle,
-          ...position,
           strokeWidth: 4,
         });
 
       default:
         return new fabric.Rect({
           ...baseStyle,
-          ...position,
           width: 100,
           height: 80,
         });
@@ -426,58 +653,51 @@ export class CanvasManager {
         console.log('Removed existing background image');
       }
       
-      // Use simpler approach with fabric.Rect instead of image conversion
-      console.log('Creating simple background layer with fabric.Rect');
-      
       const canvasWidth = this.canvas.getWidth();
       const canvasHeight = this.canvas.getHeight();
-      console.log('Canvas dimensions:', canvasWidth, 'x', canvasHeight);
       
-      // Create a simple background rectangle with pattern fill
-      console.log('Creating fabric.Rect object...');
-      try {
-        const backgroundRect = new fabric.Rect({
-          left: 0,
-          top: 0,
-          width: canvasWidth,
-          height: canvasHeight,
-          fill: '#fafafa',
-          stroke: '#9ca3af',
-          strokeWidth: 2,
-          selectable: false,
-          evented: false,
-          opacity: 0.9,
-          name: 'background-layer',
-        });
-        console.log('fabric.Rect created successfully');
-        
-        this.backgroundImage = backgroundRect;
-        this.canvas.add(backgroundRect);
-        console.log('Background rect added to canvas');
-        
-        this.canvas.sendToBack(backgroundRect);
-        console.log('Background rect sent to back');
-        
-        // Hide the default grid
-        if (this.gridGroup) {
-          this.gridGroup.visible = false;
-          console.log('Default grid hidden');
-        }
-        
-        // Skip text overlay for now to avoid issues
-        console.log('Skipping text overlay to avoid potential issues');
-        
-        this.canvas.renderAll();
-        console.log('Canvas render completed');
-        console.log('Simple background layer created and displayed successfully');
-      } catch (rectError) {
-        console.error('Error creating fabric objects:', rectError);
-        throw rectError;
+      const backgroundRect = new fabric.Rect({
+        left: 0,
+        top: 0,
+        width: canvasWidth,
+        height: canvasHeight,
+        fill: '#fafafa',
+        stroke: '#9ca3af',
+        strokeWidth: 2,
+        selectable: false,
+        evented: false,
+        opacity: 0.9,
+      });
+      
+      const text = new fabric.Text(`Unsupported format: ${file.name}\nVisual layer created`, {
+        left: canvasWidth / 2,
+        top: canvasHeight / 2,
+        fontSize: 20,
+        fill: '#6b7280',
+        textAlign: 'center',
+        selectable: false,
+        evented: false,
+        originX: 'center',
+        originY: 'center',
+      });
+      
+      this.backgroundImage = new fabric.Group([backgroundRect, text], {
+        selectable: false,
+        evented: false,
+      });
+      
+      this.canvas.add(this.backgroundImage);
+      this.canvas.sendToBack(this.backgroundImage);
+      
+      // Hide the default grid
+      if (this.gridGroup) {
+        this.gridGroup.visible = false;
       }
+      
+      this.canvas.renderAll();
+      console.log('Visual background layer created successfully');
     } catch (error) {
       console.error('Error in createVisualBackgroundLayer:', error);
-      console.error('Error details:', error.message || error);
-      console.error('Error stack:', error.stack);
       throw error;
     }
   }
@@ -587,7 +807,7 @@ export class CanvasManager {
     const room = this.rooms.get(roomId);
     if (room) {
       room.material = material;
-      room.cost = this.calculateRoomCost(room.width, room.height, material);
+      room.cost = this.calculateRoomCost(room);
       
       if (room.fabricObject) {
         room.fabricObject.set({
