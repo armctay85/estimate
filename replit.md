@@ -61,12 +61,13 @@ Preferred communication style: Simple, everyday language.
 - Customer and subscription management through Stripe
 
 ### Material Cost Database
-- Updated Australian material costs (2024/2025 data):
-  - Timber: $100/sqm (premium hardwood flooring)
-  - Carpet: $40/sqm (standard commercial carpet)
-  - Tiles: $60/sqm (ceramic/porcelain tiles)
-  - Laminate: $30/sqm (quality laminate flooring)
-  - Vinyl: $25/sqm (luxury vinyl planks)
+- Comprehensive Australian construction costs (2024/2025 data) with 200+ materials:
+  - **Flooring**: Timber ($120/m²), carpet ($43/m²), tiles ($70/m²), laminate ($34/m²), vinyl ($28/m²)
+  - **Structural**: Concrete slab ($165/m²), steel frame ($1,230/tonne), timber frame ($1,650/m³)
+  - **Walls**: Masonry ($180/m²), timber studs ($63/m²), steel studs ($74/m²), curtain wall ($600/m²)
+  - **Roofing**: Colorbond ($80/m²), concrete tiles ($80/m²), membrane roofing ($110/m²)
+  - **MEP Services**: Electrical ($60-100/m²), plumbing ($50-77/m²), HVAC ($85-220/m²)
+- Project-type specific material availability (residential vs commercial)
 - Color-coded material representation with transparency for visibility
 - Enhanced cost calculation engine using mathematical formulas for accurate measurements
 - Support for complex shapes with proper area calculations
@@ -187,14 +188,27 @@ The application follows a monorepo structure with clear separation between front
   - Mobile-optimized calibration and template systems
   - Simplified modal-based navigation
 
-### January 11, 2025 - Mini Quantity Surveyor Pro Features
+### January 11, 2025 - Complete Built Form & MEP Services Integration
+- **Comprehensive Project Types**: Residential vs Commercial project modes with appropriate materials
+- **Complete Built Form Elements**: Expanded to full construction systems:
+  - **Structural**: Concrete slabs, footings, steel/timber framing, precast panels
+  - **Walls & Partitions**: Masonry, timber/steel studs, curtain walls, demountable partitions
+  - **Roofing**: Colorbond steel, concrete tiles, commercial membrane systems
+  - **External**: Brick veneer, aluminum cladding, render finishes
+  - **Internal**: Plasterboard, suspended ceilings, fitouts
+- **Full MEP Services Integration**: Complete electrical, plumbing, HVAC by project type:
+  - **Residential Services**: Ducted heating ($85/m²), hydronic heating ($125/m²), split AC ($45/m²)
+  - **Commercial Services**: HVAC systems ($180/m²), VRF ($220/m²), sprinklers ($65/m²), BMS ($25/m²)
+  - **Fire Services**: Detection & alarm ($35/m²), sprinkler systems for commercial projects
+  - **Data & Communications**: Commercial data cabling and BMS integration
+- **Intelligent Material Filtering**: Materials automatically filtered by project type (residential/commercial)
+- **Area-Based Service Costing**: Total building area input drives MEP services calculations
+- **Enhanced Cost Breakdown**: Includes MEP services line item in professional cost plans
+
+### January 11, 2025 - Mini Quantity Surveyor Pro Features  
 - **Comprehensive QS Transformation**: Complete mini quantity surveyor system implementation
 - **Full Australian Labor Database**: 10+ trade-specific labor rates (carpenter $65/hr, electrician $85/hr, etc.)
-- **Expanded Materials Library**: 150+ construction materials across categories:
-  - Flooring: timber, carpet, tiles, laminate, vinyl
-  - Structural: concrete slab, steel frame, timber frame
-  - External: brick veneer, Colorbond roofing, render
-  - Internal: plasterboard, kitchen/bathroom fitouts
+- **Expanded Materials Library**: 200+ construction materials across 7 categories
 - **Professional Cost Breakdown**: Material + labor + wastage with overheads, profit, GST calculations
 - **Site Mobilization Costs**: Scaffolding, crane hire, site shed, utilities, waste removal
 - **Project Overheads**: 15% overheads, 12% profit, 8% contingency, 10% GST

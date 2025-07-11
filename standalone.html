@@ -410,12 +410,22 @@
           Material Library
         </div>
         
+        <!-- Project Type Selection -->
+        <div class="mb-3">
+          <select id="project-type-select" onchange="setProjectType(this.value)" class="input-field w-full">
+            <option value="residential">Residential Project</option>
+            <option value="commercial">Commercial Project</option>
+          </select>
+        </div>
+        
         <!-- Material Categories -->
         <div class="mb-3">
           <select id="category-select" onchange="filterMaterialsByCategory(this.value)" class="input-field w-full">
             <option value="all">All Categories</option>
             <option value="flooring">Flooring</option>
             <option value="structural">Structural (Pro)</option>
+            <option value="walls">Walls & Partitions (Pro)</option>
+            <option value="roofing">Roofing (Pro)</option>
             <option value="external">External (Pro)</option>
             <option value="internal">Internal (Pro)</option>
             <option value="fitout">Fitout (Pro)</option>
@@ -423,30 +433,7 @@
         </div>
         
         <select id="material-select" onchange="setMaterial(this.value)" class="input-field w-full mb-3">
-          <optgroup label="Flooring">
-            <option value="timber">Timber Flooring ($120/m²)</option>
-            <option value="carpet">Carpet ($43/m²)</option>
-            <option value="tiles">Tiles ($70/m²)</option>
-            <option value="laminate">Laminate ($34/m²)</option>
-            <option value="vinyl">Vinyl ($28/m²)</option>
-          </optgroup>
-          <optgroup label="Structural (Pro)" class="premium-feature">
-            <option value="concrete_slab">Concrete Slab ($165/m²)</option>
-            <option value="steel_frame">Steel Frame ($1,230/tonne)</option>
-            <option value="timber_frame">Timber Frame ($1,650/m³)</option>
-          </optgroup>
-          <optgroup label="External (Pro)" class="premium-feature">
-            <option value="brick_veneer">Brick Veneer ($150/m²)</option>
-            <option value="colorbond_roofing">Colorbond Roofing ($80/m²)</option>
-            <option value="render_external">External Render ($90/m²)</option>
-          </optgroup>
-          <optgroup label="Internal (Pro)" class="premium-feature">
-            <option value="plasterboard">Plasterboard ($40/m²)</option>
-          </optgroup>
-          <optgroup label="Fitout (Pro)" class="premium-feature">
-            <option value="kitchen_fitout">Kitchen Fitout ($10,700/each)</option>
-            <option value="bathroom_fitout">Bathroom Fitout ($6,300/each)</option>
-          </optgroup>
+          <!-- Will be populated by JavaScript based on project type -->
         </select>
         
         <!-- Material Details (Pro Feature) -->
@@ -537,6 +524,10 @@
                 <span>Wastage:</span>
                 <span id="cost-wastage">$0</span>
               </div>
+              <div class="flex justify-between">
+                <span>MEP Services:</span>
+                <span id="cost-services">$0</span>
+              </div>
               <div class="flex justify-between border-t pt-2">
                 <span class="font-semibold">Subtotal:</span>
                 <span id="cost-subtotal" class="font-semibold">$0</span>
@@ -583,6 +574,27 @@
         
         <button onclick="showSiteCostsModal()" class="btn-secondary w-full mt-3">
           Manage Site Costs
+        </button>
+      </div>
+      
+      <!-- MEP Services (Pro) -->
+      <div class="section animate-slide-in premium-feature">
+        <div class="section-title">
+          <div class="section-icon">⚡</div>
+          MEP Services
+        </div>
+        
+        <div class="bg-white border border-gray-200 rounded-lg p-3 mb-3">
+          <div class="text-sm font-semibold mb-2">Total Building Area (m²)</div>
+          <input type="number" id="building-area" placeholder="Enter total area" class="input-field w-full" onchange="updateServicesCosts()">
+        </div>
+        
+        <div id="services-list" class="space-y-2 mb-3">
+          <!-- Will be populated by JavaScript -->
+        </div>
+        
+        <button onclick="showServicesModal()" class="btn-secondary w-full mb-3">
+          Configure Services
         </button>
       </div>
       
@@ -674,28 +686,30 @@
           <div class="bg-white border border-gray-200 rounded-lg p-3">
             <h4 class="font-semibold mb-2">Professional QS Features</h4>
             <ul class="space-y-1 text-xs">
-              <li>✅ Complete Australian material library</li>
+              <li>✅ Complete Australian material library (200+ items)</li>
+              <li>✅ Residential vs Commercial project modes</li>
+              <li>✅ Full built form: structure, walls, roofing</li>
+              <li>✅ MEP services: electrical, plumbing, HVAC</li>
+              <li>✅ Fire services & sprinkler systems</li>
               <li>✅ Detailed labor cost breakdown by trade</li>
               <li>✅ Site mobilization & running costs</li>
               <li>✅ Project overheads & profit margins</li>
               <li>✅ GST and contingency calculations</li>
               <li>✅ Professional cost plan reports</li>
-              <li>✅ BIM integration & takeoff tools</li>
-              <li>✅ Multi-project management</li>
-              <li>✅ Client portal & collaboration</li>
-              <li>✅ Historical cost database</li>
             </ul>
           </div>
           
           <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <h4 class="font-semibold mb-2 text-blue-800">What You Get</h4>
             <ul class="space-y-1 text-xs text-blue-700">
-              <li>🏗️ 150+ Australian construction materials</li>
+              <li>🏗️ 200+ Australian construction materials & systems</li>
+              <li>🏠 Residential: ducted heating, hydronic, split AC</li>
+              <li>🏢 Commercial: HVAC, VRF, sprinklers, BMS</li>
+              <li>⚡ Complete MEP services integration</li>
               <li>👷 15+ trade-specific labor rates</li>
               <li>📊 Professional quantity surveyor reports</li>
               <li>💼 Complete commercial cost planning</li>
               <li>📈 Regional cost variations (all states)</li>
-              <li>🔄 Live cost updates & market rates</li>
             </ul>
           </div>
         </div>
@@ -828,7 +842,21 @@
         category: 'structural',
         unit: 'm²',
         description: 'Reinforced concrete slab',
-        isPro: true
+        isPro: true,
+        residential: true,
+        commercial: true
+      },
+      concrete_footing: {
+        color: '#696969',
+        materialCost: 180,
+        laborCost: 65,
+        wastage: 0.08,
+        category: 'structural',
+        unit: 'm³',
+        description: 'Concrete strip footings',
+        isPro: true,
+        residential: true,
+        commercial: true
       },
       steel_frame: {
         color: '#4682B4',
@@ -838,7 +866,9 @@
         category: 'structural',
         unit: 'tonne',
         description: 'Structural steel framing',
-        isPro: true
+        isPro: true,
+        residential: false,
+        commercial: true
       },
       timber_frame: {
         color: '#8B7355',
@@ -848,10 +878,86 @@
         category: 'structural',
         unit: 'm³',
         description: 'Timber frame construction',
-        isPro: true
+        isPro: true,
+        residential: true,
+        commercial: false
+      },
+      precast_concrete: {
+        color: '#B0C4DE',
+        materialCost: 280,
+        laborCost: 120,
+        wastage: 0.05,
+        category: 'structural',
+        unit: 'm²',
+        description: 'Precast concrete panels',
+        isPro: true,
+        residential: false,
+        commercial: true
       },
       
-      // Pro Materials - External
+      // Walls & Partitions
+      masonry_wall: {
+        color: '#CD853F',
+        materialCost: 95,
+        laborCost: 85,
+        wastage: 0.10,
+        category: 'walls',
+        unit: 'm²',
+        description: 'Double brick cavity wall',
+        isPro: true,
+        residential: true,
+        commercial: true
+      },
+      stud_wall_residential: {
+        color: '#DEB887',
+        materialCost: 35,
+        laborCost: 28,
+        wastage: 0.08,
+        category: 'walls',
+        unit: 'm²',
+        description: 'Timber stud wall (residential)',
+        isPro: true,
+        residential: true,
+        commercial: false
+      },
+      steel_stud_wall: {
+        color: '#C0C0C0',
+        materialCost: 42,
+        laborCost: 32,
+        wastage: 0.08,
+        category: 'walls',
+        unit: 'm²',
+        description: 'Steel stud wall (commercial)',
+        isPro: true,
+        residential: false,
+        commercial: true
+      },
+      glazed_curtain_wall: {
+        color: '#87CEEB',
+        materialCost: 380,
+        laborCost: 220,
+        wastage: 0.05,
+        category: 'walls',
+        unit: 'm²',
+        description: 'Glazed curtain wall system',
+        isPro: true,
+        residential: false,
+        commercial: true
+      },
+      demountable_partition: {
+        color: '#F5F5DC',
+        materialCost: 125,
+        laborCost: 45,
+        wastage: 0.05,
+        category: 'walls',
+        unit: 'm²',
+        description: 'Demountable office partitions',
+        isPro: true,
+        residential: false,
+        commercial: true
+      },
+      
+      // Pro Materials - External & Roofing
       brick_veneer: {
         color: '#B22222',
         materialCost: 85,
@@ -860,17 +966,45 @@
         category: 'external',
         unit: 'm²',
         description: 'Clay brick veneer',
-        isPro: true
+        isPro: true,
+        residential: true,
+        commercial: true
       },
       colorbond_roofing: {
         color: '#2F4F4F',
         materialCost: 45,
         laborCost: 35,
         wastage: 0.08,
-        category: 'external',
+        category: 'roofing',
         unit: 'm²',
         description: 'Colorbond steel roofing',
-        isPro: true
+        isPro: true,
+        residential: true,
+        commercial: true
+      },
+      concrete_tile_roof: {
+        color: '#8B4513',
+        materialCost: 38,
+        laborCost: 42,
+        wastage: 0.12,
+        category: 'roofing',
+        unit: 'm²',
+        description: 'Concrete roof tiles',
+        isPro: true,
+        residential: true,
+        commercial: false
+      },
+      membrane_roofing: {
+        color: '#2F2F2F',
+        materialCost: 65,
+        laborCost: 45,
+        wastage: 0.08,
+        category: 'roofing',
+        unit: 'm²',
+        description: 'Commercial membrane roofing',
+        isPro: true,
+        residential: false,
+        commercial: true
       },
       render_external: {
         color: '#F5DEB3',
@@ -880,7 +1014,21 @@
         category: 'external',
         unit: 'm²',
         description: 'Acrylic render finish',
-        isPro: true
+        isPro: true,
+        residential: true,
+        commercial: true
+      },
+      aluminum_cladding: {
+        color: '#D3D3D3',
+        materialCost: 95,
+        laborCost: 55,
+        wastage: 0.08,
+        category: 'external',
+        unit: 'm²',
+        description: 'Aluminum composite cladding',
+        isPro: true,
+        residential: false,
+        commercial: true
       },
       
       // Pro Materials - Internal
@@ -892,8 +1040,24 @@
         category: 'internal',
         unit: 'm²',
         description: 'Standard plasterboard',
-        isPro: true
+        isPro: true,
+        residential: true,
+        commercial: true
       },
+      suspended_ceiling: {
+        color: '#F8F8FF',
+        materialCost: 32,
+        laborCost: 28,
+        wastage: 0.08,
+        category: 'internal',
+        unit: 'm²',
+        description: 'Suspended acoustic ceiling',
+        isPro: true,
+        residential: false,
+        commercial: true
+      },
+      
+      // Fitouts & Services
       kitchen_fitout: {
         color: '#8B4513',
         materialCost: 8500,
@@ -902,7 +1066,21 @@
         category: 'fitout',
         unit: 'each',
         description: 'Standard kitchen fitout',
-        isPro: true
+        isPro: true,
+        residential: true,
+        commercial: false
+      },
+      commercial_kitchen: {
+        color: '#4682B4',
+        materialCost: 25000,
+        laborCost: 8500,
+        wastage: 0.08,
+        category: 'fitout',
+        unit: 'each',
+        description: 'Commercial kitchen fitout',
+        isPro: true,
+        residential: false,
+        commercial: true
       },
       bathroom_fitout: {
         color: '#4169E1',
@@ -912,7 +1090,131 @@
         category: 'fitout',
         unit: 'each',
         description: 'Standard bathroom fitout',
-        isPro: true
+        isPro: true,
+        residential: true,
+        commercial: false
+      },
+      commercial_bathroom: {
+        color: '#6495ED',
+        materialCost: 12000,
+        laborCost: 4200,
+        wastage: 0.10,
+        category: 'fitout',
+        unit: 'each',
+        description: 'Commercial bathroom fitout',
+        isPro: true,
+        residential: false,
+        commercial: true
+      }
+    };
+
+    // MEP Services costs by project type
+    const MEP_SERVICES = {
+      residential: {
+        electrical_rough_in: {
+          description: 'Electrical rough-in (residential)',
+          cost: 35,
+          unit: 'm²',
+          category: 'electrical'
+        },
+        electrical_fitoff: {
+          description: 'Electrical fit-off & testing',
+          cost: 25,
+          unit: 'm²',
+          category: 'electrical'
+        },
+        plumbing_rough_in: {
+          description: 'Plumbing rough-in',
+          cost: 28,
+          unit: 'm²',
+          category: 'plumbing'
+        },
+        plumbing_fitoff: {
+          description: 'Plumbing fit-off & testing',
+          cost: 22,
+          unit: 'm²',
+          category: 'plumbing'
+        },
+        ducted_heating: {
+          description: 'Ducted heating system',
+          cost: 85,
+          unit: 'm²',
+          category: 'hvac'
+        },
+        hydronic_heating: {
+          description: 'Hydronic heating system',
+          cost: 125,
+          unit: 'm²',
+          category: 'hvac'
+        },
+        split_system_ac: {
+          description: 'Split system air conditioning',
+          cost: 45,
+          unit: 'm²',
+          category: 'hvac'
+        }
+      },
+      commercial: {
+        electrical_rough_in: {
+          description: 'Electrical rough-in (commercial)',
+          cost: 55,
+          unit: 'm²',
+          category: 'electrical'
+        },
+        electrical_fitoff: {
+          description: 'Electrical fit-off & testing',
+          cost: 45,
+          unit: 'm²',
+          category: 'electrical'
+        },
+        fire_services: {
+          description: 'Fire detection & alarm system',
+          cost: 35,
+          unit: 'm²',
+          category: 'fire'
+        },
+        sprinkler_system: {
+          description: 'Fire sprinkler system',
+          cost: 65,
+          unit: 'm²',
+          category: 'fire'
+        },
+        plumbing_rough_in: {
+          description: 'Plumbing rough-in (commercial)',
+          cost: 42,
+          unit: 'm²',
+          category: 'plumbing'
+        },
+        plumbing_fitoff: {
+          description: 'Plumbing fit-off & testing',
+          cost: 35,
+          unit: 'm²',
+          category: 'plumbing'
+        },
+        hvac_system: {
+          description: 'Commercial HVAC system',
+          cost: 180,
+          unit: 'm²',
+          category: 'hvac'
+        },
+        vrf_system: {
+          description: 'VRF air conditioning system',
+          cost: 220,
+          unit: 'm²',
+          category: 'hvac'
+        },
+        bms_system: {
+          description: 'Building management system',
+          cost: 25,
+          unit: 'm²',
+          category: 'electrical'
+        },
+        data_cabling: {
+          description: 'Data & communication cabling',
+          cost: 18,
+          unit: 'm²',
+          category: 'electrical'
+        }
       }
     };
 
@@ -981,6 +1283,8 @@
     let isPro = false; // Set to true for Pro version
     let projectSiteCosts = {}; // Track site costs for current project
     let projectLaborAllocation = {}; // Track labor allocation
+    let projectType = 'residential'; // 'residential' or 'commercial'
+    let projectServices = {}; // Track MEP services
 
     // Templates for common construction elements
     const TEMPLATES = [
@@ -2026,7 +2330,7 @@
     };
 
     window.subscribe = () => {
-      alert('EstiMate Pro Quantity Surveyor Edition - $39.99/month\n\nProfessional Features:\n• Complete Australian material library (150+ items)\n• Detailed labor cost breakdown by trade\n• Site mobilization & running costs\n• Project overheads & profit margins\n• Professional QS reports with GST\n• Multi-project management\n• BIM integration capabilities\n• Regional cost variations\n• Historical cost database\n\nContact us for subscription setup.');
+      alert('EstiMate Pro Quantity Surveyor Edition - $39.99/month\n\nProfessional Features:\n• Complete Australian material library (200+ items)\n• Residential vs Commercial project modes\n• Full built form: structure, walls, roofing\n• MEP services: electrical, plumbing, HVAC, fire\n• Residential: ducted heating, hydronic, split AC\n• Commercial: HVAC, VRF, sprinklers, BMS\n• Complete labor cost breakdown by trade\n• Site mobilization & running costs\n• Project overheads & profit margins\n• Professional QS reports with GST\n\nContact us for subscription setup.');
     };
 
     // Pro functionality for detailed cost breakdown
@@ -2059,7 +2363,22 @@
         }
       });
 
-      const subtotal = totalMaterialCost + totalLaborCost + totalWastageCost;
+      // Add MEP services costs
+      let totalServicesCost = 0;
+      Object.values(projectServices).forEach(service => {
+        if (service.enabled) {
+          totalServicesCost += service.cost || 0;
+        }
+      });
+
+      // Add site costs
+      let totalSiteCosts = 0;
+      Object.values(projectSiteCosts).forEach(siteCost => {
+        totalSiteCosts += siteCost.cost || 0;
+      });
+
+      const constructionSubtotal = totalMaterialCost + totalLaborCost + totalWastageCost;
+      const subtotal = constructionSubtotal + totalServicesCost + totalSiteCosts;
       const overheads = subtotal * PROJECT_OVERHEADS.overhead_percentage;
       const profit = subtotal * PROJECT_OVERHEADS.profit_margin;
       const contingency = subtotal * PROJECT_OVERHEADS.contingency;
@@ -2087,6 +2406,14 @@
           element.textContent = `$${value.toLocaleString()}`;
         }
       });
+      
+      // Add services cost line if there are services
+      if (totalServicesCost > 0) {
+        const servicesElement = document.getElementById('cost-services');
+        if (servicesElement) {
+          servicesElement.textContent = `$${Math.round(totalServicesCost).toLocaleString()}`;
+        }
+      }
     }
 
     function filterMaterialsByCategory(category) {
@@ -2224,6 +2551,140 @@
       updateTotalCost();
     }
 
+    // Project type management
+    function setProjectType(type) {
+      projectType = type;
+      updateMaterialSelect();
+      updateServicesDisplay();
+      updateTotalCost();
+    }
+
+    function updateMaterialSelect() {
+      const select = document.getElementById('material-select');
+      select.innerHTML = '';
+      
+      // Group materials by category
+      const categories = {};
+      Object.entries(MATERIALS).forEach(([key, material]) => {
+        // Check if material is available for current project type
+        if (!material.isPro || (material.residential && projectType === 'residential') || (material.commercial && projectType === 'commercial') || (!material.hasOwnProperty('residential') && !material.hasOwnProperty('commercial'))) {
+          if (!categories[material.category]) {
+            categories[material.category] = [];
+          }
+          categories[material.category].push({ key, material });
+        }
+      });
+      
+      // Create optgroups
+      Object.entries(categories).forEach(([category, materials]) => {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = category.charAt(0).toUpperCase() + category.slice(1) + (materials[0].material.isPro ? ' (Pro)' : '');
+        
+        materials.forEach(({ key, material }) => {
+          const option = document.createElement('option');
+          option.value = key;
+          const totalCost = (material.materialCost || 0) + (material.laborCost || 0) || material.cost || 0;
+          option.textContent = `${material.description || key} ($${totalCost}/${material.unit || 'm²'})`;
+          optgroup.appendChild(option);
+        });
+        
+        select.appendChild(optgroup);
+      });
+    }
+
+    function updateServicesDisplay() {
+      const servicesList = document.getElementById('services-list');
+      if (!servicesList) return;
+      
+      const services = MEP_SERVICES[projectType] || {};
+      servicesList.innerHTML = Object.entries(projectServices)
+        .filter(([key, data]) => data.enabled && services[key])
+        .map(([key, data]) => `
+          <div class="flex justify-between text-sm">
+            <span>${services[key].description}</span>
+            <span>$${(data.cost || 0).toLocaleString()}</span>
+          </div>
+        `).join('') || '<div class="text-sm text-gray-500">No services configured</div>';
+    }
+
+    function updateServicesCosts() {
+      const area = parseFloat(document.getElementById('building-area')?.value) || 0;
+      const services = MEP_SERVICES[projectType] || {};
+      
+      Object.keys(projectServices).forEach(serviceKey => {
+        if (projectServices[serviceKey].enabled && services[serviceKey]) {
+          projectServices[serviceKey].cost = area * services[serviceKey].cost;
+        }
+      });
+      
+      updateServicesDisplay();
+      updateTotalCost();
+    }
+
+    function showServicesModal() {
+      if (!isPro) {
+        alert('MEP services configuration is available in EstiMate Pro. Upgrade to access professional quantity surveyor features.');
+        return;
+      }
+      
+      const services = MEP_SERVICES[projectType] || {};
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+      modal.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-3xl w-full max-h-[80vh] overflow-y-auto">
+          <h3 class="text-lg font-semibold mb-4">${projectType.charAt(0).toUpperCase() + projectType.slice(1)} MEP Services</h3>
+          
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Total Building Area (m²)</label>
+            <input type="number" id="modal-building-area" value="${document.getElementById('building-area')?.value || ''}" class="w-full p-2 border rounded" placeholder="Enter total area">
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            ${Object.entries(services).map(([key, service]) => `
+              <div class="p-3 border rounded-lg">
+                <div class="flex items-center mb-2">
+                  <input type="checkbox" id="service-${key}" ${projectServices[key]?.enabled ? 'checked' : ''} class="mr-2">
+                  <label for="service-${key}" class="font-medium">${service.description}</label>
+                </div>
+                <div class="text-sm text-gray-600">$${service.cost}/${service.unit}</div>
+                <div class="text-xs text-gray-500 mt-1">Category: ${service.category}</div>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div class="flex gap-3">
+            <button onclick="applyServicesConfig()" class="bg-blue-500 text-white px-4 py-2 rounded flex-1">Apply Configuration</button>
+            <button onclick="this.closest('.fixed').remove()" class="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    function applyServicesConfig() {
+      const area = parseFloat(document.getElementById('modal-building-area')?.value) || 0;
+      const services = MEP_SERVICES[projectType] || {};
+      
+      // Update building area
+      const buildingAreaInput = document.getElementById('building-area');
+      if (buildingAreaInput) buildingAreaInput.value = area;
+      
+      // Update service configurations
+      Object.keys(services).forEach(serviceKey => {
+        const checkbox = document.getElementById(`service-${serviceKey}`);
+        if (checkbox) {
+          projectServices[serviceKey] = {
+            enabled: checkbox.checked,
+            cost: checkbox.checked ? area * services[serviceKey].cost : 0
+          };
+        }
+      });
+      
+      updateServicesDisplay();
+      updateTotalCost();
+      document.querySelector('.fixed').remove();
+    }
+
     // Override material selection to show details
     window.setMaterial = (material) => {
       canvasManager.setSelectedMaterial(material);
@@ -2278,7 +2739,11 @@
     };
 
     // Initialize on page load
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', () => {
+      init();
+      updateMaterialSelect();
+      updateServicesDisplay();
+    });
 
     // Add professional QS features promotion
     setTimeout(() => {
