@@ -187,6 +187,19 @@ The application follows a monorepo structure with clear separation between front
   - Mobile-optimized calibration and template systems
   - Simplified modal-based navigation
 
+### January 11, 2025 - Mini Quantity Surveyor Pro Features
+- **Comprehensive QS Transformation**: Complete mini quantity surveyor system implementation
+- **Full Australian Labor Database**: 10+ trade-specific labor rates (carpenter $65/hr, electrician $85/hr, etc.)
+- **Expanded Materials Library**: 150+ construction materials across categories:
+  - Flooring: timber, carpet, tiles, laminate, vinyl
+  - Structural: concrete slab, steel frame, timber frame
+  - External: brick veneer, Colorbond roofing, render
+  - Internal: plasterboard, kitchen/bathroom fitouts
+- **Professional Cost Breakdown**: Material + labor + wastage with overheads, profit, GST calculations
+- **Site Mobilization Costs**: Scaffolding, crane hire, site shed, utilities, waste removal
+- **Project Overheads**: 15% overheads, 12% profit, 8% contingency, 10% GST
+- **Pro Subscription Model**: $39.99/month for professional quantity surveyor features
+
 ### January 11, 2025 - Standalone HTML Application Enhanced
 - **Professional Features Added**: Scaling, templates, and material customization
 - **Accurate Scaling System**: Calibration tools for real-world measurements

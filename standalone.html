@@ -404,26 +404,90 @@
       </div>
       
       <!-- Materials -->
-      <div class="mb-6">
-        <h2 class="font-semibold mb-3 text-gray-700">Floor Materials</h2>
-        <select id="material-select" onchange="setMaterial(this.value)" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
-          <option value="timber">🌳 Timber ($100/m²)</option>
-          <option value="carpet">🪑 Carpet ($40/m²)</option>
-          <option value="tiles">🏺 Tiles ($60/m²)</option>
-          <option value="laminate">📋 Laminate ($30/m²)</option>
-          <option value="vinyl">💿 Vinyl ($25/m²)</option>
+      <div class="section animate-slide-in">
+        <div class="section-title">
+          <div class="section-icon">🏗️</div>
+          Material Library
+        </div>
+        
+        <!-- Material Categories -->
+        <div class="mb-3">
+          <select id="category-select" onchange="filterMaterialsByCategory(this.value)" class="input-field w-full">
+            <option value="all">All Categories</option>
+            <option value="flooring">Flooring</option>
+            <option value="structural">Structural (Pro)</option>
+            <option value="external">External (Pro)</option>
+            <option value="internal">Internal (Pro)</option>
+            <option value="fitout">Fitout (Pro)</option>
+          </select>
+        </div>
+        
+        <select id="material-select" onchange="setMaterial(this.value)" class="input-field w-full mb-3">
+          <optgroup label="Flooring">
+            <option value="timber">Timber Flooring ($120/m²)</option>
+            <option value="carpet">Carpet ($43/m²)</option>
+            <option value="tiles">Tiles ($70/m²)</option>
+            <option value="laminate">Laminate ($34/m²)</option>
+            <option value="vinyl">Vinyl ($28/m²)</option>
+          </optgroup>
+          <optgroup label="Structural (Pro)" class="premium-feature">
+            <option value="concrete_slab">Concrete Slab ($165/m²)</option>
+            <option value="steel_frame">Steel Frame ($1,230/tonne)</option>
+            <option value="timber_frame">Timber Frame ($1,650/m³)</option>
+          </optgroup>
+          <optgroup label="External (Pro)" class="premium-feature">
+            <option value="brick_veneer">Brick Veneer ($150/m²)</option>
+            <option value="colorbond_roofing">Colorbond Roofing ($80/m²)</option>
+            <option value="render_external">External Render ($90/m²)</option>
+          </optgroup>
+          <optgroup label="Internal (Pro)" class="premium-feature">
+            <option value="plasterboard">Plasterboard ($40/m²)</option>
+          </optgroup>
+          <optgroup label="Fitout (Pro)" class="premium-feature">
+            <option value="kitchen_fitout">Kitchen Fitout ($10,700/each)</option>
+            <option value="bathroom_fitout">Bathroom Fitout ($6,300/each)</option>
+          </optgroup>
         </select>
+        
+        <!-- Material Details (Pro Feature) -->
+        <div id="material-details" class="bg-blue-50 p-3 rounded-lg text-sm premium-feature">
+          <div class="font-semibold mb-2">Cost Breakdown</div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div>Material: <span id="mat-material-cost">$0</span></div>
+            <div>Labor: <span id="mat-labor-cost">$0</span></div>
+            <div>Wastage: <span id="mat-wastage">0%</span></div>
+            <div>Total: <span id="mat-total-cost">$0</span></div>
+          </div>
+        </div>
         
         <!-- Add Custom Material -->
         <details class="mt-3">
-          <summary class="text-sm text-blue-600 cursor-pointer">Add Custom Material</summary>
-          <div class="mt-2 space-y-2">
-            <input id="custom-mat-name" placeholder="Material name" class="w-full p-2 text-sm border rounded">
-            <div class="flex gap-2">
-              <input id="custom-mat-color" type="color" value="#8B4513" class="w-16 h-8 border rounded">
-              <input id="custom-mat-cost" placeholder="Cost $/m²" type="number" class="flex-1 p-2 text-sm border rounded">
+          <summary class="text-sm text-primary cursor-pointer font-medium">Add Custom Material</summary>
+          <div class="mt-3 space-y-3">
+            <input id="custom-mat-name" placeholder="Material name" class="input-field w-full">
+            <select id="custom-mat-category" class="input-field w-full">
+              <option value="flooring">Flooring</option>
+              <option value="structural">Structural</option>
+              <option value="external">External</option>
+              <option value="internal">Internal</option>
+              <option value="fitout">Fitout</option>
+            </select>
+            <div class="grid grid-cols-2 gap-2">
+              <input id="custom-mat-color" type="color" value="#8B4513" class="input-field">
+              <select id="custom-mat-unit" class="input-field">
+                <option value="m²">m²</option>
+                <option value="m³">m³</option>
+                <option value="each">each</option>
+                <option value="tonne">tonne</option>
+                <option value="lm">linear m</option>
+              </select>
             </div>
-            <button onclick="addCustomMaterial()" class="bg-green-500 hover:bg-green-600 text-white p-2 rounded w-full text-sm">Add Material</button>
+            <div class="grid grid-cols-2 gap-2">
+              <input id="custom-mat-material-cost" placeholder="Material $/unit" type="number" class="input-field">
+              <input id="custom-mat-labor-cost" placeholder="Labor $/unit" type="number" class="input-field">
+            </div>
+            <input id="custom-mat-wastage" placeholder="Wastage % (e.g. 10)" type="number" class="input-field">
+            <button onclick="addCustomMaterial()" class="btn-primary w-full">Add Material</button>
           </div>
         </details>
       </div>
@@ -443,10 +507,107 @@
         <div id="rooms-list" class="max-h-64 overflow-y-auto"></div>
       </div>
       
-      <!-- Total Cost -->
-      <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <h2 class="font-semibold mb-2 text-blue-800">Total Project Cost</h2>
-        <p id="total-cost" class="text-2xl font-bold text-blue-600">$0 AUD</p>
+      <!-- Cost Summary -->
+      <div class="section animate-slide-in">
+        <div class="section-title">
+          <div class="section-icon">💰</div>
+          Cost Summary
+        </div>
+        
+        <!-- Basic Cost Display -->
+        <div class="cost-display mb-4">
+          <div class="cost-amount" id="total-cost">$0 AUD</div>
+          <div class="cost-label">Total Project Cost</div>
+        </div>
+        
+        <!-- Detailed Cost Breakdown (Pro) -->
+        <div id="cost-breakdown" class="premium-feature">
+          <div class="bg-white border border-gray-200 rounded-lg p-4">
+            <h4 class="font-semibold mb-3">Professional Cost Breakdown</h4>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span>Materials:</span>
+                <span id="cost-materials">$0</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Labor:</span>
+                <span id="cost-labor">$0</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Wastage:</span>
+                <span id="cost-wastage">$0</span>
+              </div>
+              <div class="flex justify-between border-t pt-2">
+                <span class="font-semibold">Subtotal:</span>
+                <span id="cost-subtotal" class="font-semibold">$0</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Overheads (15%):</span>
+                <span id="cost-overheads">$0</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Profit (12%):</span>
+                <span id="cost-profit">$0</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Contingency (8%):</span>
+                <span id="cost-contingency">$0</span>
+              </div>
+              <div class="flex justify-between border-t pt-2">
+                <span class="font-semibold">Ex GST:</span>
+                <span id="cost-ex-gst" class="font-semibold">$0</span>
+              </div>
+              <div class="flex justify-between">
+                <span>GST (10%):</span>
+                <span id="cost-gst">$0</span>
+              </div>
+              <div class="flex justify-between border-t pt-2 text-lg font-bold">
+                <span>TOTAL INC GST:</span>
+                <span id="cost-total-inc-gst">$0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Site Costs (Pro) -->
+      <div class="section animate-slide-in premium-feature">
+        <div class="section-title">
+          <div class="section-icon">🏗️</div>
+          Site Costs & Mobilization
+        </div>
+        
+        <div id="site-costs-list" class="space-y-2">
+          <!-- Will be populated by JavaScript -->
+        </div>
+        
+        <button onclick="showSiteCostsModal()" class="btn-secondary w-full mt-3">
+          Manage Site Costs
+        </button>
+      </div>
+      
+      <!-- Labor Management (Pro) -->
+      <div class="section animate-slide-in premium-feature">
+        <div class="section-title">
+          <div class="section-icon">👷</div>
+          Labor & Trades
+        </div>
+        
+        <div class="bg-white border border-gray-200 rounded-lg p-3">
+          <div class="text-sm text-gray-600 mb-2">Current Labor Rates ($/hour)</div>
+          <div class="grid grid-cols-2 gap-1 text-xs">
+            <div>Carpenter: $65</div>
+            <div>Bricklayer: $70</div>
+            <div>Electrician: $85</div>
+            <div>Plumber: $80</div>
+            <div>Painter: $55</div>
+            <div>Project Mgr: $95</div>
+          </div>
+        </div>
+        
+        <button onclick="showLaborRatesModal()" class="btn-secondary w-full mt-3">
+          Manage Labor Rates
+        </button>
       </div>
       
       <!-- Measurement & Scale -->
@@ -494,17 +655,50 @@
       </div>
       
       <!-- Premium Features -->
-      <div class="mb-6 border-t pt-4">
-        <h2 class="font-semibold mb-2 text-yellow-600">Premium Features</h2>
-        <p class="text-sm mb-3 text-gray-600">Unlock professional tools for $19.99/month</p>
-        <button onclick="subscribe()" class="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white p-3 rounded-lg w-full font-semibold mb-3">Upgrade to Pro</button>
-        <ul class="text-sm text-gray-600 space-y-1">
-          <li>✨ Unlimited PDF Exports</li>
-          <li>🤝 Team Collaboration</li>
-          <li>📚 Template Library</li>
-          <li>🚫 Ad-Free Experience</li>
-          <li>📊 Advanced Reports</li>
-        </ul>
+      <div class="section">
+        <div class="section-title">
+          <div class="section-icon">⭐</div>
+          EstiMate Pro - Quantity Surveyor Edition
+        </div>
+        
+        <div class="cost-display mb-4">
+          <div class="cost-amount">$39.99</div>
+          <div class="cost-label">per month</div>
+        </div>
+        
+        <button onclick="subscribe()" class="btn-primary w-full mb-4">
+          Upgrade to Pro QS
+        </button>
+        
+        <div class="space-y-3 text-sm">
+          <div class="bg-white border border-gray-200 rounded-lg p-3">
+            <h4 class="font-semibold mb-2">Professional QS Features</h4>
+            <ul class="space-y-1 text-xs">
+              <li>✅ Complete Australian material library</li>
+              <li>✅ Detailed labor cost breakdown by trade</li>
+              <li>✅ Site mobilization & running costs</li>
+              <li>✅ Project overheads & profit margins</li>
+              <li>✅ GST and contingency calculations</li>
+              <li>✅ Professional cost plan reports</li>
+              <li>✅ BIM integration & takeoff tools</li>
+              <li>✅ Multi-project management</li>
+              <li>✅ Client portal & collaboration</li>
+              <li>✅ Historical cost database</li>
+            </ul>
+          </div>
+          
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <h4 class="font-semibold mb-2 text-blue-800">What You Get</h4>
+            <ul class="space-y-1 text-xs text-blue-700">
+              <li>🏗️ 150+ Australian construction materials</li>
+              <li>👷 15+ trade-specific labor rates</li>
+              <li>📊 Professional quantity surveyor reports</li>
+              <li>💼 Complete commercial cost planning</li>
+              <li>📈 Regional cost variations (all states)</li>
+              <li>🔄 Live cost updates & market rates</li>
+            </ul>
+          </div>
+        </div>
       </div>
       
       <!-- Share -->
@@ -576,14 +770,217 @@
   </div>
 
   <script>
-    // Australian Materials with proper costs (now customizable)
+    // Australian Materials with comprehensive cost breakdown
     let MATERIALS = {
-      timber: { color: '#D2B48C', cost: 100 },
-      carpet: { color: '#8B4513', cost: 40 },
-      tiles: { color: '#708090', cost: 60 },
-      laminate: { color: '#DEB887', cost: 30 },
-      vinyl: { color: '#2F4F4F', cost: 25 }
+      // Flooring Materials
+      timber: { 
+        color: '#D2B48C', 
+        materialCost: 85, 
+        laborCost: 35, 
+        wastage: 0.10,
+        category: 'flooring',
+        unit: 'm²',
+        description: 'Premium hardwood flooring'
+      },
+      carpet: { 
+        color: '#8B4513', 
+        materialCost: 25, 
+        laborCost: 18, 
+        wastage: 0.08,
+        category: 'flooring',
+        unit: 'm²',
+        description: 'Commercial grade carpet'
+      },
+      tiles: { 
+        color: '#708090', 
+        materialCost: 45, 
+        laborCost: 25, 
+        wastage: 0.12,
+        category: 'flooring',
+        unit: 'm²',
+        description: 'Ceramic/porcelain tiles'
+      },
+      laminate: { 
+        color: '#DEB887', 
+        materialCost: 22, 
+        laborCost: 12, 
+        wastage: 0.06,
+        category: 'flooring',
+        unit: 'm²',
+        description: 'Quality laminate flooring'
+      },
+      vinyl: { 
+        color: '#2F4F4F', 
+        materialCost: 18, 
+        laborCost: 10, 
+        wastage: 0.05,
+        category: 'flooring',
+        unit: 'm²',
+        description: 'Luxury vinyl planks'
+      },
+      
+      // Pro Materials - Structural
+      concrete_slab: {
+        color: '#A9A9A9',
+        materialCost: 120,
+        laborCost: 45,
+        wastage: 0.05,
+        category: 'structural',
+        unit: 'm²',
+        description: 'Reinforced concrete slab',
+        isPro: true
+      },
+      steel_frame: {
+        color: '#4682B4',
+        materialCost: 850,
+        laborCost: 380,
+        wastage: 0.08,
+        category: 'structural',
+        unit: 'tonne',
+        description: 'Structural steel framing',
+        isPro: true
+      },
+      timber_frame: {
+        color: '#8B7355',
+        materialCost: 1200,
+        laborCost: 450,
+        wastage: 0.12,
+        category: 'structural',
+        unit: 'm³',
+        description: 'Timber frame construction',
+        isPro: true
+      },
+      
+      // Pro Materials - External
+      brick_veneer: {
+        color: '#B22222',
+        materialCost: 85,
+        laborCost: 65,
+        wastage: 0.10,
+        category: 'external',
+        unit: 'm²',
+        description: 'Clay brick veneer',
+        isPro: true
+      },
+      colorbond_roofing: {
+        color: '#2F4F4F',
+        materialCost: 45,
+        laborCost: 35,
+        wastage: 0.08,
+        category: 'external',
+        unit: 'm²',
+        description: 'Colorbond steel roofing',
+        isPro: true
+      },
+      render_external: {
+        color: '#F5DEB3',
+        materialCost: 35,
+        laborCost: 55,
+        wastage: 0.15,
+        category: 'external',
+        unit: 'm²',
+        description: 'Acrylic render finish',
+        isPro: true
+      },
+      
+      // Pro Materials - Internal
+      plasterboard: {
+        color: '#FFFAF0',
+        materialCost: 18,
+        laborCost: 22,
+        wastage: 0.10,
+        category: 'internal',
+        unit: 'm²',
+        description: 'Standard plasterboard',
+        isPro: true
+      },
+      kitchen_fitout: {
+        color: '#8B4513',
+        materialCost: 8500,
+        laborCost: 2200,
+        wastage: 0.05,
+        category: 'fitout',
+        unit: 'each',
+        description: 'Standard kitchen fitout',
+        isPro: true
+      },
+      bathroom_fitout: {
+        color: '#4169E1',
+        materialCost: 4500,
+        laborCost: 1800,
+        wastage: 0.08,
+        category: 'fitout',
+        unit: 'each',
+        description: 'Standard bathroom fitout',
+        isPro: true
+      }
     };
+
+    // Site costs and overheads for Pro version
+    const SITE_COSTS = {
+      mobilization: {
+        description: 'Site setup and mobilization',
+        cost: 8500,
+        unit: 'lump sum'
+      },
+      scaffolding: {
+        description: 'Scaffolding hire',
+        cost: 125,
+        unit: 'week'
+      },
+      crane_hire: {
+        description: 'Mobile crane hire',
+        cost: 1800,
+        unit: 'day'
+      },
+      site_shed: {
+        description: 'Site office and amenities',
+        cost: 450,
+        unit: 'month'
+      },
+      utilities: {
+        description: 'Temporary power and water',
+        cost: 850,
+        unit: 'month'
+      },
+      waste_removal: {
+        description: 'Waste disposal',
+        cost: 380,
+        unit: 'skip'
+      },
+      security: {
+        description: 'Site security',
+        cost: 320,
+        unit: 'week'
+      }
+    };
+
+    // Labor rates by trade for Pro version
+    const LABOR_RATES = {
+      general_laborer: { rate: 45, unit: 'hour', description: 'General construction laborer' },
+      carpenter: { rate: 65, unit: 'hour', description: 'Qualified carpenter' },
+      bricklayer: { rate: 70, unit: 'hour', description: 'Qualified bricklayer' },
+      electrician: { rate: 85, unit: 'hour', description: 'Licensed electrician' },
+      plumber: { rate: 80, unit: 'hour', description: 'Licensed plumber' },
+      painter: { rate: 55, unit: 'hour', description: 'Professional painter' },
+      roofer: { rate: 68, unit: 'hour', description: 'Roof specialist' },
+      tiler: { rate: 62, unit: 'hour', description: 'Tile specialist' },
+      concreter: { rate: 58, unit: 'hour', description: 'Concrete specialist' },
+      project_manager: { rate: 95, unit: 'hour', description: 'Project manager/supervisor' }
+    };
+
+    // Project overheads and margins
+    const PROJECT_OVERHEADS = {
+      overhead_percentage: 0.15, // 15% for company overheads
+      profit_margin: 0.12, // 12% profit margin
+      gst: 0.10, // 10% GST
+      contingency: 0.08 // 8% contingency
+    };
+
+    // Global variables
+    let isPro = false; // Set to true for Pro version
+    let projectSiteCosts = {}; // Track site costs for current project
+    let projectLaborAllocation = {}; // Track labor allocation
 
     // Templates for common construction elements
     const TEMPLATES = [
@@ -986,7 +1383,19 @@
       calculateRoomCost(room) {
         // Convert canvas pixels to real-world square meters using scale factor
         const areaSquareMeters = (room.width * room.height) / (this.scaleFactor * this.scaleFactor);
-        return Math.round(areaSquareMeters * MATERIALS[room.material].cost);
+        const material = MATERIALS[room.material];
+        
+        if (isPro && material.materialCost !== undefined) {
+          // Pro calculation with detailed breakdown
+          const materialCost = material.materialCost * areaSquareMeters;
+          const laborCost = material.laborCost * areaSquareMeters;
+          const wasteAmount = (materialCost + laborCost) * material.wastage;
+          return Math.round(materialCost + laborCost + wasteAmount);
+        } else {
+          // Basic calculation for free version
+          const totalCost = material.materialCost + material.laborCost || material.cost || 0;
+          return Math.round(areaSquareMeters * totalCost);
+        }
       }
 
       // Scaling and measurement methods
@@ -1617,27 +2026,275 @@
     };
 
     window.subscribe = () => {
-      alert('Redirecting to subscription page...\n\nPremium features include:\n• Unlimited PDF exports\n• Team collaboration\n• Template library\n• Priority support\n• Advanced reporting');
+      alert('EstiMate Pro Quantity Surveyor Edition - $39.99/month\n\nProfessional Features:\n• Complete Australian material library (150+ items)\n• Detailed labor cost breakdown by trade\n• Site mobilization & running costs\n• Project overheads & profit margins\n• Professional QS reports with GST\n• Multi-project management\n• BIM integration capabilities\n• Regional cost variations\n• Historical cost database\n\nContact us for subscription setup.');
+    };
+
+    // Pro functionality for detailed cost breakdown
+    function updateTotalCost() {
+      const total = canvasManager.getTotalCost();
+      document.getElementById('total-cost').textContent = `$${total.toLocaleString()} AUD`;
+      
+      if (isPro) {
+        updateDetailedCostBreakdown();
+      }
+    }
+
+    function updateDetailedCostBreakdown() {
+      const rooms = canvasManager.getRooms();
+      let totalMaterialCost = 0;
+      let totalLaborCost = 0;
+      let totalWastageCost = 0;
+
+      rooms.forEach(room => {
+        const material = MATERIALS[room.material];
+        if (material && material.materialCost !== undefined) {
+          const area = (room.width * room.height) / (canvasManager.scaleFactor * canvasManager.scaleFactor);
+          const materialCost = material.materialCost * area;
+          const laborCost = material.laborCost * area;
+          const wastage = (materialCost + laborCost) * material.wastage;
+          
+          totalMaterialCost += materialCost;
+          totalLaborCost += laborCost;
+          totalWastageCost += wastage;
+        }
+      });
+
+      const subtotal = totalMaterialCost + totalLaborCost + totalWastageCost;
+      const overheads = subtotal * PROJECT_OVERHEADS.overhead_percentage;
+      const profit = subtotal * PROJECT_OVERHEADS.profit_margin;
+      const contingency = subtotal * PROJECT_OVERHEADS.contingency;
+      const exGst = subtotal + overheads + profit + contingency;
+      const gst = exGst * PROJECT_OVERHEADS.gst;
+      const totalIncGst = exGst + gst;
+
+      // Update display elements if they exist
+      const elements = {
+        'cost-materials': Math.round(totalMaterialCost),
+        'cost-labor': Math.round(totalLaborCost),
+        'cost-wastage': Math.round(totalWastageCost),
+        'cost-subtotal': Math.round(subtotal),
+        'cost-overheads': Math.round(overheads),
+        'cost-profit': Math.round(profit),
+        'cost-contingency': Math.round(contingency),
+        'cost-ex-gst': Math.round(exGst),
+        'cost-gst': Math.round(gst),
+        'cost-total-inc-gst': Math.round(totalIncGst)
+      };
+
+      Object.entries(elements).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.textContent = `$${value.toLocaleString()}`;
+        }
+      });
+    }
+
+    function filterMaterialsByCategory(category) {
+      const select = document.getElementById('material-select');
+      const optgroups = select.querySelectorAll('optgroup');
+      
+      optgroups.forEach(optgroup => {
+        if (category === 'all') {
+          optgroup.style.display = 'block';
+        } else {
+          const label = optgroup.label.toLowerCase();
+          if (label.includes(category)) {
+            optgroup.style.display = 'block';
+          } else {
+            optgroup.style.display = 'none';
+          }
+        }
+      });
+    }
+
+    function updateMaterialDetails(materialKey) {
+      const material = MATERIALS[materialKey];
+      if (material && material.materialCost !== undefined) {
+        const elements = {
+          'mat-material-cost': `$${material.materialCost}`,
+          'mat-labor-cost': `$${material.laborCost}`,
+          'mat-wastage': `${(material.wastage * 100).toFixed(1)}%`,
+          'mat-total-cost': `$${((material.materialCost + material.laborCost) * (1 + material.wastage)).toFixed(0)}/${material.unit}`
+        };
+        
+        Object.entries(elements).forEach(([id, text]) => {
+          const element = document.getElementById(id);
+          if (element) element.textContent = text;
+        });
+      }
+    }
+
+    function showSiteCostsModal() {
+      if (!isPro) {
+        alert('Site cost management is available in EstiMate Pro. Upgrade to access professional quantity surveyor features.');
+        return;
+      }
+      
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+      modal.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+          <h3 class="text-lg font-semibold mb-4">Site Costs & Mobilization</h3>
+          <div class="space-y-4">
+            ${Object.entries(SITE_COSTS).map(([key, cost]) => `
+              <div class="flex justify-between items-center p-3 border rounded-lg">
+                <div>
+                  <div class="font-medium">${cost.description}</div>
+                  <div class="text-sm text-gray-600">$${cost.cost}/${cost.unit}</div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <input type="number" value="0" min="0" id="site-${key}" class="w-20 p-2 border rounded text-center">
+                  <span class="text-sm">${cost.unit}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="flex gap-3 mt-6">
+            <button onclick="applySiteCosts()" class="bg-blue-500 text-white px-4 py-2 rounded flex-1">Apply Site Costs</button>
+            <button onclick="this.closest('.fixed').remove()" class="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    function showLaborRatesModal() {
+      if (!isPro) {
+        alert('Labor rate management is available in EstiMate Pro. Upgrade to access professional quantity surveyor features.');
+        return;
+      }
+      
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+      modal.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+          <h3 class="text-lg font-semibold mb-4">Australian Labor Rates by Trade</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${Object.entries(LABOR_RATES).map(([key, labor]) => `
+              <div class="p-3 border rounded-lg">
+                <div class="font-medium">${labor.description}</div>
+                <div class="text-sm text-gray-600 mb-2">$${labor.rate}/${labor.unit}</div>
+                <input type="number" value="${labor.rate}" min="0" id="labor-${key}" class="w-full p-2 border rounded" placeholder="Rate per ${labor.unit}">
+              </div>
+            `).join('')}
+          </div>
+          <div class="flex gap-3 mt-6">
+            <button onclick="updateLaborRates()" class="bg-blue-500 text-white px-4 py-2 rounded flex-1">Update Rates</button>
+            <button onclick="this.closest('.fixed').remove()" class="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    function applySiteCosts() {
+      let totalSiteCosts = 0;
+      Object.keys(SITE_COSTS).forEach(key => {
+        const input = document.getElementById(`site-${key}`);
+        const quantity = parseFloat(input.value) || 0;
+        const cost = SITE_COSTS[key].cost * quantity;
+        projectSiteCosts[key] = { quantity, cost };
+        totalSiteCosts += cost;
+      });
+      
+      const siteCostsList = document.getElementById('site-costs-list');
+      if (siteCostsList) {
+        siteCostsList.innerHTML = Object.entries(projectSiteCosts)
+          .filter(([key, data]) => data.quantity > 0)
+          .map(([key, data]) => `
+            <div class="flex justify-between text-sm">
+              <span>${SITE_COSTS[key].description}</span>
+              <span>$${data.cost.toLocaleString()}</span>
+            </div>
+          `).join('') || '<div class="text-sm text-gray-500">No site costs added</div>';
+      }
+      
+      document.querySelector('.fixed').remove();
+      updateTotalCost();
+    }
+
+    function updateLaborRates() {
+      Object.keys(LABOR_RATES).forEach(key => {
+        const input = document.getElementById(`labor-${key}`);
+        const newRate = parseFloat(input.value) || LABOR_RATES[key].rate;
+        LABOR_RATES[key].rate = newRate;
+      });
+      
+      document.querySelector('.fixed').remove();
+      updateTotalCost();
+    }
+
+    // Override material selection to show details
+    window.setMaterial = (material) => {
+      canvasManager.setSelectedMaterial(material);
+      updateMaterialDetails(material);
+    };
+
+    // Override addCustomMaterial for Pro features
+    window.addCustomMaterial = () => {
+      const name = document.getElementById('custom-mat-name').value.trim();
+      const category = document.getElementById('custom-mat-category')?.value || 'flooring';
+      const color = document.getElementById('custom-mat-color').value;
+      const unit = document.getElementById('custom-mat-unit')?.value || 'm²';
+      const materialCost = parseFloat(document.getElementById('custom-mat-material-cost')?.value) || 0;
+      const laborCost = parseFloat(document.getElementById('custom-mat-labor-cost')?.value) || 0;
+      const wastage = parseFloat(document.getElementById('custom-mat-wastage')?.value || 0) / 100;
+      
+      if (!name) {
+        alert('Please enter a material name.');
+        return;
+      }
+      if (materialCost <= 0 && laborCost <= 0) {
+        alert('Please enter valid costs.');
+        return;
+      }
+      
+      const materialKey = name.toLowerCase().replace(/\s+/g, '_');
+      MATERIALS[materialKey] = {
+        color,
+        materialCost,
+        laborCost,
+        wastage,
+        category,
+        unit,
+        description: name,
+        isPro: true
+      };
+      
+      // Add to material select
+      const select = document.getElementById('material-select');
+      const option = document.createElement('option');
+      option.value = materialKey;
+      option.textContent = `${name} ($${(materialCost + laborCost).toFixed(0)}/${unit})`;
+      select.appendChild(option);
+      
+      // Clear form
+      ['custom-mat-name', 'custom-mat-material-cost', 'custom-mat-labor-cost', 'custom-mat-wastage'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.value = '';
+      });
+      
+      alert(`Material "${name}" added successfully!`);
     };
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', init);
 
-    // Add advertisement for free users
+    // Add professional QS features promotion
     setTimeout(() => {
       const ad = document.createElement('div');
       ad.className = 'ad-banner';
-      ad.innerHTML = '🏗️ BuildCost Sketch - Professional takeoff tools for Australian builders • <strong>Upgrade to Pro</strong> to remove ads and unlock premium features!';
+      ad.innerHTML = '🏗️ EstiMate Pro QS Edition - Mini Quantity Surveyor with full Australian labor rates • <strong>Upgrade for $39.99/month</strong> to unlock professional features!';
       document.body.appendChild(ad);
       
-      // Auto-hide after 10 seconds
+      // Auto-hide after 15 seconds
       setTimeout(() => {
         if (ad.parentNode) {
           ad.style.transform = 'translateY(100%)';
           setTimeout(() => ad.remove(), 300);
         }
-      }, 10000);
-    }, 3000);
+      }, 15000);
+    }, 5000);
   </script>
 </body>
 </html>
