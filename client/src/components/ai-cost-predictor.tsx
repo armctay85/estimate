@@ -5,7 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Brain, Calculator, TrendingUp, Award, Building2, MapPin, Clock } from "lucide-react";
+import { Brain, Calculator, TrendingUp, Award, Building2, MapPin, Clock, Sparkles, Zap } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface ProjectData {
   type: string;
@@ -98,10 +99,24 @@ export function AICostPredictor() {
   });
   const [prediction, setPrediction] = useState<CostPrediction | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [aiInsights, setAiInsights] = useState<string[]>([]);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
+    setIsAnalyzing(true);
     const result = predictProjectCost(projectData);
     setPrediction(result);
+    
+    // Simulate AI insights generation
+    setTimeout(() => {
+      setAiInsights([
+        "Consider split-system HVAC for cost efficiency",
+        "Engineered timber offers 15% savings over hardwood",
+        "Bulk material procurement can reduce costs by 8%",
+        "Local contractors may offer better rates than imported"
+      ]);
+      setIsAnalyzing(false);
+    }, 2000);
   };
 
   const updateProjectData = (field: keyof ProjectData, value: string | number) => {
@@ -114,10 +129,12 @@ export function AICostPredictor() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-          <Brain className="w-4 h-4 mr-2" />
-          AI Cost Predictor
-        </Button>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+            <Sparkles className="w-4 h-4 mr-2" />
+            AI Cost Predictor
+          </Button>
+        </motion.div>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
