@@ -78,7 +78,7 @@
     }
     
     /* Landscape mode optimization */
-    @media screen and (orientation: portrait) {
+    @media screen and (orientation: portrait) and (max-width: 768px) {
       .portrait-warning {
         display: flex !important;
         position: fixed;
@@ -86,7 +86,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: #1e293b;
+        background: linear-gradient(135deg, #1e293b, #475569);
         color: white;
         flex-direction: column;
         align-items: center;
@@ -99,7 +99,7 @@
       .main-app { display: none !important; }
     }
     
-    @media screen and (orientation: landscape) {
+    @media screen and (orientation: landscape), screen and (min-width: 769px) {
       .portrait-warning { display: none !important; }
       .main-app { display: flex !important; }
     }
@@ -944,10 +944,15 @@
 
         // Handle orientation changes
         window.addEventListener('orientationchange', () => {
-          setTimeout(() => this.resizeCanvas(), 100);
+          setTimeout(() => {
+            this.resizeCanvas();
+            this.showStatus('Canvas resized for orientation');
+          }, 200);
         });
         
-        window.addEventListener('resize', () => this.resizeCanvas());
+        window.addEventListener('resize', () => {
+          setTimeout(() => this.resizeCanvas(), 50);
+        });
       }
 
       resizeCanvas() {
@@ -1480,21 +1485,38 @@
 
     // Initialize mobile app
     function init() {
-      const canvasElement = document.getElementById('canvas');
-      canvasManager = new MobileCanvasManager(canvasElement);
-      canvasManager.onRoomsChangeCallback(updateMobileUI);
-      
-      // Populate UI
-      updateMaterialsList();
-      updateTemplatesGrid();
-      updateScaleDisplays();
-      
-      // Install PWA prompt
-      setupPWA();
+      try {
+        // Initialize global variables
+        window.rooms = [];
+        window.totalCost = 0;
+        
+        const canvasElement = document.getElementById('canvas');
+        if (!canvasElement) {
+          console.error('Canvas element not found');
+          return;
+        }
+        
+        canvasManager = new MobileCanvasManager(canvasElement);
+        canvasManager.onRoomsChangeCallback(updateMobileUI);
+        
+        // Populate UI
+        updateMaterialsList();
+        updateTemplatesGrid();
+        updateScaleDisplays();
+        
+        // Install PWA prompt
+        setupPWA();
+        
+        console.log('Mobile app initialized successfully');
+      } catch (error) {
+        console.error('Mobile app initialization failed:', error);
+      }
     }
 
-    function updateMobileUI(rooms) {
-      updateRoomsList(rooms);
+    function updateMobileUI(roomsArray) {
+      // Store rooms globally for other functions to access
+      window.rooms = roomsArray || [];
+      updateRoomsList(window.rooms);
       updateCostDisplays();
     }
 
@@ -1533,8 +1555,11 @@
 
     function updateCostDisplays() {
       const total = canvasManager.getTotalCost();
-      document.getElementById('total-cost-mobile').textContent = `$${total}`;
-      document.getElementById('total-cost-detailed').textContent = `$${total} AUD`;
+      document.getElementById('total-cost-mobile').textContent = `$${total.toLocaleString()}`;
+      if (document.getElementById('total-cost-detailed')) {
+        document.getElementById('total-cost-detailed').textContent = `$${total.toLocaleString()} AUD`;
+      }
+      window.totalCost = total;
     }
 
     function updateMaterialsList() {
