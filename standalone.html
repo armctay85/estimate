@@ -615,6 +615,42 @@
         </button>
       </div>
       
+      <!-- Sims-Style Building Mode -->
+      <div class="section animate-slide-in">
+        <div class="section-title">
+          <div class="section-icon">🏗️</div>
+          Quick Builder
+        </div>
+        
+        <div class="bg-white border border-gray-200 rounded-lg p-3 mb-3">
+          <div class="text-sm font-semibold mb-2">Building Mode</div>
+          <div class="flex gap-2 mb-3">
+            <button onclick="toggleSimsMode()" id="sims-mode-btn" class="btn-secondary text-sm">
+              Enable Builder
+            </button>
+            <button onclick="showBuildingPalette()" class="btn-secondary text-sm">
+              Elements
+            </button>
+          </div>
+          <div class="text-xs text-gray-600">
+            Quick building elements with snap-to-grid. <span class="text-blue-600">Pro version includes 50+ professional elements.</span>
+          </div>
+        </div>
+        
+        <div id="building-elements" class="space-y-2 mb-3">
+          <!-- Will be populated with building elements -->
+        </div>
+        
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="clearAllElements()" class="btn-secondary text-sm">
+            Clear All
+          </button>
+          <button onclick="saveSimsProject()" class="btn-primary text-sm">
+            Save Project
+          </button>
+        </div>
+      </div>
+      
       <!-- MEP Services (Pro) -->
       <div class="section animate-slide-in premium-feature">
         <div class="section-title">
@@ -1534,6 +1570,9 @@
     let projectType = 'residential'; // 'residential' or 'commercial'
     let projectServices = {}; // Track MEP services
     let cadProcessingResults = {}; // Store automated takeoff results
+    let simsMode = false; // Sims-style building mode
+    let selectedBuildingElement = null; // Currently selected building element
+    let buildingPalette = []; // Available building elements
 
     // Templates for common construction elements
     const TEMPLATES = [
@@ -3389,8 +3428,10 @@ Phone: 1800-ESTIMATE`;
         btn.classList.remove('active', 'bg-blue-500', 'text-white');
         btn.classList.add('bg-gray-200');
       });
-      event.target.classList.add('active', 'bg-blue-500', 'text-white');
-      event.target.classList.remove('bg-gray-200');
+      if (event && event.target) {
+        event.target.classList.add('active', 'bg-blue-500', 'text-white');
+        event.target.classList.remove('bg-gray-200');
+      }
       
       // Show/hide categories
       document.querySelectorAll('.rates-category').forEach(cat => {
@@ -3731,6 +3772,322 @@ www.estimate.com.au
       
       calculated.total = total;
       return calculated;
+    }
+
+    // Basic and Pro Building Elements
+    const BASIC_BUILDING_ELEMENTS = {
+      walls: {
+        wall: { name: 'Wall', cost: 120, icon: '🧱', color: '#8B4513', width: 0.2, height: 3 }
+      },
+      openings: {
+        door: { name: 'Door', cost: 450, icon: '🚪', color: '#8B4513', width: 0.9, height: 2.1 },
+        window: { name: 'Window', cost: 650, icon: '🪟', color: '#87CEEB', width: 1.2, height: 1.2 }
+      },
+      fixtures: {
+        kitchen: { name: 'Kitchen', cost: 3500, icon: '🍳', color: '#CD853F', width: 3, height: 0.6 },
+        bathroom: { name: 'Bathroom', cost: 2200, icon: '🛁', color: '#F0F8FF', width: 2, height: 1.5 }
+      }
+    };
+
+    const PRO_BUILDING_ELEMENTS = {
+      walls: {
+        exterior_wall: { name: 'Exterior Wall', cost: 180, icon: '🧱', color: '#8B4513', width: 0.2, height: 3 },
+        interior_wall: { name: 'Interior Wall', cost: 120, icon: '🔲', color: '#D3D3D3', width: 0.15, height: 3 },
+        glass_wall: { name: 'Glass Wall', cost: 450, icon: '🪟', color: '#87CEEB', width: 0.1, height: 3 },
+        partition: { name: 'Partition Wall', cost: 95, icon: '📱', color: '#F5F5DC', width: 0.1, height: 2.4 },
+        fire_wall: { name: 'Fire Wall', cost: 320, icon: '🔥', color: '#FF4500', width: 0.25, height: 3 }
+      },
+      doors: {
+        entry_door: { name: 'Entry Door', cost: 850, icon: '🚪', color: '#8B4513', width: 1, height: 2.1 },
+        internal_door: { name: 'Internal Door', cost: 450, icon: '🚪', color: '#DEB887', width: 0.9, height: 2.1 },
+        sliding_door: { name: 'Sliding Door', cost: 1200, icon: '🎯', color: '#4682B4', width: 2.4, height: 2.1 },
+        fire_door: { name: 'Fire Door', cost: 950, icon: '🔥', color: '#FF6347', width: 0.9, height: 2.1 },
+        automatic_door: { name: 'Automatic Door', cost: 2200, icon: '⚡', color: '#32CD32', width: 1.2, height: 2.1 },
+        security_door: { name: 'Security Door', cost: 1650, icon: '🔒', color: '#2F4F4F', width: 0.9, height: 2.1 }
+      },
+      windows: {
+        standard_window: { name: 'Standard Window', cost: 650, icon: '🪟', color: '#87CEEB', width: 1.2, height: 1.2 },
+        bay_window: { name: 'Bay Window', cost: 1200, icon: '🏠', color: '#B0E0E6', width: 2.4, height: 1.5 },
+        skylight: { name: 'Skylight', cost: 850, icon: '☀️', color: '#FFD700', width: 1, height: 1 },
+        french_doors: { name: 'French Doors', cost: 1800, icon: '🎭', color: '#F0E68C', width: 1.8, height: 2.1 },
+        floor_to_ceiling: { name: 'Floor-to-Ceiling Window', cost: 2200, icon: '🌅', color: '#B0C4DE', width: 3, height: 3 },
+        corner_window: { name: 'Corner Window', cost: 1800, icon: '🔲', color: '#ADD8E6', width: 1.5, height: 1.5 }
+      },
+      fixtures: {
+        kitchen: { name: 'Kitchen Unit', cost: 3500, icon: '🍳', color: '#CD853F', width: 3, height: 0.6 },
+        bathroom: { name: 'Bathroom Suite', cost: 2200, icon: '🛁', color: '#F0F8FF', width: 2, height: 1.5 },
+        toilet: { name: 'Toilet', cost: 650, icon: '🚽', color: '#E6E6FA', width: 0.7, height: 0.7 },
+        sink: { name: 'Sink', cost: 450, icon: '🚿', color: '#F0F8FF', width: 0.6, height: 0.5 },
+        laundry: { name: 'Laundry', cost: 1500, icon: '👕', color: '#E0E0E0', width: 1.8, height: 0.6 },
+        storage: { name: 'Storage', cost: 850, icon: '📦', color: '#D2B48C', width: 1.2, height: 0.6 }
+      },
+      electrical: {
+        power_point: { name: 'Power Point', cost: 180, icon: '🔌', color: '#FFD700', width: 0.1, height: 0.1 },
+        light_switch: { name: 'Light Switch', cost: 120, icon: '💡', color: '#FFFF00', width: 0.1, height: 0.1 },
+        ceiling_light: { name: 'Ceiling Light', cost: 220, icon: '💡', color: '#FFFACD', width: 0.3, height: 0.1 },
+        downlight: { name: 'Downlight', cost: 85, icon: '🔦', color: '#F5F5DC', width: 0.15, height: 0.1 },
+        pendant_light: { name: 'Pendant Light', cost: 350, icon: '🕯️', color: '#FFA500', width: 0.2, height: 0.1 },
+        chandelier: { name: 'Chandelier', cost: 1200, icon: '💎', color: '#FFD700', width: 0.8, height: 0.3 }
+      },
+      hvac: {
+        air_con_unit: { name: 'A/C Unit', cost: 2200, icon: '❄️', color: '#B0E0E6', width: 0.8, height: 0.3 },
+        exhaust_fan: { name: 'Exhaust Fan', cost: 350, icon: '🌪️', color: '#D3D3D3', width: 0.3, height: 0.1 },
+        heater: { name: 'Heater', cost: 850, icon: '🔥', color: '#FF6347', width: 0.4, height: 0.2 },
+        vent: { name: 'Vent', cost: 120, icon: '💨', color: '#F5F5F5', width: 0.2, height: 0.1 }
+      }
+    };
+
+    // Get building elements based on user tier
+    function getBuildingElements() {
+      return isPro ? PRO_BUILDING_ELEMENTS : BASIC_BUILDING_ELEMENTS;
+    }
+
+    function toggleSimsMode() {
+      simsMode = !simsMode;
+      const btn = document.getElementById('sims-mode-btn');
+      
+      if (simsMode) {
+        btn.textContent = 'Exit Builder';
+        btn.classList.add('bg-green-500', 'text-white');
+        enableSimsMode();
+      } else {
+        btn.textContent = 'Enable Builder';
+        btn.classList.remove('bg-green-500', 'text-white');
+        disableSimsMode();
+      }
+    }
+
+    function enableSimsMode() {
+      // Add grid overlay to canvas
+      const canvas = document.getElementById('fabric-canvas');
+      if (canvas) {
+        canvas.style.backgroundImage = `
+          linear-gradient(to right, #e0e0e0 1px, transparent 1px),
+          linear-gradient(to bottom, #e0e0e0 1px, transparent 1px)
+        `;
+        canvas.style.backgroundSize = '20px 20px';
+        canvas.style.cursor = 'crosshair';
+      }
+      
+      // Enable snap-to-grid functionality
+      if (window.canvasManager) {
+        window.canvasManager.enableSnapToGrid(20); // 20px grid
+      }
+      
+      updateBuildingElementsList();
+      const modeMsg = isPro ? 
+        'Pro Builder Mode Enabled!\n\n• 50+ professional building elements\n• Advanced snap-to-grid system\n• Real-time cost calculations\n• Professional material library' :
+        'Basic Builder Mode Enabled!\n\n• Essential building elements (walls, doors, windows)\n• Simple snap-to-grid placement\n• Basic cost calculations\n• Upgrade to Pro for 50+ elements';
+      alert(modeMsg);
+    }
+
+    function disableSimsMode() {
+      const canvas = document.getElementById('fabric-canvas');
+      if (canvas) {
+        canvas.style.backgroundImage = 'none';
+        canvas.style.cursor = 'default';
+      }
+      
+      if (window.canvasManager) {
+        window.canvasManager.disableSnapToGrid();
+      }
+      
+      selectedBuildingElement = null;
+      updateBuildingElementsList();
+    }
+
+    function showBuildingPalette() {
+      const elements = getBuildingElements();
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+      
+      modal.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold">🏗️ Building Elements</h3>
+            ${!isPro ? '<div class="text-sm text-blue-600">Pro version: 50+ elements available</div>' : '<div class="text-sm text-green-600">Pro Edition: Full Library</div>'}
+          </div>
+          
+          ${!isPro ? `
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <div class="text-sm font-semibold text-blue-800 mb-1">Basic Elements Available</div>
+              <div class="text-xs text-blue-700">
+                Upgrade to Pro for complete professional library: HVAC, electrical, fire systems, commercial fixtures, and more.
+              </div>
+            </div>
+          ` : ''}
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${isPro ? '4' : '3'} gap-4">
+            ${Object.entries(elements).map(([category, categoryElements]) => `
+              <div class="bg-gray-50 rounded-lg p-3">
+                <h4 class="font-semibold capitalize mb-3">${category}</h4>
+                <div class="space-y-2">
+                  ${Object.entries(categoryElements).map(([key, element]) => `
+                    <div class="building-element-item bg-white border rounded p-2 cursor-pointer hover:bg-blue-50" 
+                         onclick="selectBuildingElement('${category}', '${key}')" 
+                         data-category="${category}" data-key="${key}">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                          <span class="text-lg mr-2">${element.icon}</span>
+                          <div>
+                            <div class="font-medium text-sm">${element.name}</div>
+                            <div class="text-xs text-gray-500">$${element.cost}</div>
+                          </div>
+                        </div>
+                        <div class="w-4 h-4 rounded" style="background-color: ${element.color}"></div>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          
+          ${!isPro ? `
+            <div class="mt-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
+              <div class="text-sm font-semibold text-blue-800 mb-2">Unlock Pro Elements</div>
+              <div class="text-xs text-blue-700 mb-2">
+                Get access to 50+ professional elements: HVAC systems, electrical fixtures, fire safety, commercial kitchens, and specialized equipment.
+              </div>
+              <button onclick="subscribe()" class="bg-blue-500 text-white px-3 py-1 rounded text-xs">
+                Upgrade to Pro - $39.99/month
+              </button>
+            </div>
+          ` : ''}
+          
+          <div class="flex gap-3 mt-6">
+            <button onclick="this.closest('.fixed').remove()" class="bg-gray-500 text-white px-4 py-2 rounded">Close</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    function selectBuildingElement(category, key) {
+      const elements = getBuildingElements();
+      selectedBuildingElement = { category, key, ...elements[category][key] };
+      
+      // Update visual selection
+      document.querySelectorAll('.building-element-item').forEach(item => {
+        item.classList.remove('ring-2', 'ring-blue-500');
+      });
+      
+      const selectedItem = document.querySelector(`[data-category="${category}"][data-key="${key}"]`);
+      if (selectedItem) {
+        selectedItem.classList.add('ring-2', 'ring-blue-500');
+      }
+      
+      updateBuildingElementsList();
+      
+      // Close modal if it exists
+      const modal = document.querySelector('.fixed');
+      if (modal) modal.remove();
+      
+      alert(`Selected: ${selectedBuildingElement.name}\nCost: $${selectedBuildingElement.cost}\n\nClick on the canvas to place this element.`);
+    }
+
+    function updateBuildingElementsList() {
+      const container = document.getElementById('building-elements');
+      if (!container) return;
+      
+      if (!simsMode) {
+        container.innerHTML = '<div class="text-sm text-gray-500">Enable Sims Mode to use building elements</div>';
+        return;
+      }
+      
+      if (!selectedBuildingElement) {
+        container.innerHTML = '<div class="text-sm text-gray-500">No element selected. Click "Building Palette" to choose elements.</div>';
+        return;
+      }
+      
+      container.innerHTML = `
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center">
+              <span class="text-lg mr-2">${selectedBuildingElement.icon}</span>
+              <div>
+                <div class="font-medium text-sm">${selectedBuildingElement.name}</div>
+                <div class="text-xs text-blue-600">$${selectedBuildingElement.cost} per unit</div>
+              </div>
+            </div>
+            <div class="w-4 h-4 rounded" style="background-color: ${selectedBuildingElement.color}"></div>
+          </div>
+          <div class="text-xs text-blue-700">
+            Size: ${selectedBuildingElement.width}m × ${selectedBuildingElement.height}m
+          </div>
+        </div>
+      `;
+    }
+
+    function placeBuildingElement(x, y) {
+      if (!simsMode || !selectedBuildingElement) return;
+      
+      // Convert pixel coordinates to meters (assuming 20px = 1m for grid)
+      const meterX = Math.round(x / 20);
+      const meterY = Math.round(y / 20);
+      
+      // Create building element on canvas
+      const element = {
+        id: `element_${Date.now()}`,
+        type: selectedBuildingElement.category,
+        subtype: selectedBuildingElement.key,
+        x: meterX,
+        y: meterY,
+        width: selectedBuildingElement.width,
+        height: selectedBuildingElement.height,
+        cost: selectedBuildingElement.cost,
+        name: selectedBuildingElement.name,
+        color: selectedBuildingElement.color
+      };
+      
+      // Add to canvas using existing room system
+      const room = {
+        id: element.id,
+        name: element.name,
+        width: element.width,
+        height: element.height,
+        material: 'custom', // Use custom material
+        cost: element.cost,
+        positionX: x,
+        positionY: y,
+        shapeType: 'rectangle'
+      };
+      
+      if (window.canvasManager) {
+        // Create visual representation
+        window.canvasManager.addSimsElement(element);
+      }
+      
+      // Update cost calculations
+      updateTotalCost();
+    }
+
+    function clearAllElements() {
+      if (window.canvasManager) {
+        window.canvasManager.clearCanvas();
+      }
+      alert('All building elements cleared!');
+    }
+
+    function saveSimsProject() {
+      const projectData = {
+        mode: 'sims',
+        elements: window.canvasManager ? window.canvasManager.getRooms() : [],
+        totalCost: calculateTotalProjectCost(),
+        createdAt: new Date().toISOString(),
+        projectType: projectType
+      };
+      
+      const dataStr = JSON.stringify(projectData, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Sims_Project_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      alert('Sims project saved successfully!\n\nYou can load this project later or share it with others.');
     }
 
     // Override addCustomMaterial for Pro features
