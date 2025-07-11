@@ -45,6 +45,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.sendFile('mobile.html', { root: '.' });
   });
   
+  // Serve mobile test pages
+  app.get('/mobile-test.html', (req, res) => {
+    res.sendFile('mobile-test.html', { root: '.' });
+  });
+  
+  app.get('/clear-cache.html', (req, res) => {
+    res.sendFile('clear-cache.html', { root: '.' });
+  });
+  
   // Serve PWA manifest
   app.get('/manifest.json', (req, res) => {
     res.sendFile('manifest.json', { root: '.' });

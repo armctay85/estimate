@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clear Cache - EstiMate Mobile</title>
+  <style>
+    body { 
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #1e40af, #7c3aed, #db2777);
+      color: white;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .container {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 400px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .icon { font-size: 60px; margin-bottom: 20px; }
+    h1 { font-size: 24px; margin-bottom: 16px; }
+    p { opacity: 0.9; line-height: 1.6; margin-bottom: 20px; }
+    .steps { text-align: left; margin: 20px 0; }
+    .step { 
+      background: rgba(255,255,255,0.1);
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .button {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      margin: 8px;
+      transition: all 0.3s;
+    }
+    .button:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4); }
+    .secondary { background: rgba(255,255,255,0.2); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">🔄</div>
+    <h1>Clear Browser Cache</h1>
+    <p>The mobile app has been updated with all professional features, but your browser may be showing the old version due to caching.</p>
+    
+    <div class="steps">
+      <div class="step">📱 <strong>Mobile:</strong> Close all tabs and reopen</div>
+      <div class="step">💻 <strong>Desktop:</strong> Press Ctrl+Shift+R (or Cmd+Shift+R on Mac)</div>
+      <div class="step">🌐 <strong>Alternative:</strong> Try private/incognito mode</div>
+    </div>
+    
+    <a href="/mobile.html" class="button" onclick="this.href='/mobile.html?v=' + Date.now()">
+      Go to Updated Mobile App
+    </a>
+    
+    <a href="/mobile-test.html" class="button secondary">
+      View Update Status
+    </a>
+    
+    <p style="font-size: 12px; margin-top: 20px; opacity: 0.8;">
+      Updated features include: AI Cost Predictor, BIM Auto-Takeoff, Professional styling, and Enhanced mobile interface.
+    </p>
+  </div>
+</body>
+</html>
