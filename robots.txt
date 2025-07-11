@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /standalone.html
+Allow: /mobile.html
+Allow: /manifest.json
+Allow: /sw.js
+Disallow: /server/
+Disallow: /node_modules/
+Disallow: /.git/
+
+Sitemap: https://estimate-construction.replit.app/sitemap.xml

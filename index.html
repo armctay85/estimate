@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EstiMate - Professional Construction Cost Estimator Australia | Free Takeoff Tool</title>
+  <meta name="description" content="Free professional construction cost estimator and takeoff tool for Australian builders, contractors, and quantity surveyors. Calculate material costs, measure floor plans, generate accurate estimates. Used by professionals across NSW, VIC, QLD, WA, SA.">
+  <meta name="keywords" content="construction estimator Australia, takeoff tool, cost calculator, Australian builders, quantity surveyor, floor plan measurement, building estimator, contractor tools, construction quotes, material costs">
+  <meta name="author" content="EstiMate">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://estimate-construction.replit.app/">
+  
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://estimate-construction.replit.app/">
+  <meta property="og:title" content="EstiMate - Professional Construction Cost Estimator Australia">
+  <meta property="og:description" content="Free professional construction estimator and takeoff tool for Australian builders. Calculate material costs, measure floor plans, generate accurate quotes.">
+  <meta property="og:site_name" content="EstiMate">
+  
+  <!-- Geo Tags -->
+  <meta name="geo.region" content="AU">
+  <meta name="geo.country" content="Australia">
+  
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "EstiMate",
+    "url": "https://estimate-construction.replit.app/",
+    "description": "Professional construction cost estimator and takeoff tool for Australian builders and contractors",
+    "publisher": {
+      "@type": "Organization",
+      "name": "EstiMate"
+    },
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://estimate-construction.replit.app/standalone.html?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+  
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .container {
+      max-width: 1200px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      overflow: hidden;
+      margin: 20px;
+    }
+    
+    .hero {
+      padding: 60px 40px;
+      text-align: center;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    }
+    
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding: 16px 24px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border-radius: 12px;
+      color: white;
+      font-size: 28px;
+      font-weight: 700;
+    }
+    
+    .logo svg {
+      width: 32px;
+      height: 32px;
+    }
+    
+    h1 {
+      font-size: 48px;
+      font-weight: 700;
+      margin: 0 0 16px 0;
+      color: #1e293b;
+      line-height: 1.2;
+    }
+    
+    .subtitle {
+      font-size: 20px;
+      color: #64748b;
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+    
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      margin: 40px 0;
+    }
+    
+    .feature {
+      text-align: left;
+      padding: 24px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      font-size: 24px;
+    }
+    
+    .feature h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      color: #1e293b;
+    }
+    
+    .feature p {
+      color: #64748b;
+      margin: 0;
+      line-height: 1.6;
+    }
+    
+    .cta-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 40px;
+    }
+    
+    .btn {
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      font-size: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: white;
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
+    }
+    
+    .btn-secondary {
+      background: white;
+      color: #3b82f6;
+      border: 2px solid #3b82f6;
+    }
+    
+    .btn-secondary:hover {
+      background: #3b82f6;
+      color: white;
+      transform: translateY(-2px);
+    }
+    
+    .seo-content {
+      padding: 60px 40px;
+      background: white;
+    }
+    
+    .seo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 40px;
+      margin-top: 40px;
+    }
+    
+    .seo-section h2 {
+      color: #1e293b;
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    
+    .seo-section p, .seo-section li {
+      color: #64748b;
+      line-height: 1.7;
+    }
+    
+    .seo-section ul {
+      padding-left: 20px;
+    }
+    
+    .states {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    
+    .state-tag {
+      background: #eff6ff;
+      color: #2563eb;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    @media (max-width: 768px) {
+      .hero {
+        padding: 40px 20px;
+      }
+      
+      h1 {
+        font-size: 36px;
+      }
+      
+      .subtitle {
+        font-size: 18px;
+      }
+      
+      .cta-buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .btn {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+      }
+      
+      .seo-content {
+        padding: 40px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 7h-3V4a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3H5a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1zM10 6h4v1h-4V6zm8 12H6V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v9z"/>
+          <path d="M8 11h2v2H8zm4 0h2v2h-2zm4 0h2v2h-2zm-8 4h2v2H8zm4 0h2v2h-2z"/>
+        </svg>
+        EstiMate
+      </div>
+      
+      <h1>Professional Construction Cost Estimator</h1>
+      <p class="subtitle">Free online takeoff tool designed specifically for Australian builders, contractors, and quantity surveyors. Calculate accurate material costs and generate professional estimates.</p>
+      
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🏗️</div>
+          <h3>Australian Standards</h3>
+          <p>Built specifically for the Australian construction industry with local material costs and metric measurements.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📏</div>
+          <h3>Precise Measurements</h3>
+          <p>Advanced calibration tools ensure accurate real-world measurements for professional estimates.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💰</div>
+          <h3>Real-time Costing</h3>
+          <p>Instant cost calculations based on current Australian material prices and labor rates.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📱</div>
+          <h3>Mobile & Desktop</h3>
+          <p>Works seamlessly on all devices with offline capabilities for on-site use.</p>
+        </div>
+      </div>
+      
+      <div class="cta-buttons">
+        <a href="/standalone.html" class="btn btn-primary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13 3v6h8l-11 12V9H2l11-6z"/>
+          </svg>
+          Start Desktop App
+        </a>
+        <a href="/mobile.html" class="btn btn-secondary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17 2H7c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM7 4h10v14H7V4z"/>
+          </svg>
+          Mobile App
+        </a>
+      </div>
+    </div>
+    
+    <div class="seo-content">
+      <div class="seo-grid">
+        <div class="seo-section">
+          <h2>For Australian Construction Professionals</h2>
+          <p>EstiMate is the leading construction cost estimator designed specifically for the Australian market. Our tool helps residential builders, commercial contractors, and quantity surveyors across all states and territories generate accurate cost estimates quickly and efficiently.</p>
+          
+          <div class="states">
+            <span class="state-tag">NSW</span>
+            <span class="state-tag">VIC</span>
+            <span class="state-tag">QLD</span>
+            <span class="state-tag">WA</span>
+            <span class="state-tag">SA</span>
+            <span class="state-tag">TAS</span>
+            <span class="state-tag">ACT</span>
+            <span class="state-tag">NT</span>
+          </div>
+        </div>
+        
+        <div class="seo-section">
+          <h2>Advanced Takeoff Features</h2>
+          <ul>
+            <li>Interactive floor plan drawing tools</li>
+            <li>Calibrated measurement system</li>
+            <li>Australian standard material costs</li>
+            <li>Real-time cost calculations</li>
+            <li>Professional CSV export</li>
+            <li>Template library for common elements</li>
+            <li>Custom material support</li>
+            <li>Multi-device synchronization</li>
+          </ul>
+        </div>
+        
+        <div class="seo-section">
+          <h2>Construction Cost Categories</h2>
+          <p>Our estimator covers all major flooring and construction materials commonly used in Australian building projects:</p>
+          <ul>
+            <li><strong>Timber Flooring:</strong> Premium hardwood, engineered timber</li>
+            <li><strong>Carpet Installation:</strong> Commercial and residential carpet</li>
+            <li><strong>Tile Work:</strong> Ceramic, porcelain, and natural stone</li>
+            <li><strong>Laminate Flooring:</strong> Quality laminate products</li>
+            <li><strong>Vinyl Planks:</strong> Luxury vinyl and sheet vinyl</li>
+          </ul>
+        </div>
+        
+        <div class="seo-section">
+          <h2>Why Choose EstiMate?</h2>
+          <p>Unlike generic estimation tools, EstiMate is built by construction professionals for Australian conditions. We understand local building codes, material availability, and pricing structures across different regions.</p>
+          
+          <p>Whether you're a small residential builder in Melbourne, a commercial contractor in Sydney, or a quantity surveyor working across multiple states, EstiMate provides the accuracy and efficiency you need for professional estimates.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

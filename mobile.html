@@ -3,8 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>BuildCost Sketch Mobile</title>
-  <meta name="description" content="Mobile construction takeoff tool for Australian builders">
+  <title>EstiMate Mobile - Construction Cost Estimator App Australia</title>
+  <meta name="description" content="Professional mobile construction cost estimator and takeoff app for Australian builders. Calculate material costs, measure floor plans on-site. Free PWA app for iOS and Android.">
+  <meta name="keywords" content="construction app, mobile estimator, building cost calculator, Australian contractors, takeoff app, construction mobile app, builder tools">
+  <meta name="author" content="EstiMate">
+  <meta name="robots" content="index, follow">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="EstiMate Mobile - Construction Cost Estimator App Australia">
+  <meta property="og:description" content="Professional mobile construction cost estimator for Australian builders. Free PWA app with offline capabilities.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://estimate-construction.replit.app/mobile.html">
+  
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "MobileApplication",
+    "name": "EstiMate Mobile",
+    "description": "Professional mobile construction cost estimator app for Australian builders and contractors",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "PWA",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "AUD"
+    }
+  }
+  </script>
   <meta name="theme-color" content="#3b82f6">
   
   <!-- PWA Manifest -->
@@ -212,7 +238,11 @@
   <!-- Mobile Header -->
   <div class="mobile-header">
     <div class="flex items-center">
-      <span class="text-lg font-bold">🏗️ BuildCost</span>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" class="mr-2">
+        <path d="M19 7h-3V4a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3H5a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1zM10 6h4v1h-4V6zm8 12H6V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v9z"/>
+        <path d="M8 11h2v2H8zm4 0h2v2h-2zm4 0h2v2h-2zm-8 4h2v2H8zm4 0h2v2h-2z"/>
+      </svg>
+      <span class="text-lg font-bold">EstiMate</span>
     </div>
     <div class="flex items-center gap-3">
       <span id="total-cost-mobile" class="text-sm font-semibold">$0</span>

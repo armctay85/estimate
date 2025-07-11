@@ -1,7 +1,7 @@
 {
-  "name": "BuildCost Sketch Mobile",
-  "short_name": "BuildCost",
-  "description": "Mobile construction takeoff tool for Australian builders",
+  "name": "EstiMate Mobile - Construction Cost Estimator",
+  "short_name": "EstiMate",
+  "description": "Professional mobile construction cost estimator and takeoff app for Australian builders and contractors",
   "start_url": "/mobile.html",
   "display": "standalone",
   "theme_color": "#3b82f6",

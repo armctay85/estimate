@@ -30,6 +30,11 @@ declare global {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Serve main landing page
+  app.get('/', (req, res) => {
+    res.sendFile('index.html', { root: '.' });
+  });
+  
   // Serve standalone HTML application
   app.get('/standalone.html', (req, res) => {
     res.sendFile('standalone.html', { root: '.' });
@@ -49,6 +54,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/sw.js', (req, res) => {
     res.setHeader('Content-Type', 'application/javascript');
     res.sendFile('sw.js', { root: '.' });
+  });
+  
+  // SEO files
+  app.get('/sitemap.xml', (req, res) => {
+    res.setHeader('Content-Type', 'application/xml');
+    res.sendFile('sitemap.xml', { root: '.' });
+  });
+  
+  app.get('/robots.txt', (req, res) => {
+    res.setHeader('Content-Type', 'text/plain');
+    res.sendFile('robots.txt', { root: '.' });
   });
   // Configure multer for file uploads
   const upload = multer({
