@@ -1504,28 +1504,48 @@
     // Initialize mobile app
     function init() {
       try {
+        console.log('Starting mobile app initialization...');
+        
         // Initialize global variables
         window.rooms = [];
         window.totalCost = 0;
         
         const canvasElement = document.getElementById('canvas');
+        const canvasContainer = document.querySelector('.mobile-canvas');
+        
+        console.log('Canvas element found:', !!canvasElement);
+        console.log('Canvas container found:', !!canvasContainer);
+        
         if (!canvasElement) {
           console.error('Canvas element not found');
           return;
         }
         
-        canvasManager = new MobileCanvasManager(canvasElement);
-        canvasManager.onRoomsChangeCallback(updateMobileUI);
+        // Force canvas container visibility
+        if (canvasContainer) {
+          canvasContainer.style.display = 'block';
+          canvasContainer.style.background = 'white';
+          canvasContainer.style.minHeight = '300px';
+          console.log('Canvas container styled');
+        }
         
-        // Populate UI
-        updateMaterialsList();
-        updateTemplatesGrid();
-        updateScaleDisplays();
+        // Wait for container to be ready
+        setTimeout(() => {
+          canvasManager = new MobileCanvasManager(canvasElement);
+          canvasManager.onRoomsChangeCallback(updateMobileUI);
+          console.log('Canvas manager created');
+          
+          // Populate UI
+          updateMaterialsList();
+          updateTemplatesGrid();
+          updateScaleDisplays();
+          
+          // Install PWA prompt
+          setupPWA();
+          
+          console.log('Mobile app initialized successfully');
+        }, 200);
         
-        // Install PWA prompt
-        setupPWA();
-        
-        console.log('Mobile app initialized successfully');
       } catch (error) {
         console.error('Mobile app initialization failed:', error);
       }
@@ -2143,8 +2163,38 @@
       }, 2000);
     });
 
-    // Ensure proper mobile app closing
+    // Test function to force canvas display
+    function forceCanvasDisplay() {
+      const canvas = document.getElementById('canvas');
+      const container = document.querySelector('.mobile-canvas');
+      
+      if (container) {
+        container.style.backgroundColor = 'white';
+        container.style.border = '2px solid red';
+        container.style.minHeight = '400px';
+        container.style.display = 'block';
+        console.log('Canvas container forced visible');
+      }
+      
+      if (canvas) {
+        canvas.style.backgroundColor = 'white';
+        canvas.style.border = '1px solid blue';
+        canvas.style.display = 'block';
+        canvas.width = 300;
+        canvas.height = 300;
+        console.log('Canvas forced visible');
+      }
+    }
+    
+    // Call test function immediately
+    setTimeout(forceCanvasDisplay, 500);
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', init);
+    if (document.readyState === 'complete') {
+      init();
+    }
     
   </script>
 </body>
-</html><!-- Cache Buster: 1752232925 -->
+</html><!-- Cache Buster: 1752234000 -->
