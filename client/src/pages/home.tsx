@@ -16,14 +16,37 @@ import { Sidebar, SidebarHeader, SidebarContent, SidebarSection } from "@/compon
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { TrendingUp, FileBarChart, Users, Award, BarChart3, Upload, Sparkles, Zap, Brain, Share2 } from "lucide-react";
+import { TrendingUp, FileBarChart, Users, Award, BarChart3, Upload, Sparkles, Zap, Brain, Share2, Moon, Sun, Settings, Layers, Palette } from "lucide-react";
 import type { MaterialType } from "@shared/schema";
 import type { ShapeType, RoomData } from "@/lib/fabric-enhanced";
 
 // Lazy-load analytics chart for performance
 const LazyAnalyticsChart = lazy(() => import("@/components/analytics-chart"));
 
+// Dark Mode Hook
+function useDarkMode() {
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("darkMode") === "true" || 
+             window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
+    return false;
+  });
+  
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem("darkMode", darkMode.toString());
+  }, [darkMode]);
+  
+  return [darkMode, setDarkMode] as const;
+}
+
 export default function Home() {
+  const [darkMode, setDarkMode] = useDarkMode();
   const [selectedMaterial, setSelectedMaterial] = useState<MaterialType>("timber");
   const [selectedShape, setSelectedShape] = useState<ShapeType>("rectangle");
   const [rooms, setRooms] = useState<RoomData[]>([]);
@@ -163,122 +186,197 @@ export default function Home() {
     setAiSuggestions(prev => [...prev, "Project shared successfully! Team members can now collaborate."]);
   };
 
-  // Mobile layout with enhanced features
+  // Enhanced Mobile Layout with Procore-inspired design
   if (isMobile) {
     return (
       <motion.div 
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: 1 }}
-        className="min-h-screen bg-background"
+        initial={{ opacity: 0, scale: 0.95 }} 
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className={`min-h-screen font-sans ${darkMode ? 'bg-gray-900 text-white' : 'bg-slate-50 text-gray-900'}`}
       >
         <Joyride steps={tourSteps} run={onboardingStep === 0} />
-        <Header />
+        
+        {/* Mobile Header with Dark Mode Toggle */}
+        <div className={`sticky top-0 z-50 ${darkMode ? 'bg-gray-800' : 'bg-white'} border-b shadow-sm`}>
+          <div className="px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
+                <Layers className="w-5 h-5 text-white" />
+              </div>
+              <h1 className="text-xl font-bold tracking-tight">EstiMate</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setDarkMode(!darkMode)}
+                className="hover:bg-orange-50 hover:text-orange-600"
+              >
+                {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleShareProject}
+                className="bg-orange-600 hover:bg-orange-700 text-white"
+              >
+                <Share2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
         
         <div className="p-4 space-y-4">
-          <Card>
-            <CardContent className="p-4">
-              <CostDisplay rooms={rooms} totalCost={totalCost} />
-            </CardContent>
-          </Card>
+          {/* Cost Display with Orange Accent */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Card className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-sm`}>
+              <CardContent className="p-4">
+                <CostDisplay rooms={rooms} totalCost={totalCost} />
+              </CardContent>
+            </Card>
+          </motion.div>
           
-          <Card>
-            <CardContent className="p-4 space-y-3">
-              <h3 className="font-semibold text-lg mb-3">AI-Powered Tools</h3>
-              <div className="ai-predictor">
-                <AICostPredictor />
-              </div>
-              <div className="bim-processor">
-                <BIMProcessor />
-              </div>
-              <Button 
-                onClick={handleShareProject}
-                className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
-              >
-                <Share2 className="w-4 h-4 mr-2" />
-                Share with Team
-              </Button>
-            </CardContent>
-          </Card>
+          {/* AI-Powered Tools */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-sm`}>
+              <CardContent className="p-4 space-y-3">
+                <h3 className="font-semibold text-lg mb-3 flex items-center gap-2 text-orange-600">
+                  <Brain className="w-5 h-5" />
+                  AI-Powered Tools
+                </h3>
+                <div className="ai-predictor">
+                  <AICostPredictor />
+                </div>
+                <div className="bim-processor">
+                  <BIMProcessor />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* AI Suggestions */}
-          <Card>
-            <CardContent className="p-4">
-              <h4 className="font-medium mb-2 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-purple-600" />
-                AI Suggestions
-              </h4>
-              <div className="space-y-1">
-                {aiSuggestions.slice(-3).map((suggestion, i) => (
-                  <div key={i} className="text-sm bg-purple-50 p-2 rounded text-purple-700">
-                    {suggestion}
+          {aiSuggestions.length > 0 && (
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Card className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-sm`}>
+                <CardContent className="p-4">
+                  <h4 className="font-medium mb-2 flex items-center gap-2 text-orange-600">
+                    <Sparkles className="w-4 h-4" />
+                    AI Suggestions
+                  </h4>
+                  <div className="space-y-2">
+                    {aiSuggestions.slice(-3).map((suggestion, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ x: -20, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        transition={{ delay: 0.1 * i }}
+                        className={`text-sm p-3 rounded-lg border-l-4 border-orange-400 ${
+                          darkMode ? 'bg-orange-950 text-orange-200' : 'bg-orange-50 text-orange-800'
+                        }`}
+                      >
+                        {suggestion}
+                      </motion.div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
           
-          <Card className="h-[400px] canvas-area">
-            <CardContent className="p-4 h-full">
-              <Canvas
-                ref={canvasRef}
-                selectedMaterial={selectedMaterial}
-                selectedShape={selectedShape}
-                onRoomsChange={handleRoomsChange}
-                onRoomSelect={handleRoomSelect}
-                onSaveProject={handleSaveProject}
-                onBackgroundUpload={setHasBackground}
-                onBackgroundRemove={handleBackgroundRemove}
-                onBackgroundOpacity={handleBackgroundOpacity}
-                hasBackground={hasBackground}
-                backgroundOpacity={backgroundOpacity}
-              />
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4 space-y-4">
-              <div className="material-selector">
-                <MaterialSelector 
+          {/* Canvas Area */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            <Card className={`h-[400px] canvas-area ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-sm`}>
+              <CardContent className="p-4 h-full">
+                <Canvas
+                  ref={canvasRef}
                   selectedMaterial={selectedMaterial}
-                  onMaterialSelect={setSelectedMaterial}
+                  selectedShape={selectedShape}
+                  onRoomsChange={handleRoomsChange}
+                  onRoomSelect={handleRoomSelect}
+                  onSaveProject={handleSaveProject}
+                  onBackgroundUpload={setHasBackground}
+                  onBackgroundRemove={handleBackgroundRemove}
+                  onBackgroundOpacity={handleBackgroundOpacity}
+                  hasBackground={hasBackground}
+                  backgroundOpacity={backgroundOpacity}
                 />
-              </div>
-              <ShapeSelector
-                selectedShape={selectedShape}
-                onShapeSelect={setSelectedShape}
-                onBackgroundUpload={handleBackgroundUpload}
-                onBackgroundRemove={handleBackgroundRemove}
-                onBackgroundOpacity={handleBackgroundOpacity}
-                hasBackground={hasBackground}
-                backgroundOpacity={backgroundOpacity}
-              />
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
+          
+          {/* Tools Panel */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <Card className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-sm`}>
+              <CardContent className="p-4 space-y-4">
+                <div className="material-selector">
+                  <MaterialSelector 
+                    selectedMaterial={selectedMaterial}
+                    onMaterialSelect={setSelectedMaterial}
+                  />
+                </div>
+                <ShapeSelector
+                  selectedShape={selectedShape}
+                  onShapeSelect={setSelectedShape}
+                  onBackgroundUpload={handleBackgroundUpload}
+                  onBackgroundRemove={handleBackgroundRemove}
+                  onBackgroundOpacity={handleBackgroundOpacity}
+                  hasBackground={hasBackground}
+                  backgroundOpacity={backgroundOpacity}
+                />
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
       </motion.div>
     );
   }
 
-  // Desktop layout with enhanced AI features, resizable panels, and animations
+  // Enhanced Desktop Layout: Procore-inspired with orange accents, animations, and resizable panels
   return (
     <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }}
-      className="min-h-screen bg-slate-50 flex flex-col"
+      initial={{ opacity: 0, scale: 0.95 }} 
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
+      className={`min-h-screen font-sans flex flex-col ${darkMode ? 'bg-gray-900 text-white' : 'bg-slate-50 text-gray-900'}`}
     >
       <Joyride steps={tourSteps} run={onboardingStep === 0} />
-      {/* Procore-style Top Navigation */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
+      {/* Enhanced Procore-style Top Navigation */}
+      <motion.div 
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.4 }}
+        className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b shadow-sm`}
+      >
         <div className="px-6 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center text-white font-bold">
-                  E
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
+                  <Layers className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-semibold text-gray-900">EstiMate</h1>
-                  <p className="text-xs text-gray-500">Professional QS Platform</p>
+                  <h1 className="text-xl font-bold tracking-tight">EstiMate</h1>
+                  <p className="text-xs text-gray-500">AI-Powered Construction Platform</p>
                 </div>
               </div>
               
@@ -320,7 +418,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Main Content Layout */}
       <div className="flex-1 flex overflow-hidden">

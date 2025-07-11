@@ -1,0 +1,154 @@
+# Replit_Agent_Prompt_UI_Enhancements.txt
+# Paste this entire text into Replit Agent chat to automatically enhance the UI of your EstiMate project.
+# This builds on previous AI/functionality enhancements, focusing on sophisticated Procore-inspired UI: modernized design, orange accents, animations, dark mode, improved typography, and responsive layouts.
+
+Hello Replit Agent,
+
+My project is EstiMate, a React/TypeScript construction cost estimation app. We've already added AI integrations and core features. Now, enhance the UI to be more sophisticated, inspired by Procore's 2025 design: consistent modern look, orange accents, clean typography, AI-powered dashboards, animations, and responsive elements.
+
+First, confirm/install any additional deps if needed (from previous: framer-motion, etc.; add tailwindcss for theming if not present):
+- Run: npm install tailwindcss@latest postcss autoprefixer (if not installed)
+- If tailwind.config.js doesn't exist, create it with basic config extending colors (add orange: '#FF7518' for Procore accents).
+
+Update existing files and add new styles/components for:
+- Dark mode toggle (system preference or manual).
+- Animations on panels/transitions.
+- Orange accents in headers/CTAs.
+- Improved typography: Bold sans-serif headlines, readable body.
+- Resizable panels with drag handles.
+- Enhanced dashboard with Helix-like AI insights section.
+
+Now, update files as follows:
+
+1. Update client/src/pages/Home.tsx:
+Enhance the existing code with dark mode, orange accents, and more animations. Add a dark mode toggle in the header. Replace the entire file with this updated version (merging from previous enhancements):
+
+import { useState, useRef, useEffect, lazy } from "react";
+import { motion } from "framer-motion";
+import { Resizable } from "react-resizable";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import Joyride from "react-joyride";
+import { OpenAI } from "openai";
+import { MaterialSelector } from "@/components/material-selector";
+import { ShapeSelector } from "@/components/shape-selector";
+import { Canvas } from "@/components/canvas";
+import { CostDisplay } from "@/components/cost-display";
+import { RoomDetails } from "@/components/room-details";
+import { Header } from "@/components/header";
+import { AICostPredictor } from "@/components/ai-cost-predictor";
+import { BIMProcessor } from "@/components/bim-processor";
+import { IntelligentAssistant } from "@/components/intelligent-assistant";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Moon, Sun, TrendingUp, FileBarChart, Users, Award, BarChart3, Upload } from "lucide-react"; // Add Moon/Sun for dark mode
+import type { MaterialType } from "@shared/schema";
+import type { ShapeType, RoomData } from "@/lib/fabric-enhanced";
+
+// Lazy-load
+const LazyAnalyticsChart = lazy(() => import("./AnalyticsChart"));
+
+// xAI Client (unchanged)
+const xaiClient = new OpenAI({
+  apiKey: process.env.XAI_API_KEY,
+  baseURL: "https://api.x.ai/v1",
+  dangerouslyAllowBrowser: true,
+});
+
+// Dark Mode Hook (new)
+function useDarkMode() {
+  const [darkMode, setDarkMode] = useState(false);
+  useEffect(() => {
+    if (darkMode) document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
+  }, [darkMode]);
+  return [darkMode, setDarkMode];
+}
+
+export default function Home() {
+  const [darkMode, setDarkMode] = useDarkMode(); // New dark mode
+  // ... All previous state (selectedMaterial, rooms, etc.) ...
+
+  // ... Existing useEffect, fetchAiSuggestion, handlers ...
+
+  // Enhanced Mobile Layout with dark mode and animations
+  if (isMobile) {
+    return (
+      <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-background'}`}>
+        <Joyride steps={tourSteps} run={onboardingStep === 0} />
+        {/* Existing mobile layout with added className for dark */}
+        <Button onClick={() => setDarkMode(!darkMode)}>{darkMode ? <Sun /> : <Moon />}</Button>
+        {/* ... Rest with orange accents: className="bg-orange-600" on CTAs */}
+      </div>
+    );
+  }
+
+  // Enhanced Desktop Layout: Procore-inspired with orange, animations, typography
+  return (
+    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}
+      className={`min-h-screen flex flex-col ${darkMode ? 'bg-gray-800 text-white' : 'bg-slate-50 text-gray-900'}`}>
+      <Joyride steps={tourSteps} run={onboardingStep === 0} />
+      {/* Enhanced Top Nav with orange accents */}
+      <div className="bg-white dark:bg-gray-900 border-b shadow-sm">
+        <div className="px-6 py-3 flex items-center justify-between">
+          {/* ... Existing nav ... */}
+          <Button onClick={() => setDarkMode(!darkMode)} className="bg-orange-600 hover:bg-orange-700">
+            {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </Button>
+        </div>
+      </div>
+      <div className="flex-1 flex overflow-hidden">
+        <motion.div initial={{ x: -100 }} animate={{ x: 0 }} transition={{ duration: 0.3 }}>
+          <Resizable width={300} height={Infinity} minConstraints={[200, Infinity]} maxConstraints={[400, Infinity]}
+            handle={<div className="w-1 bg-orange-300 cursor-col-resize" />}> {/* Orange handle */}
+            {/* Left Sidebar: Enhanced typography */}
+            <div className="bg-white dark:bg-gray-900 border-r p-4 space-y-6">
+              <h2 className="text-xl font-bold uppercase tracking-wide text-orange-600 dark:text-orange-400">Drawing Tools</h2>
+              {/* ... Existing sections with improved classes: font-semibold text-lg, etc. */}
+            </div>
+          </Resizable>
+        </motion.div>
+        {/* Center Canvas with animation */}
+        <motion.div className="flex-1" initial={{ y: 50 }} animate={{ y: 0 }} transition={{ duration: 0.4 }}>
+          {/* ... Existing canvas ... */}
+        </motion.div>
+        <motion.div initial={{ x: 100 }} animate={{ x: 0 }} transition={{ duration: 0.3 }}>
+          <Resizable width={300} height={Infinity} minConstraints={[200, Infinity]} maxConstraints={[400, Infinity]}
+            handle={<div className="w-1 bg-orange-300 cursor-col-resize" />}>
+            {/* Right Panel */}
+            <div className="bg-white dark:bg-gray-900 border-l p-4">
+              <h3 className="text-lg font-semibold text-orange-600 dark:text-orange-400">Project Details</h3>
+              {/* ... Existing ... */}
+            </div>
+          </Resizable>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ... Existing helpers ...
+
+2. Update tailwind.config.js (if exists, extend; else create):
+module.exports = {
+  content: ["./src/**/*.{js,ts,jsx,tsx}"],
+  theme: {
+    extend: {
+      colors: {
+        orange: "#FF7518", // Procore-inspired accent
+      },
+      fontFamily: {
+        sans: ["Inter", "sans-serif"], // Modern typography
+      },
+    },
+    darkMode: "class",
+  },
+  plugins: [],
+};
+
+3. Update client/src/index.css or global CSS:
+Add @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'); for typography.
+
+After changes, run the app and test UI: dark mode, animations, orange accents, resizable panels.
+
+Thank you!
