@@ -74,6 +74,28 @@
           <option value="laminate">📋 Laminate ($30/m²)</option>
           <option value="vinyl">💿 Vinyl ($25/m²)</option>
         </select>
+        
+        <!-- Add Custom Material -->
+        <details class="mt-3">
+          <summary class="text-sm text-blue-600 cursor-pointer">Add Custom Material</summary>
+          <div class="mt-2 space-y-2">
+            <input id="custom-mat-name" placeholder="Material name" class="w-full p-2 text-sm border rounded">
+            <div class="flex gap-2">
+              <input id="custom-mat-color" type="color" value="#8B4513" class="w-16 h-8 border rounded">
+              <input id="custom-mat-cost" placeholder="Cost $/m²" type="number" class="flex-1 p-2 text-sm border rounded">
+            </div>
+            <button onclick="addCustomMaterial()" class="bg-green-500 hover:bg-green-600 text-white p-2 rounded w-full text-sm">Add Material</button>
+          </div>
+        </details>
+      </div>
+      
+      <!-- Templates -->
+      <div class="mb-6">
+        <h2 class="font-semibold mb-3 text-gray-700">Quick Templates</h2>
+        <select id="template-select" class="w-full p-2 border rounded-lg mb-2 text-sm">
+          <option value="">Select a template...</option>
+        </select>
+        <button onclick="addTemplate()" class="bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-lg w-full text-sm font-medium">Add Template</button>
       </div>
       
       <!-- Rooms List -->
@@ -88,6 +110,15 @@
         <p id="total-cost" class="text-2xl font-bold text-blue-600">$0 AUD</p>
       </div>
       
+      <!-- Measurement & Scale -->
+      <div class="mb-6 border-t pt-4">
+        <h2 class="font-semibold mb-3 text-gray-700">Measurement & Scale</h2>
+        <div class="bg-blue-50 p-3 rounded-lg mb-3">
+          <p class="text-xs text-blue-800 mb-2">Current Scale: <span id="scale-display">100 pixels = 1m</span></p>
+          <button onclick="startCalibration()" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg w-full text-sm font-medium">Calibrate Scale</button>
+        </div>
+      </div>
+
       <!-- Controls -->
       <div class="mb-6">
         <h2 class="font-semibold mb-3 text-gray-700">Canvas Controls</h2>
@@ -161,14 +192,25 @@
   </div>
 
   <script>
-    // Australian Materials with proper costs
-    const MATERIALS = {
+    // Australian Materials with proper costs (now customizable)
+    let MATERIALS = {
       timber: { color: '#D2B48C', cost: 100 },
       carpet: { color: '#8B4513', cost: 40 },
       tiles: { color: '#708090', cost: 60 },
       laminate: { color: '#DEB887', cost: 30 },
       vinyl: { color: '#2F4F4F', cost: 25 }
     };
+
+    // Templates for common construction elements
+    const TEMPLATES = [
+      { name: 'Standard Room', shape: 'rectangle', width: 400, height: 300, material: 'carpet' },
+      { name: 'Kitchen', shape: 'rectangle', width: 350, height: 250, material: 'tiles' },
+      { name: 'Bathroom', shape: 'rectangle', width: 200, height: 150, material: 'tiles' },
+      { name: 'Hallway', shape: 'rectangle', width: 120, height: 800, material: 'laminate' },
+      { name: 'Living Area', shape: 'rectangle', width: 500, height: 400, material: 'timber' },
+      { name: 'Wall Section', shape: 'rectangle', width: 500, height: 20, material: 'timber' },
+      { name: 'Door Opening', shape: 'rectangle', width: 90, height: 210, material: 'timber' }
+    ];
 
     // Enhanced CanvasManager Implementation
     class CanvasManager {
@@ -199,6 +241,9 @@
         this.isPanning = false;
         this.panStartPoint = null;
         this.onRoomsChange = null;
+        this.scaleFactor = 100; // Default: 100 pixels = 1 meter
+        this.isCalibrating = false;
+        this.calibrationLine = null;
 
         this.setupEventListeners();
         this.setupDrawingEvents();
@@ -436,6 +481,18 @@
         this.previewShape.selectable = true;
         this.previewShape.evented = true;
         const bounds = this.previewShape.getBoundingRect();
+
+        // Handle calibration for lines
+        if (this.isCalibrating && this.currentShape === 'line') {
+          const line = this.previewShape;
+          const lineLength = Math.sqrt(
+            Math.pow(line.x2 - line.x1, 2) + Math.pow(line.y2 - line.y1, 2)
+          );
+          this.calibrationLine = line;
+          this.finishCalibration(lineLength);
+          return;
+        }
+
         const room = {
           id: Date.now().toString(),
           name: `${this.currentShape.charAt(0).toUpperCase() + this.currentShape.slice(1)} Room`,
@@ -543,8 +600,115 @@
       }
 
       calculateRoomCost(room) {
-        const areaSquareMeters = (room.width * room.height) / 10000;
+        // Convert canvas pixels to real-world square meters using scale factor
+        const areaSquareMeters = (room.width * room.height) / (this.scaleFactor * this.scaleFactor);
         return Math.round(areaSquareMeters * MATERIALS[room.material].cost);
+      }
+
+      // Scaling and measurement methods
+      setScale(calibrationLengthPixels, realLengthMeters) {
+        this.scaleFactor = calibrationLengthPixels / realLengthMeters;
+        // Recalculate all room costs
+        this.rooms.forEach(room => {
+          room.cost = this.calculateRoomCost(room);
+        });
+        this.notifyRoomsChange();
+        updateScaleDisplay();
+      }
+
+      startCalibration() {
+        this.isCalibrating = true;
+        this.currentShape = 'line';
+        alert('Draw a line on a known distance, then enter the real-world length in meters.');
+      }
+
+      finishCalibration(lineLength) {
+        const realLength = prompt('Enter the real-world length of this line in meters:');
+        if (realLength && !isNaN(realLength) && realLength > 0) {
+          this.setScale(lineLength, parseFloat(realLength));
+          alert(`Scale set: ${this.scaleFactor.toFixed(1)} pixels per meter`);
+        }
+        this.isCalibrating = false;
+        this.calibrationLine = null;
+      }
+
+      // Template methods
+      addTemplate(template) {
+        const shape = this.createTemplateShape(template);
+        const centerX = this.canvas.getWidth() / 2;
+        const centerY = this.canvas.getHeight() / 2;
+        
+        shape.set({
+          left: centerX - template.width / 2,
+          top: centerY - template.height / 2,
+        });
+
+        this.canvas.add(shape);
+        this.canvas.setActiveObject(shape);
+        this.canvas.renderAll();
+
+        const bounds = shape.getBoundingRect();
+        const room = {
+          id: Date.now().toString(),
+          name: template.name,
+          width: template.width,
+          height: template.height,
+          material: template.material,
+          cost: this.calculateRoomCost({ width: template.width, height: template.height, material: template.material }),
+          positionX: bounds.left,
+          positionY: bounds.top,
+          shapeType: template.shape,
+          fabricObject: shape,
+        };
+
+        this.rooms.set(room.id, room);
+        this.notifyRoomsChange();
+        return room;
+      }
+
+      createTemplateShape(template) {
+        const baseStyle = {
+          fill: `${MATERIALS[template.material].color}40`,
+          stroke: MATERIALS[template.material].color,
+          strokeWidth: 2,
+          selectable: true,
+          evented: true,
+        };
+
+        switch (template.shape) {
+          case "rectangle":
+            return new fabric.Rect({ ...baseStyle, width: template.width, height: template.height });
+          case "circle":
+            return new fabric.Circle({ ...baseStyle, radius: template.width / 2 });
+          default:
+            return new fabric.Rect({ ...baseStyle, width: template.width, height: template.height });
+        }
+      }
+
+      // Custom material methods
+      addCustomMaterial(name, color, cost) {
+        MATERIALS[name.toLowerCase()] = { color, cost };
+        this.updateMaterialSelect();
+      }
+
+      updateMaterialSelect() {
+        const select = document.getElementById('material-select');
+        select.innerHTML = '';
+        Object.keys(MATERIALS).forEach(key => {
+          const opt = document.createElement('option');
+          opt.value = key;
+          const icon = this.getMaterialIcon(key);
+          opt.textContent = `${icon} ${key.charAt(0).toUpperCase() + key.slice(1)} ($${MATERIALS[key].cost}/m²)`;
+          select.appendChild(opt);
+        });
+      }
+
+      getMaterialIcon(material) {
+        const icons = {
+          timber: '🌳', carpet: '🪑', tiles: '🏺', laminate: '📋', vinyl: '💿',
+          concrete: '🧱', steel: '⚙️', stone: '🪨', glass: '🔷'
+        };
+        return icons[material] || '📐';
       }
 
       // Public methods
@@ -839,6 +1003,25 @@
       
       // Set default active tool
       document.getElementById('rect-btn').classList.add('active');
+      
+      // Populate templates dropdown
+      const templateSelect = document.getElementById('template-select');
+      TEMPLATES.forEach(template => {
+        const opt = document.createElement('option');
+        opt.value = JSON.stringify(template);
+        opt.textContent = `${template.name} (${template.width}×${template.height})`;
+        templateSelect.appendChild(opt);
+      });
+      
+      // Update scale display
+      updateScaleDisplay();
+    }
+
+    function updateScaleDisplay() {
+      const scaleDisplay = document.getElementById('scale-display');
+      if (scaleDisplay) {
+        scaleDisplay.textContent = `${canvasManager.scaleFactor.toFixed(1)} pixels = 1m`;
+      }
     }
 
     function updateUI(rooms) {
@@ -855,7 +1038,8 @@
             <input type="text" value="${room.name}" onchange="updateName('${room.id}', this.value)" class="w-full mb-2 p-1 border rounded text-sm">
             <div class="text-xs text-gray-600 mb-2">
               <p>Size: ${Math.round(room.width)} × ${Math.round(room.height)} units</p>
-              <p>Area: ${Math.round((room.width * room.height) / 10000 * 100) / 100} m²</p>
+              <p>Real: ${Math.round(room.width/canvasManager.scaleFactor*10)/10} × ${Math.round(room.height/canvasManager.scaleFactor*10)/10} m</p>
+              <p>Area: ${Math.round((room.width * room.height) / (canvasManager.scaleFactor * canvasManager.scaleFactor) * 100) / 100} m²</p>
             </div>
             <select onchange="updateMaterial('${room.id}', this.value)" class="w-full mb-2 p-1 border rounded text-sm">
               ${Object.keys(MATERIALS).map(k => `<option value="${k}" ${k === room.material ? 'selected' : ''}>${k.charAt(0).toUpperCase() + k.slice(1)}</option>`).join('')}
@@ -891,15 +1075,56 @@
     window.updateMaterial = (id, mat) => canvasManager.updateRoomMaterial(id, mat);
     window.updateName = (id, name) => canvasManager.updateRoomName(id, name);
 
+    // New enhanced functions
+    window.startCalibration = () => canvasManager.startCalibration();
+    
+    window.addTemplate = () => {
+      const templateSelect = document.getElementById('template-select');
+      const selectedValue = templateSelect.value;
+      if (selectedValue) {
+        const template = JSON.parse(selectedValue);
+        canvasManager.addTemplate(template);
+        templateSelect.value = ''; // Reset selection
+      } else {
+        alert('Please select a template first.');
+      }
+    };
+
+    window.addCustomMaterial = () => {
+      const name = document.getElementById('custom-mat-name').value.trim();
+      const color = document.getElementById('custom-mat-color').value;
+      const cost = parseFloat(document.getElementById('custom-mat-cost').value);
+      
+      if (!name) {
+        alert('Please enter a material name.');
+        return;
+      }
+      if (isNaN(cost) || cost <= 0) {
+        alert('Please enter a valid cost.');
+        return;
+      }
+      
+      canvasManager.addCustomMaterial(name, color, cost);
+      
+      // Clear form
+      document.getElementById('custom-mat-name').value = '';
+      document.getElementById('custom-mat-cost').value = '';
+      
+      alert(`Material "${name}" added successfully!`);
+    };
+
     // Export Functions
     window.exportToCSV = () => {
       const rooms = canvasManager.getRooms();
-      const csv = ['Name,Width,Height,Area (m²),Material,Cost (AUD)'];
+      const csv = ['Name,Width (units),Height (units),Width (m),Height (m),Area (m²),Material,Cost (AUD)'];
       rooms.forEach(r => {
-        const area = Math.round((r.width * r.height) / 10000 * 100) / 100;
-        csv.push(`"${r.name}",${r.width},${r.height},${area},${r.material},${r.cost}`);
+        const widthM = Math.round(r.width / canvasManager.scaleFactor * 10) / 10;
+        const heightM = Math.round(r.height / canvasManager.scaleFactor * 10) / 10;
+        const area = Math.round((r.width * r.height) / (canvasManager.scaleFactor * canvasManager.scaleFactor) * 100) / 100;
+        csv.push(`"${r.name}",${r.width},${r.height},${widthM},${heightM},${area},${r.material},${r.cost}`);
       });
-      csv.push(`,,,,Total,${canvasManager.getTotalCost()}`);
+      csv.push(`,,,,,,Total,${canvasManager.getTotalCost()}`);
+      csv.push(`,,,,,,Scale,"${canvasManager.scaleFactor.toFixed(1)} px/m"`);
       
       const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
