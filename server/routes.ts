@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import path from "path";
 import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
@@ -30,9 +31,17 @@ declare global {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Serve main landing page
-  app.get('/', (req, res) => {
-    res.sendFile('index.html', { root: '.' });
+  // Serve static HTML files for demos
+  app.get('/standalone', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'standalone.html'));
+  });
+  
+  app.get('/mobile', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'mobile.html'));
+  });
+  
+  app.get('/landing', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'landing.html'));
   });
   
   // Serve standalone HTML application
