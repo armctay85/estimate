@@ -1,0 +1,42 @@
+{
+  "name": "BuildCost Sketch Mobile",
+  "short_name": "BuildCost",
+  "description": "Mobile construction takeoff tool for Australian builders",
+  "start_url": "/mobile.html",
+  "display": "standalone",
+  "theme_color": "#3b82f6",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "business", "utilities"],
+  "lang": "en",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%233b82f6' rx='20'/><text x='96' y='120' font-size='100' text-anchor='middle' fill='white'>🏗️</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%233b82f6' rx='50'/><text x='256' y='320' font-size='280' text-anchor='middle' fill='white'>🏗️</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 844'><rect width='390' height='844' fill='%23f8fafc'/><rect x='0' y='0' width='390' height='60' fill='%233b82f6'/><text x='20' y='35' fill='white' font-size='16'>🏗️ BuildCost Sketch</text><rect x='20' y='80' width='350' height='600' fill='white' stroke='%23e2e8f0'/><text x='195' y='400' text-anchor='middle' fill='%236b7280'>Canvas Area</text><rect x='0' y='720' width='390' height='124' fill='white' stroke='%23e2e8f0'/><text x='195' y='780' text-anchor='middle' fill='%236b7280'>Drawing Tools</text></svg>",
+      "sizes": "390x844",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "Main drawing interface"
+    }
+  ],
+  "features": [
+    "drawing",
+    "offline",
+    "touch-gestures",
+    "export"
+  ]
+}

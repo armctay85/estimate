@@ -34,6 +34,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/standalone.html', (req, res) => {
     res.sendFile('standalone.html', { root: '.' });
   });
+  
+  // Serve mobile HTML application
+  app.get('/mobile.html', (req, res) => {
+    res.sendFile('mobile.html', { root: '.' });
+  });
+  
+  // Serve PWA manifest
+  app.get('/manifest.json', (req, res) => {
+    res.sendFile('manifest.json', { root: '.' });
+  });
+  
+  // Serve service worker
+  app.get('/sw.js', (req, res) => {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.sendFile('sw.js', { root: '.' });
+  });
   // Configure multer for file uploads
   const upload = multer({
     storage: multer.memoryStorage(),

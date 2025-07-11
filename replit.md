@@ -150,28 +150,28 @@ The application follows a monorepo structure with clear separation between front
 
 ## Recent Changes
 
-### January 11, 2025 - Standalone HTML Application Created
-- **Major Achievement**: Created complete standalone HTML version (standalone.html)
-- **Enhanced Drawing System**: Implemented Grok AI's improved CanvasManager with:
-  - Live shape preview during mouse drag operations
-  - Interactive polygon drawing with point-by-point creation
-  - Advanced area calculations using shoelace formula
-  - Proper cost calculations for all shape types including complex polygons
-- **Professional UI**: MS Paint-style interface with:
-  - 320px sidebar with organized tool sections
-  - Australian material selector with proper costs
-  - Real-time project cost calculations
-  - Professional color scheme and responsive design
-- **Revenue Features**: Integrated freemium model with:
-  - Premium feature gates (PDF export marked as premium)
-  - Subscription promotion ($19.99/month Australian pricing)
-  - Advertisement system for free users
-  - Project sharing capabilities
-- **Export/Import**: Complete project management:
-  - Save/load projects as JSON with shape reconstruction
-  - CSV export for bill of materials
-  - Professional PDF export (premium feature)
-- **Background Support**: Enhanced file upload handling:
-  - Support for PDF, DWG, DXF, and standard image formats
-  - Visual placeholder system for unsupported formats
-  - Opacity control and background management
+### January 11, 2025 - Mobile PWA Version Created
+- **Mobile App Achievement**: Created complete Progressive Web App (mobile.html)
+- **Touch-Optimized Interface**: Native mobile experience with:
+  - Touch gestures: pinch to zoom, two-finger pan, tap to select
+  - Bottom toolbar with drawing tools optimized for thumbs
+  - Floating action button for quick access to elements list
+  - Full-screen modal interfaces for better mobile UX
+- **PWA Features**: Professional mobile app capabilities:
+  - Installable on iOS/Android home screens
+  - Offline functionality with service worker caching
+  - Native app-like experience with standalone display
+  - Mobile-optimized icons and splash screens
+- **Enhanced Mobile Tools**: Streamlined for mobile workflow:
+  - Visual status bar for real-time feedback
+  - Gesture hints and touch indicators
+  - Mobile-optimized calibration and template systems
+  - Simplified modal-based navigation
+
+### January 11, 2025 - Standalone HTML Application Enhanced
+- **Professional Features Added**: Scaling, templates, and material customization
+- **Accurate Scaling System**: Calibration tools for real-world measurements
+- **Template Library**: 7 preloaded room types for fast workflow
+- **Custom Materials**: User-defined materials with colors and costs
+- **Enhanced Calculations**: Real-world measurements and area calculations
+- **Professional Reports**: CSV exports with scale and dimensional data

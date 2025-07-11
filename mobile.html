@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>BuildCost Sketch Mobile</title>
+  <meta name="description" content="Mobile construction takeoff tool for Australian builders">
+  <meta name="theme-color" content="#3b82f6">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
+  
+  <!-- Apple PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="BuildCost">
+  
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+  
+  <style>
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    
+    .mobile-header {
+      height: 60px;
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .mobile-canvas {
+      height: calc(100vh - 60px - 120px);
+      position: relative;
+      background: #f8fafc;
+    }
+    
+    .mobile-tools {
+      height: 120px;
+      background: white;
+      border-top: 1px solid #e2e8f0;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+    
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      padding: 12px;
+      height: 100%;
+    }
+    
+    .tool-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: 500;
+      color: #475569;
+      transition: all 0.2s;
+      min-height: 60px;
+      text-align: center;
+    }
+    
+    .tool-btn.active {
+      background: #3b82f6;
+      color: white;
+      border-color: #2563eb;
+    }
+    
+    .tool-btn:active {
+      transform: scale(0.95);
+    }
+    
+    .tool-icon {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+    
+    #canvas {
+      border: none;
+      background: white;
+      touch-action: none;
+    }
+    
+    .floating-fab {
+      position: fixed;
+      bottom: 140px;
+      right: 16px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      z-index: 1000;
+    }
+    
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal.show {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: white;
+      margin: 20px;
+      border-radius: 12px;
+      max-width: 400px;
+      width: 100%;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    
+    .status-bar {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      right: 0;
+      background: #3b82f6;
+      color: white;
+      padding: 8px 16px;
+      font-size: 12px;
+      text-align: center;
+      transform: translateY(-100%);
+      transition: transform 0.3s;
+      z-index: 1500;
+    }
+    
+    .status-bar.show {
+      transform: translateY(0);
+    }
+    
+    .room-item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .swipe-indicator {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(59, 130, 246, 0.9);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .gesture-hint {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      opacity: 0;
+      animation: fadeInOut 3s ease-in-out;
+    }
+    
+    @keyframes fadeInOut {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Mobile Header -->
+  <div class="mobile-header">
+    <div class="flex items-center">
+      <span class="text-lg font-bold">🏗️ BuildCost</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <span id="total-cost-mobile" class="text-sm font-semibold">$0</span>
+      <button onclick="showModal('menu')" class="text-white">
+        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Status Bar -->
+  <div id="status-bar" class="status-bar"></div>
+  
+  <!-- Canvas Area -->
+  <div class="mobile-canvas">
+    <canvas id="canvas"></canvas>
+    <div class="swipe-indicator" id="swipe-indicator"></div>
+    <div class="gesture-hint">Pinch to zoom • Two fingers to pan • Tap to select</div>
+  </div>
+  
+  <!-- Floating Action Button -->
+  <button class="floating-fab" onclick="showModal('rooms')" id="fab">
+    <span id="fab-icon">📋</span>
+  </button>
+  
+  <!-- Mobile Tools -->
+  <div class="mobile-tools">
+    <div class="tool-grid">
+      <button class="tool-btn active" onclick="setTool('rectangle')" id="rect-tool">
+        <div class="tool-icon">⬜</div>
+        <div>Rectangle</div>
+      </button>
+      <button class="tool-btn" onclick="setTool('circle')" id="circle-tool">
+        <div class="tool-icon">⭕</div>
+        <div>Circle</div>
+      </button>
+      <button class="tool-btn" onclick="setTool('polygon')" id="polygon-tool">
+        <div class="tool-icon">🔷</div>
+        <div>Polygon</div>
+      </button>
+      <button class="tool-btn" onclick="setTool('line')" id="line-tool">
+        <div class="tool-icon">📏</div>
+        <div>Line</div>
+      </button>
+      <button class="tool-btn" onclick="setTool('freehand')" id="freehand-tool">
+        <div class="tool-icon">✏️</div>
+        <div>Draw</div>
+      </button>
+      <button class="tool-btn" onclick="showModal('materials')" id="material-tool">
+        <div class="tool-icon">🎨</div>
+        <div>Material</div>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Menu Modal -->
+  <div id="menu-modal" class="modal">
+    <div class="modal-content">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-bold">Menu</h2>
+          <button onclick="hideModal('menu')" class="text-gray-500 text-xl">&times;</button>
+        </div>
+        
+        <div class="space-y-3">
+          <button onclick="showModal('templates')" class="w-full p-3 bg-purple-500 text-white rounded-lg">
+            🏠 Quick Templates
+          </button>
+          <button onclick="showModal('calibrate')" class="w-full p-3 bg-blue-500 text-white rounded-lg">
+            📏 Calibrate Scale
+          </button>
+          <button onclick="exportToCSV()" class="w-full p-3 bg-green-500 text-white rounded-lg">
+            📊 Export CSV
+          </button>
+          <button onclick="showModal('save')" class="w-full p-3 bg-indigo-500 text-white rounded-lg">
+            💾 Save/Load
+          </button>
+          <button onclick="clearCanvas()" class="w-full p-3 bg-red-500 text-white rounded-lg">
+            🗑️ Clear All
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Materials Modal -->
+  <div id="materials-modal" class="modal">
+    <div class="modal-content">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-bold">Floor Materials</h2>
+          <button onclick="hideModal('materials')" class="text-gray-500 text-xl">&times;</button>
+        </div>
+        
+        <div class="space-y-2" id="materials-list">
+          <!-- Populated by JavaScript -->
+        </div>
+        
+        <div class="mt-4 pt-4 border-t">
+          <h3 class="font-semibold mb-2">Add Custom Material</h3>
+          <input id="custom-name" placeholder="Name" class="w-full p-2 border rounded mb-2">
+          <div class="flex gap-2 mb-2">
+            <input id="custom-color" type="color" value="#8B4513" class="w-16 h-10 border rounded">
+            <input id="custom-cost" placeholder="Cost $/m²" type="number" class="flex-1 p-2 border rounded">
+          </div>
+          <button onclick="addCustomMaterial()" class="w-full p-2 bg-green-500 text-white rounded">
+            Add Material
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Rooms Modal -->
+  <div id="rooms-modal" class="modal">
+    <div class="modal-content">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-bold">Project Elements</h2>
+          <button onclick="hideModal('rooms')" class="text-gray-500 text-xl">&times;</button>
+        </div>
+        
+        <div class="mb-4 p-3 bg-blue-50 rounded-lg">
+          <div class="text-sm text-blue-800">
+            Scale: <span id="scale-display-mobile">100 px/m</span>
+          </div>
+          <div class="text-lg font-bold text-blue-600">
+            Total: <span id="total-cost-detailed">$0 AUD</span>
+          </div>
+        </div>
+        
+        <div id="rooms-list-mobile" class="space-y-2 max-h-60 overflow-y-auto">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Templates Modal -->
+  <div id="templates-modal" class="modal">
+    <div class="modal-content">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-bold">Quick Templates</h2>
+          <button onclick="hideModal('templates')" class="text-gray-500 text-xl">&times;</button>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-2" id="templates-grid">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Calibrate Modal -->
+  <div id="calibrate-modal" class="modal">
+    <div class="modal-content">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-bold">Calibrate Scale</h2>
+          <button onclick="hideModal('calibrate')" class="text-gray-500 text-xl">&times;</button>
+        </div>
+        
+        <div class="text-sm text-gray-600 mb-4">
+          Draw a line on a known distance, then enter the real-world length.
+        </div>
+        
+        <button onclick="startCalibrationMobile()" class="w-full p-3 bg-blue-500 text-white rounded-lg">
+          Start Calibration
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Save/Load Modal -->
+  <div id="save-modal" class="modal">
+    <div class="modal-content">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-bold">Save & Load</h2>
+          <button onclick="hideModal('save')" class="text-gray-500 text-xl">&times;</button>
+        </div>
+        
+        <div class="space-y-3">
+          <button onclick="saveProject()" class="w-full p-3 bg-blue-500 text-white rounded-lg">
+            💾 Save Project
+          </button>
+          <input type="file" id="load-file-mobile" accept=".json" class="hidden" onchange="loadProject()">
+          <button onclick="document.getElementById('load-file-mobile').click()" class="w-full p-3 bg-indigo-500 text-white rounded-lg">
+            📁 Load Project
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Materials and Templates (same as desktop)
+    let MATERIALS = {
+      timber: { color: '#D2B48C', cost: 100 },
+      carpet: { color: '#8B4513', cost: 40 },
+      tiles: { color: '#708090', cost: 60 },
+      laminate: { color: '#DEB887', cost: 30 },
+      vinyl: { color: '#2F4F4F', cost: 25 }
+    };
+
+    const TEMPLATES = [
+      { name: 'Standard Room', shape: 'rectangle', width: 300, height: 200, material: 'carpet' },
+      { name: 'Kitchen', shape: 'rectangle', width: 250, height: 180, material: 'tiles' },
+      { name: 'Bathroom', shape: 'rectangle', width: 150, height: 120, material: 'tiles' },
+      { name: 'Hallway', shape: 'rectangle', width: 100, height: 400, material: 'laminate' },
+      { name: 'Living Area', shape: 'rectangle', width: 350, height: 250, material: 'timber' },
+      { name: 'Bedroom', shape: 'rectangle', width: 300, height: 250, material: 'carpet' }
+    ];
+
+    // Mobile Canvas Manager (Enhanced for touch)
+    class MobileCanvasManager {
+      constructor(canvasElement) {
+        this.canvas = new fabric.Canvas(canvasElement, {
+          backgroundColor: "#ffffff",
+          selection: true,
+          enableRetinaScaling: true,
+          preserveObjectStacking: true,
+        });
+
+        this.rooms = new Map();
+        this.selectedMaterial = "timber";
+        this.currentShape = "rectangle";
+        this.scaleFactor = 100;
+        this.onRoomsChange = null;
+        this.isDrawing = false;
+        this.drawingStartPoint = null;
+        this.previewShape = null;
+        this.polygonPoints = [];
+        this.isCalibrating = false;
+
+        this.setupCanvas();
+        this.setupTouchGestures();
+        this.setupEventListeners();
+      }
+
+      setupCanvas() {
+        const container = document.querySelector('.mobile-canvas');
+        const rect = container.getBoundingClientRect();
+        this.canvas.setDimensions({
+          width: rect.width,
+          height: rect.height
+        });
+
+        // Handle orientation changes
+        window.addEventListener('orientationchange', () => {
+          setTimeout(() => this.resizeCanvas(), 100);
+        });
+        
+        window.addEventListener('resize', () => this.resizeCanvas());
+      }
+
+      resizeCanvas() {
+        const container = document.querySelector('.mobile-canvas');
+        const rect = container.getBoundingClientRect();
+        this.canvas.setDimensions({
+          width: rect.width,
+          height: rect.height
+        });
+        this.canvas.renderAll();
+      }
+
+      setupTouchGestures() {
+        const hammer = new Hammer(this.canvas.upperCanvasEl);
+        
+        // Enable pinch zoom
+        hammer.get('pinch').set({ enable: true });
+        hammer.get('pan').set({ direction: Hammer.DIRECTION_ALL });
+
+        let lastScale = 1;
+        let lastPosX = 0;
+        let lastPosY = 0;
+
+        hammer.on('pinchstart', (e) => {
+          lastScale = this.canvas.getZoom();
+        });
+
+        hammer.on('pinch', (e) => {
+          const zoom = Math.min(Math.max(lastScale * e.scale, 0.1), 20);
+          this.canvas.zoomToPoint({ x: e.center.x, y: e.center.y }, zoom);
+          this.canvas.renderAll();
+        });
+
+        hammer.on('panstart', (e) => {
+          if (e.pointers.length === 2) {
+            const vpt = this.canvas.viewportTransform;
+            lastPosX = vpt[4];
+            lastPosY = vpt[5];
+          }
+        });
+
+        hammer.on('pan', (e) => {
+          if (e.pointers.length === 2) {
+            const vpt = this.canvas.viewportTransform;
+            vpt[4] = lastPosX + e.deltaX;
+            vpt[5] = lastPosY + e.deltaY;
+            this.canvas.requestRenderAll();
+          }
+        });
+
+        // Prevent default touch behaviors
+        this.canvas.upperCanvasEl.addEventListener('touchstart', (e) => {
+          if (e.touches.length > 1) {
+            e.preventDefault();
+          }
+        }, { passive: false });
+      }
+
+      setupEventListeners() {
+        this.canvas.on("mouse:down", this.handleMouseDown.bind(this));
+        this.canvas.on("mouse:move", this.handleMouseMove.bind(this));
+        this.canvas.on("mouse:up", this.handleMouseUp.bind(this));
+        this.canvas.on("object:modified", this.handleObjectModified.bind(this));
+        this.canvas.on("mouse:dblclick", this.handleMouseDoubleClick.bind(this));
+      }
+
+      handleMouseDown(e) {
+        const pointer = this.canvas.getPointer(e.e);
+        
+        switch (this.currentShape) {
+          case "rectangle":
+            this.startDrawingRectangle(pointer);
+            break;
+          case "circle":
+            this.startDrawingCircle(pointer);
+            break;
+          case "line":
+            this.startDrawingLine(pointer);
+            break;
+          case "polygon":
+            this.addPolygonPoint(pointer);
+            break;
+          case "freehand":
+            this.startDrawingFreehand(pointer);
+            break;
+        }
+      }
+
+      startDrawingRectangle(pointer) {
+        this.isDrawing = true;
+        this.drawingStartPoint = pointer;
+        this.previewShape = new fabric.Rect({
+          left: pointer.x,
+          top: pointer.y,
+          width: 0,
+          height: 0,
+          fill: `${MATERIALS[this.selectedMaterial].color}40`,
+          stroke: MATERIALS[this.selectedMaterial].color,
+          strokeWidth: 2,
+          selectable: false,
+          evented: false,
+        });
+        this.canvas.add(this.previewShape);
+      }
+
+      startDrawingCircle(pointer) {
+        this.isDrawing = true;
+        this.drawingStartPoint = pointer;
+        this.previewShape = new fabric.Circle({
+          left: pointer.x,
+          top: pointer.y,
+          radius: 0,
+          fill: `${MATERIALS[this.selectedMaterial].color}40`,
+          stroke: MATERIALS[this.selectedMaterial].color,
+          strokeWidth: 2,
+          selectable: false,
+          evented: false,
+        });
+        this.canvas.add(this.previewShape);
+      }
+
+      startDrawingLine(pointer) {
+        this.isDrawing = true;
+        this.drawingStartPoint = pointer;
+        this.previewShape = new fabric.Line([pointer.x, pointer.y, pointer.x, pointer.y], {
+          stroke: MATERIALS[this.selectedMaterial].color,
+          strokeWidth: 4,
+          selectable: false,
+          evented: false,
+        });
+        this.canvas.add(this.previewShape);
+      }
+
+      addPolygonPoint(pointer) {
+        this.polygonPoints.push(pointer);
+        if (this.polygonPoints.length === 1) {
+          this.isDrawing = true;
+        }
+        this.showStatus(`Polygon: ${this.polygonPoints.length} points. Double-tap to finish.`);
+      }
+
+      startDrawingFreehand(pointer) {
+        this.isDrawing = true;
+        this.drawingPath = new fabric.Path(`M ${pointer.x} ${pointer.y}`, {
+          stroke: MATERIALS[this.selectedMaterial].color,
+          strokeWidth: 3,
+          fill: "",
+          selectable: false,
+        });
+        this.canvas.add(this.drawingPath);
+      }
+
+      handleMouseMove(e) {
+        if (!this.isDrawing || !this.drawingStartPoint) return;
+
+        const pointer = this.canvas.getPointer(e.e);
+
+        switch (this.currentShape) {
+          case "rectangle":
+            this.updateRectanglePreview(pointer);
+            break;
+          case "circle":
+            this.updateCirclePreview(pointer);
+            break;
+          case "line":
+            this.updateLinePreview(pointer);
+            break;
+          case "freehand":
+            this.updateFreehandPath(pointer);
+            break;
+        }
+      }
+
+      updateRectanglePreview(pointer) {
+        const width = pointer.x - this.drawingStartPoint.x;
+        const height = pointer.y - this.drawingStartPoint.y;
+        this.previewShape.set({
+          left: width < 0 ? pointer.x : this.drawingStartPoint.x,
+          top: height < 0 ? pointer.y : this.drawingStartPoint.y,
+          width: Math.abs(width),
+          height: Math.abs(height),
+        });
+        this.canvas.renderAll();
+      }
+
+      updateCirclePreview(pointer) {
+        const dx = pointer.x - this.drawingStartPoint.x;
+        const dy = pointer.y - this.drawingStartPoint.y;
+        const radius = Math.sqrt(dx * dx + dy * dy);
+        this.previewShape.set({
+          left: this.drawingStartPoint.x - radius,
+          top: this.drawingStartPoint.y - radius,
+          radius,
+        });
+        this.canvas.renderAll();
+      }
+
+      updateLinePreview(pointer) {
+        this.previewShape.set({
+          x2: pointer.x,
+          y2: pointer.y,
+        });
+        this.canvas.renderAll();
+      }
+
+      updateFreehandPath(pointer) {
+        if (this.drawingPath) {
+          const path = this.drawingPath.path;
+          path.push(["L", pointer.x, pointer.y]);
+          this.drawingPath.path = path;
+          this.canvas.renderAll();
+        }
+      }
+
+      handleMouseUp(e) {
+        if (!this.isDrawing) return;
+
+        if (this.currentShape === "freehand") {
+          this.finishFreehand();
+          return;
+        }
+
+        if (this.previewShape) {
+          this.finishShape();
+        }
+      }
+
+      handleMouseDoubleClick(e) {
+        if (this.currentShape === "polygon" && this.polygonPoints.length >= 3) {
+          this.finishPolygon();
+        }
+      }
+
+      finishShape() {
+        this.previewShape.selectable = true;
+        this.previewShape.evented = true;
+        const bounds = this.previewShape.getBoundingRect();
+
+        // Handle calibration
+        if (this.isCalibrating && this.currentShape === 'line') {
+          const line = this.previewShape;
+          const lineLength = Math.sqrt(
+            Math.pow(line.x2 - line.x1, 2) + Math.pow(line.y2 - line.y1, 2)
+          );
+          this.finishCalibration(lineLength);
+          return;
+        }
+
+        const room = this.createRoom(bounds);
+        this.rooms.set(room.id, room);
+        this.notifyRoomsChange();
+        this.resetDrawing();
+      }
+
+      finishPolygon() {
+        const poly = new fabric.Polygon(this.polygonPoints, {
+          fill: `${MATERIALS[this.selectedMaterial].color}40`,
+          stroke: MATERIALS[this.selectedMaterial].color,
+          strokeWidth: 2,
+          selectable: true,
+          evented: true,
+        });
+        this.canvas.add(poly);
+        const bounds = poly.getBoundingRect();
+        const room = this.createRoom(bounds, "polygon", poly);
+        this.rooms.set(room.id, room);
+        this.notifyRoomsChange();
+        this.polygonPoints = [];
+        this.isDrawing = false;
+        this.hideStatus();
+      }
+
+      finishFreehand() {
+        if (this.drawingPath) {
+          this.drawingPath.selectable = true;
+          const bounds = this.drawingPath.getBoundingRect();
+          const room = this.createRoom(bounds, "freehand", this.drawingPath);
+          this.rooms.set(room.id, room);
+          this.notifyRoomsChange();
+          this.drawingPath = null;
+        }
+        this.isDrawing = false;
+      }
+
+      createRoom(bounds, shapeType = this.currentShape, fabricObject = this.previewShape) {
+        return {
+          id: Date.now().toString(),
+          name: `${shapeType.charAt(0).toUpperCase() + shapeType.slice(1)} Room`,
+          width: bounds.width,
+          height: bounds.height,
+          material: this.selectedMaterial,
+          cost: this.calculateRoomCost(bounds.width, bounds.height),
+          positionX: bounds.left,
+          positionY: bounds.top,
+          shapeType: shapeType,
+          fabricObject: fabricObject,
+        };
+      }
+
+      resetDrawing() {
+        this.previewShape = null;
+        this.drawingStartPoint = null;
+        this.isDrawing = false;
+        this.canvas.renderAll();
+      }
+
+      calculateRoomCost(width, height) {
+        const areaSquareMeters = (width * height) / (this.scaleFactor * this.scaleFactor);
+        return Math.round(areaSquareMeters * MATERIALS[this.selectedMaterial].cost);
+      }
+
+      handleObjectModified(e) {
+        const obj = e.target;
+        if (!obj) return;
+
+        for (const [id, room] of this.rooms) {
+          if (room.fabricObject === obj) {
+            const bounds = obj.getBoundingRect();
+            room.width = bounds.width;
+            room.height = bounds.height;
+            room.positionX = bounds.left;
+            room.positionY = bounds.top;
+            room.cost = this.calculateRoomCost(room.width, room.height);
+            this.notifyRoomsChange();
+            break;
+          }
+        }
+      }
+
+      // Calibration methods
+      startCalibration() {
+        this.isCalibrating = true;
+        this.currentShape = 'line';
+        this.setActiveTool('line');
+        this.showStatus('Draw a line on a known distance');
+        hideModal('calibrate');
+      }
+
+      finishCalibration(lineLength) {
+        const realLength = prompt('Enter the real-world length in meters:');
+        if (realLength && !isNaN(realLength) && realLength > 0) {
+          this.setScale(lineLength, parseFloat(realLength));
+          this.showStatus(`Scale updated: ${this.scaleFactor.toFixed(1)} px/m`);
+        }
+        this.isCalibrating = false;
+      }
+
+      setScale(calibrationLengthPixels, realLengthMeters) {
+        this.scaleFactor = calibrationLengthPixels / realLengthMeters;
+        this.rooms.forEach(room => {
+          room.cost = this.calculateRoomCost(room.width, room.height);
+        });
+        this.notifyRoomsChange();
+        this.updateScaleDisplays();
+      }
+
+      // Template methods
+      addTemplate(template) {
+        const shape = this.createTemplateShape(template);
+        const centerX = this.canvas.getWidth() / 2;
+        const centerY = this.canvas.getHeight() / 2;
+        
+        shape.set({
+          left: centerX - template.width / 2,
+          top: centerY - template.height / 2,
+        });
+
+        this.canvas.add(shape);
+        this.canvas.setActiveObject(shape);
+        this.canvas.renderAll();
+
+        const bounds = shape.getBoundingRect();
+        const room = {
+          id: Date.now().toString(),
+          name: template.name,
+          width: template.width,
+          height: template.height,
+          material: template.material,
+          cost: this.calculateRoomCost(template.width, template.height),
+          positionX: bounds.left,
+          positionY: bounds.top,
+          shapeType: template.shape,
+          fabricObject: shape,
+        };
+
+        this.rooms.set(room.id, room);
+        this.notifyRoomsChange();
+        hideModal('templates');
+        this.showStatus(`${template.name} added`);
+      }
+
+      createTemplateShape(template) {
+        const baseStyle = {
+          fill: `${MATERIALS[template.material].color}40`,
+          stroke: MATERIALS[template.material].color,
+          strokeWidth: 2,
+          selectable: true,
+          evented: true,
+        };
+
+        switch (template.shape) {
+          case "rectangle":
+            return new fabric.Rect({ ...baseStyle, width: template.width, height: template.height });
+          case "circle":
+            return new fabric.Circle({ ...baseStyle, radius: template.width / 2 });
+          default:
+            return new fabric.Rect({ ...baseStyle, width: template.width, height: template.height });
+        }
+      }
+
+      // Material methods
+      setSelectedMaterial(material) {
+        this.selectedMaterial = material;
+        this.updateMaterialTool();
+      }
+
+      addCustomMaterial(name, color, cost) {
+        MATERIALS[name.toLowerCase()] = { color, cost };
+        this.updateMaterialsList();
+        this.showStatus(`Material "${name}" added`);
+      }
+
+      // Utility methods
+      setCurrentShape(shape) {
+        this.currentShape = shape;
+        this.setActiveTool(shape);
+      }
+
+      setActiveTool(shape) {
+        document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(shape + '-tool').classList.add('active');
+      }
+
+      updateMaterialTool() {
+        const materialTool = document.getElementById('material-tool');
+        const icon = this.getMaterialIcon(this.selectedMaterial);
+        materialTool.querySelector('.tool-icon').textContent = icon;
+      }
+
+      getMaterialIcon(material) {
+        const icons = {
+          timber: '🌳', carpet: '🪑', tiles: '🏺', laminate: '📋', vinyl: '💿',
+          concrete: '🧱', steel: '⚙️', stone: '🪨', glass: '🔷'
+        };
+        return icons[material] || '🎨';
+      }
+
+      deleteRoom(roomId) {
+        const room = this.rooms.get(roomId);
+        if (room && room.fabricObject) {
+          this.canvas.remove(room.fabricObject);
+          this.rooms.delete(roomId);
+          this.canvas.renderAll();
+          this.notifyRoomsChange();
+        }
+      }
+
+      updateRoomMaterial(roomId, material) {
+        const room = this.rooms.get(roomId);
+        if (room) {
+          room.material = material;
+          room.cost = this.calculateRoomCost(room.width, room.height);
+          
+          if (room.fabricObject) {
+            room.fabricObject.set({
+              fill: `${MATERIALS[material].color}40`,
+              stroke: MATERIALS[material].color,
+            });
+            this.canvas.renderAll();
+          }
+          
+          this.notifyRoomsChange();
+        }
+      }
+
+      updateRoomName(roomId, name) {
+        const room = this.rooms.get(roomId);
+        if (room) {
+          room.name = name;
+          this.notifyRoomsChange();
+        }
+      }
+
+      clearCanvas() {
+        this.canvas.clear();
+        this.rooms.clear();
+        this.canvas.renderAll();
+        this.notifyRoomsChange();
+        this.showStatus('Canvas cleared');
+      }
+
+      getRooms() {
+        return Array.from(this.rooms.values());
+      }
+
+      getTotalCost() {
+        return Array.from(this.rooms.values()).reduce((total, room) => total + room.cost, 0);
+      }
+
+      onRoomsChangeCallback(callback) {
+        this.onRoomsChange = callback;
+      }
+
+      notifyRoomsChange() {
+        if (this.onRoomsChange) {
+          this.onRoomsChange(this.getRooms());
+        }
+      }
+
+      updateScaleDisplays() {
+        const scaleText = `${this.scaleFactor.toFixed(1)} px/m`;
+        document.getElementById('scale-display-mobile').textContent = scaleText;
+      }
+
+      showStatus(message) {
+        const statusBar = document.getElementById('status-bar');
+        statusBar.textContent = message;
+        statusBar.classList.add('show');
+        setTimeout(() => statusBar.classList.remove('show'), 3000);
+      }
+
+      hideStatus() {
+        document.getElementById('status-bar').classList.remove('show');
+      }
+    }
+
+    // Global variables
+    let canvasManager;
+    let currentModal = null;
+
+    // Initialize mobile app
+    function init() {
+      const canvasElement = document.getElementById('canvas');
+      canvasManager = new MobileCanvasManager(canvasElement);
+      canvasManager.onRoomsChangeCallback(updateMobileUI);
+      
+      // Populate UI
+      updateMaterialsList();
+      updateTemplatesGrid();
+      updateScaleDisplays();
+      
+      // Install PWA prompt
+      setupPWA();
+    }
+
+    function updateMobileUI(rooms) {
+      updateRoomsList(rooms);
+      updateCostDisplays();
+    }
+
+    function updateRoomsList(rooms) {
+      const container = document.getElementById('rooms-list-mobile');
+      container.innerHTML = '';
+      
+      if (rooms.length === 0) {
+        container.innerHTML = '<div class="text-center text-gray-500 py-4">No elements yet. Start drawing!</div>';
+        return;
+      }
+
+      rooms.forEach(room => {
+        const div = document.createElement('div');
+        div.className = 'room-item';
+        div.innerHTML = `
+          <div class="flex justify-between items-start mb-2">
+            <input type="text" value="${room.name}" onchange="updateRoomName('${room.id}', this.value)" 
+                   class="font-medium bg-transparent border-none text-sm flex-1">
+            <button onclick="deleteRoom('${room.id}')" class="text-red-500 ml-2">🗑️</button>
+          </div>
+          <div class="text-xs text-gray-600 mb-2">
+            <div>Size: ${Math.round(room.width/canvasManager.scaleFactor*10)/10} × ${Math.round(room.height/canvasManager.scaleFactor*10)/10} m</div>
+            <div>Area: ${Math.round((room.width * room.height) / (canvasManager.scaleFactor * canvasManager.scaleFactor) * 100) / 100} m²</div>
+          </div>
+          <div class="flex justify-between items-center">
+            <select onchange="updateRoomMaterial('${room.id}', this.value)" class="text-sm border rounded px-2 py-1">
+              ${Object.keys(MATERIALS).map(k => `<option value="${k}" ${k === room.material ? 'selected' : ''}>${k.charAt(0).toUpperCase() + k.slice(1)}</option>`).join('')}
+            </select>
+            <span class="font-bold text-green-600">$${room.cost}</span>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function updateCostDisplays() {
+      const total = canvasManager.getTotalCost();
+      document.getElementById('total-cost-mobile').textContent = `$${total}`;
+      document.getElementById('total-cost-detailed').textContent = `$${total} AUD`;
+    }
+
+    function updateMaterialsList() {
+      const container = document.getElementById('materials-list');
+      container.innerHTML = '';
+      
+      Object.keys(MATERIALS).forEach(key => {
+        const material = MATERIALS[key];
+        const div = document.createElement('div');
+        div.className = `p-3 border rounded-lg cursor-pointer ${key === canvasManager.selectedMaterial ? 'bg-blue-50 border-blue-300' : 'bg-gray-50'}`;
+        div.onclick = () => selectMaterial(key);
+        div.innerHTML = `
+          <div class="flex justify-between items-center">
+            <span class="font-medium">${canvasManager.getMaterialIcon(key)} ${key.charAt(0).toUpperCase() + key.slice(1)}</span>
+            <span class="text-sm text-gray-600">$${material.cost}/m²</span>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function updateTemplatesGrid() {
+      const container = document.getElementById('templates-grid');
+      container.innerHTML = '';
+      
+      TEMPLATES.forEach(template => {
+        const div = document.createElement('div');
+        div.className = 'p-3 border rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 text-center';
+        div.onclick = () => addTemplate(template);
+        div.innerHTML = `
+          <div class="text-lg mb-1">🏠</div>
+          <div class="text-sm font-medium">${template.name}</div>
+          <div class="text-xs text-gray-600">${template.width}×${template.height}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function updateScaleDisplays() {
+      canvasManager.updateScaleDisplays();
+    }
+
+    // UI Functions
+    function setTool(tool) {
+      canvasManager.setCurrentShape(tool);
+    }
+
+    function selectMaterial(material) {
+      canvasManager.setSelectedMaterial(material);
+      updateMaterialsList();
+      hideModal('materials');
+    }
+
+    function addTemplate(template) {
+      canvasManager.addTemplate(template);
+    }
+
+    function startCalibrationMobile() {
+      canvasManager.startCalibration();
+    }
+
+    function addCustomMaterial() {
+      const name = document.getElementById('custom-name').value.trim();
+      const color = document.getElementById('custom-color').value;
+      const cost = parseFloat(document.getElementById('custom-cost').value);
+      
+      if (!name || isNaN(cost) || cost <= 0) {
+        alert('Please enter valid name and cost.');
+        return;
+      }
+      
+      canvasManager.addCustomMaterial(name, color, cost);
+      
+      // Clear form
+      document.getElementById('custom-name').value = '';
+      document.getElementById('custom-cost').value = '';
+    }
+
+    function deleteRoom(roomId) {
+      canvasManager.deleteRoom(roomId);
+    }
+
+    function updateRoomMaterial(roomId, material) {
+      canvasManager.updateRoomMaterial(roomId, material);
+    }
+
+    function updateRoomName(roomId, name) {
+      canvasManager.updateRoomName(roomId, name);
+    }
+
+    function clearCanvas() {
+      if (confirm('Clear all elements?')) {
+        canvasManager.clearCanvas();
+        hideModal('menu');
+      }
+    }
+
+    // Modal functions
+    function showModal(modalName) {
+      hideAllModals();
+      document.getElementById(modalName + '-modal').classList.add('show');
+      currentModal = modalName;
+    }
+
+    function hideModal(modalName) {
+      document.getElementById(modalName + '-modal').classList.remove('show');
+      currentModal = null;
+    }
+
+    function hideAllModals() {
+      document.querySelectorAll('.modal').forEach(modal => {
+        modal.classList.remove('show');
+      });
+    }
+
+    // Close modal when clicking outside
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal')) {
+        hideAllModals();
+      }
+    });
+
+    // Export functions
+    function exportToCSV() {
+      const rooms = canvasManager.getRooms();
+      if (rooms.length === 0) {
+        alert('No elements to export');
+        return;
+      }
+      
+      const csv = ['Name,Width (m),Height (m),Area (m²),Material,Cost (AUD)'];
+      rooms.forEach(r => {
+        const widthM = Math.round(r.width / canvasManager.scaleFactor * 10) / 10;
+        const heightM = Math.round(r.height / canvasManager.scaleFactor * 10) / 10;
+        const area = Math.round((r.width * r.height) / (canvasManager.scaleFactor * canvasManager.scaleFactor) * 100) / 100;
+        csv.push(`"${r.name}",${widthM},${heightM},${area},${r.material},${r.cost}`);
+      });
+      csv.push(`,,,,Total,${canvasManager.getTotalCost()}`);
+      csv.push(`,,,,Scale,"${canvasManager.scaleFactor.toFixed(1)} px/m"`);
+      
+      const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `buildcost_mobile_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      hideModal('menu');
+      canvasManager.showStatus('CSV exported successfully');
+    }
+
+    function saveProject() {
+      const rooms = canvasManager.getRooms();
+      if (rooms.length === 0) {
+        alert('No elements to save');
+        return;
+      }
+      
+      const data = {
+        rooms: rooms.map(r => ({
+          ...r,
+          fabricObject: undefined,
+          points: r.points,
+        })),
+        scaleFactor: canvasManager.scaleFactor,
+        timestamp: new Date().toISOString(),
+        version: '1.0',
+        platform: 'mobile'
+      };
+      
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `buildcost_mobile_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      hideModal('save');
+      canvasManager.showStatus('Project saved successfully');
+    }
+
+    function loadProject() {
+      const file = document.getElementById('load-file-mobile').files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          canvasManager.clearCanvas();
+          
+          if (data.scaleFactor) {
+            canvasManager.scaleFactor = data.scaleFactor;
+            updateScaleDisplays();
+          }
+          
+          data.rooms.forEach(r => {
+            let obj;
+            const base = {
+              left: r.positionX,
+              top: r.positionY,
+              fill: `${MATERIALS[r.material].color}40`,
+              stroke: MATERIALS[r.material].color,
+              strokeWidth: r.shapeType === 'line' ? 4 : 2,
+              selectable: true,
+              evented: true,
+            };
+            
+            switch (r.shapeType) {
+              case 'rectangle':
+                obj = new fabric.Rect({ ...base, width: r.width, height: r.height });
+                break;
+              case 'circle':
+                obj = new fabric.Circle({ ...base, radius: r.width / 2 });
+                break;
+              case 'line':
+                obj = new fabric.Line([0, 0, r.width, r.height], base);
+                break;
+              default:
+                obj = new fabric.Rect({ ...base, width: r.width, height: r.height });
+                break;
+            }
+            
+            if (obj) {
+              canvasManager.canvas.add(obj);
+              r.fabricObject = obj;
+              canvasManager.rooms.set(r.id, r);
+            }
+          });
+          
+          canvasManager.notifyRoomsChange();
+          hideModal('save');
+          canvasManager.showStatus('Project loaded successfully');
+        } catch (error) {
+          alert('Error loading project file');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // PWA Setup
+    function setupPWA() {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(err => {
+          console.log('SW registration failed');
+        });
+      }
+      
+      // Install prompt
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // Show install hint
+        setTimeout(() => {
+          canvasManager.showStatus('💡 Tap menu > Add to Home Screen to install app');
+        }, 5000);
+      });
+    }
+
+    // Initialize app when DOM is ready
+    document.addEventListener('DOMContentLoaded', init);
+
+    // Handle back button on Android
+    window.addEventListener('popstate', () => {
+      if (currentModal) {
+        hideAllModals();
+      }
+    });
+  </script>
+</body>
+</html>
