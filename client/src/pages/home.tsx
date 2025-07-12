@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Resizable } from "react-resizable";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import Joyride from "react-joyride";
+import { useLocation } from "wouter";
 import { MaterialSelector } from "@/components/material-selector";
 import { ShapeSelector } from "@/components/shape-selector";
 import { Canvas } from "@/components/canvas";
@@ -47,6 +48,7 @@ function useDarkMode() {
 }
 
 export default function Home() {
+  const [location, setLocation] = useLocation();
   const [darkMode, setDarkMode] = useDarkMode();
   const [selectedMaterial, setSelectedMaterial] = useState<MaterialType>("timber");
   const [selectedShape, setSelectedShape] = useState<ShapeType>("rectangle");
@@ -387,16 +389,28 @@ export default function Home() {
               
               {/* Navigation Tabs */}
               <nav className="flex items-center gap-2">
-                <button className="px-5 py-2.5 text-sm font-semibold text-orange-700 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg border border-orange-200 shadow-sm hover:shadow-md transition-all">
+                <button 
+                  onClick={() => setLocation("/")}
+                  className="px-5 py-2.5 text-sm font-semibold text-orange-700 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg border border-orange-200 shadow-sm hover:shadow-md transition-all"
+                >
                   Dashboard
                 </button>
-                <button className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">
+                <button 
+                  onClick={() => setLocation("/projects")}
+                  className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all"
+                >
                   Projects
                 </button>
-                <button className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">
+                <button 
+                  onClick={() => setLocation("/reports")}
+                  className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all"
+                >
                   Reports
                 </button>
-                <button className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">
+                <button 
+                  onClick={() => setLocation("/settings")}
+                  className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all"
+                >
                   Settings
                 </button>
               </nav>

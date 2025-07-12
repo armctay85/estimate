@@ -5,10 +5,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Compass, Crown, ChevronDown, LogOut, Settings } from "lucide-react";
+import { Compass, Crown, ChevronDown, LogOut, Settings, FolderOpen, FileBarChart } from "lucide-react";
 import { useLocation } from "wouter";
 
 export function Header() {
@@ -114,8 +115,21 @@ export function Header() {
               </DropdownMenuTrigger>
               
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={() => setLocation("/subscribe")}>
+                <DropdownMenuItem onClick={() => setLocation("/projects")}>
+                  <FolderOpen className="w-4 h-4 mr-2" />
+                  Projects
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLocation("/reports")}>
+                  <FileBarChart className="w-4 h-4 mr-2" />
+                  Reports
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLocation("/settings")}>
                   <Settings className="w-4 h-4 mr-2" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setLocation("/subscribe")}>
+                  <Crown className="w-4 h-4 mr-2" />
                   Subscription
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={logout}>
