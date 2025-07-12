@@ -9,6 +9,7 @@
   <meta name="author" content="EstiMate">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://estimate-construction.replit.app/">
+  <link rel="icon" type="image/jpeg" href="/client/public/estimate-logo.jpg">
   
   <!-- Open Graph -->
   <meta property="og:type" content="website">
@@ -73,17 +74,16 @@
       align-items: center;
       gap: 12px;
       margin-bottom: 24px;
-      padding: 16px 24px;
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      padding: 8px;
+      background: white;
       border-radius: 12px;
-      color: white;
-      font-size: 28px;
-      font-weight: 700;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
     
-    .logo svg {
-      width: 32px;
-      height: 32px;
+    .logo img {
+      height: 64px;
+      width: auto;
+      object-fit: contain;
     }
     
     h1 {
@@ -262,11 +262,7 @@
   <div class="container">
     <div class="hero">
       <div class="logo">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M19 7h-3V4a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3H5a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1zM10 6h4v1h-4V6zm8 12H6V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v9z"/>
-          <path d="M8 11h2v2H8zm4 0h2v2h-2zm4 0h2v2h-2zm-8 4h2v2H8zm4 0h2v2h-2z"/>
-        </svg>
-        EstiMate
+        <img src="/client/public/estimate-logo.jpg" alt="EstiMate Logo">
       </div>
       
       <h1>Professional Construction Cost Estimator</h1>

@@ -47,11 +47,13 @@ export function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <div className="bg-primary text-white p-2 rounded-lg">
-                <Compass className="w-5 h-5" />
-              </div>
+              <img 
+                src="/estimate-logo.jpg" 
+                alt="EstiMate Logo" 
+                className="h-12 w-auto object-contain"
+              />
               <div>
-                <h1 className="text-xl font-bold text-gray-900">BuildCost Sketch</h1>
+                <h1 className="text-xl font-bold text-gray-900">EstiMate</h1>
                 <p className="text-xs text-gray-500">Australian Construction Estimator</p>
               </div>
             </div>
@@ -74,11 +76,13 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-3">
-            <div className="bg-primary text-white p-2 rounded-lg">
-              <Compass className="w-5 h-5" />
-            </div>
+            <img 
+              src="/estimate-logo.jpg" 
+              alt="EstiMate Logo" 
+              className="h-12 w-auto object-contain"
+            />
             <div>
-              <h1 className="text-xl font-bold text-gray-900">BuildCost Sketch</h1>
+              <h1 className="text-xl font-bold text-gray-900">EstiMate</h1>
               <p className="text-xs text-gray-500">Australian Construction Estimator</p>
             </div>
           </div>

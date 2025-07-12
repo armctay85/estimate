@@ -56,11 +56,13 @@ export default function Auth() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="bg-primary text-white p-3 rounded-lg">
-              <Compass className="w-6 h-6" />
-            </div>
+            <img 
+              src="/estimate-logo.jpg" 
+              alt="EstiMate Logo" 
+              className="h-16 w-auto object-contain"
+            />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">BuildCost Sketch</h1>
+              <h1 className="text-2xl font-bold text-gray-900">EstiMate</h1>
               <p className="text-sm text-gray-500">Australian Construction Estimator</p>
             </div>
           </div>
