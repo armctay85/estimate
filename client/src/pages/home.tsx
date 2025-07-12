@@ -15,13 +15,14 @@ import { BIMProcessor } from "@/components/bim-processor";
 import { IntelligentAssistant } from "@/components/intelligent-assistant";
 import { Wireframe3DViewer } from "@/components/wireframe-3d-viewer";
 import { PhotoRenovationTool } from "@/components/photo-renovation-tool";
+import { ProjectScheduler } from "@/components/project-scheduler";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { TrendingUp, FileBarChart, Users, Award, BarChart3, Upload, Sparkles, Zap, Brain, Share2, Moon, Sun, Settings, Layers, Palette, CheckCircle, Camera, Box, Clock, Star, ChevronDown, Calculator, Download } from "lucide-react";
+import { TrendingUp, FileBarChart, Users, Award, BarChart3, Upload, Sparkles, Zap, Brain, Share2, Moon, Sun, Settings, Layers, Palette, CheckCircle, Camera, Box, Clock, Star, ChevronDown, Calculator, Download, X, Plus } from "lucide-react";
 import { PARAMETRIC_ASSEMBLIES, type MaterialType } from "@shared/schema";
 import type { ShapeType, RoomData } from "@/lib/fabric-enhanced";
 
@@ -74,6 +75,8 @@ export default function Home() {
   });
   const [show3DWireframe, setShow3DWireframe] = useState(false);
   const [showPhotoRenovation, setShowPhotoRenovation] = useState(false);
+  const [showScheduler, setShowScheduler] = useState(false);
+  const [showCollaborators, setShowCollaborators] = useState(false);
   
   const canvasRef = useRef<{ uploadBackground: (file: File) => void } | null>(null);
   const isMobile = useIsMobile();
@@ -177,6 +180,26 @@ export default function Home() {
     
     // Show success notification (you can enhance this with a toast)
     alert('Project saved successfully!');
+  };
+
+  const handleExportCSV = () => {
+    // Create CSV content
+    let csvContent = "Room Name,Material,Area (m²),Cost ($)\n";
+    rooms.forEach(room => {
+      csvContent += `"${room.label}","${room.material}",${room.area.toFixed(2)},${room.cost.toFixed(2)}\n`;
+    });
+    csvContent += `\nTotal Cost:,,,${totalCost.toFixed(2)}\n`;
+    
+    // Download CSV
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `estimate-cost-schedule-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   };
 
   const handleBackgroundUpload = async (file: File): Promise<void> => {
@@ -967,7 +990,7 @@ export default function Home() {
 
           {/* Scrollable Accordion Content */}
           <div className="flex-1 overflow-y-auto p-3">
-            <Accordion type="multiple" defaultValue={["materials"]} className="space-y-2">
+            <Accordion type="multiple" defaultValue={["project-info", "materials", "ai-tools", "quick-actions"]} className="space-y-2">
               {/* Materials Section */}
               <AccordionItem value="materials" className={`${darkMode ? 'border-gray-700' : 'border-gray-200'} border rounded-lg shadow-sm`}>
                 <AccordionTrigger className={`px-4 py-3 hover:no-underline ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} text-left`}>
@@ -1016,6 +1039,110 @@ export default function Home() {
                 <AccordionContent className="px-4 pb-4 space-y-3">
                   <AICostPredictor />
                   <BIMProcessor />
+                  <div className="mt-4">
+                    <Button 
+                      className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                      onClick={() => setShow3DWireframe(true)}
+                    >
+                      <Box className="w-4 h-4 mr-2" />
+                      View 3D Wireframe Model
+                    </Button>
+                  </div>
+                  <div className="mt-2">
+                    <Button 
+                      className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white"
+                      onClick={() => setShowPhotoRenovation(true)}
+                    >
+                      <Camera className="w-4 h-4 mr-2" />
+                      Photo Renovation Tool
+                    </Button>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Quick Actions Section */}
+              <AccordionItem value="quick-actions" className={`${darkMode ? 'border-gray-700' : 'border-gray-200'} border rounded-lg shadow-sm`}>
+                <AccordionTrigger className={`px-4 py-3 hover:no-underline ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} text-left`}>
+                  <span className="flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-orange-600" />
+                    <span className="text-sm font-semibold uppercase tracking-wide">Quick Actions</span>
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4 space-y-2">
+                  <Button size="sm" variant="outline" className="w-full justify-start" onClick={() => setLocation("/projects")}>
+                    <FileBarChart className="w-4 h-4 mr-2" />
+                    View All Projects
+                  </Button>
+                  <Button size="sm" variant="outline" className="w-full justify-start" onClick={() => setLocation("/reports")}>
+                    <Download className="w-4 h-4 mr-2" />
+                    Generate Reports
+                  </Button>
+                  <Button size="sm" variant="outline" className="w-full justify-start" onClick={() => handleExportCSV()}>
+                    <Calculator className="w-4 h-4 mr-2" />
+                    Export Cost Schedule
+                  </Button>
+                  <Button size="sm" variant="outline" className="w-full justify-start" onClick={() => setShowScheduler(true)}>
+                    <Clock className="w-4 h-4 mr-2" />
+                    Project Scheduler
+                  </Button>
+                  <Button size="sm" variant="outline" className="w-full justify-start" onClick={() => setShowCollaborators(true)}>
+                    <Users className="w-4 h-4 mr-2" />
+                    Manage Team
+                  </Button>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Project Information Section */}
+              <AccordionItem value="project-info" className={`${darkMode ? 'border-gray-700' : 'border-gray-200'} border rounded-lg shadow-sm`}>
+                <AccordionTrigger className={`px-4 py-3 hover:no-underline ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} text-left`}>
+                  <span className="flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-yellow-600" />
+                    <span className="text-sm font-semibold uppercase tracking-wide">Project Info</span>
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4 space-y-3">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center py-2 border-b">
+                      <span className="text-sm text-gray-600">Project Type</span>
+                      <Select value={projectType} onValueChange={setProjectType}>
+                        <SelectTrigger className="w-32 h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="residential">Residential</SelectItem>
+                          <SelectItem value="commercial">Commercial</SelectItem>
+                          <SelectItem value="industrial">Industrial</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b">
+                      <span className="text-sm text-gray-600">Total Area</span>
+                      <span className="font-mono text-sm">{rooms.reduce((sum, room) => sum + room.area, 0).toFixed(2)} m²</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b">
+                      <span className="text-sm text-gray-600">Total Cost</span>
+                      <span className="font-mono text-sm font-bold">${totalCost.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b">
+                      <span className="text-sm text-gray-600">Cost per m²</span>
+                      <span className="font-mono text-sm">
+                        ${(totalCost / Math.max(1, rooms.reduce((sum, room) => sum + room.area, 0))).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-sm text-gray-600">Rooms</span>
+                      <span className="font-mono text-sm">{rooms.length}</span>
+                    </div>
+                  </div>
+                  <div className="mt-4 space-y-2">
+                    <h4 className="text-xs font-semibold uppercase text-gray-500">Cost Breakdown</h4>
+                    {rooms.map((room, i) => (
+                      <div key={i} className="flex justify-between items-center text-xs py-1">
+                        <span className="text-gray-600">{room.label}</span>
+                        <span className="font-mono">${room.cost.toFixed(0)}</span>
+                      </div>
+                    ))}
+                  </div>
                 </AccordionContent>
               </AccordionItem>
 
@@ -1190,6 +1317,65 @@ export default function Home() {
         isOpen={showPhotoRenovation}
         onClose={() => setShowPhotoRenovation(false)}
       />
+      
+      {/* Project Scheduler Dialog */}
+      {showScheduler && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-6xl max-h-[90vh] overflow-auto p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">Project Scheduler</h2>
+              <Button variant="ghost" onClick={() => setShowScheduler(false)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <ProjectScheduler />
+          </div>
+        </div>
+      )}
+
+      {/* Team Collaboration Dialog */}
+      {showCollaborators && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">Manage Team</h2>
+              <Button variant="ghost" onClick={() => setShowCollaborators(false)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Users className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">John Smith</p>
+                    <p className="text-sm text-gray-600">Project Manager</p>
+                  </div>
+                </div>
+                <Badge>Admin</Badge>
+              </div>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <Users className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Sarah Johnson</p>
+                    <p className="text-sm text-gray-600">Quantity Surveyor</p>
+                  </div>
+                </div>
+                <Badge variant="secondary">Editor</Badge>
+              </div>
+              <Button className="w-full">
+                <Plus className="w-4 h-4 mr-2" />
+                Invite Team Member
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }
