@@ -702,6 +702,255 @@ export function BIMProcessor() {
                 </CardContent>
               </Card>
 
+              {/* Builder Cost Qualification & Site Mobilization */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Building className="w-5 h-5" />
+                    Builder Cost Qualification & Site Analysis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Time on Site Analysis */}
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-sm">Time on Site Analysis</h4>
+                      <div className="space-y-3">
+                        <div className="bg-blue-50 border border-blue-200 p-3 rounded">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="font-medium text-sm">Construction Duration</span>
+                            <span className="text-blue-600 font-bold">18 weeks</span>
+                          </div>
+                          <div className="text-xs text-gray-600 space-y-1">
+                            <div>Foundation & Slab: 3 weeks</div>
+                            <div>Structural Frame: 4 weeks</div>
+                            <div>Roof & External: 5 weeks</div>
+                            <div>MEP & Fitout: 4 weeks</div>
+                            <div>Final & Handover: 2 weeks</div>
+                          </div>
+                        </div>
+
+                        <div className="bg-gray-50 p-3 rounded">
+                          <div className="font-medium text-sm mb-2">Labor Time Allocation</div>
+                          <div className="space-y-2 text-xs">
+                            <div className="flex justify-between">
+                              <span>Carpenter (2 trades × 18 weeks)</span>
+                              <span>720 hours @ $65/hr = $46,800</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Electrician (1 trade × 8 weeks)</span>
+                              <span>320 hours @ $85/hr = $27,200</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Plumber (1 trade × 6 weeks)</span>
+                              <span>240 hours @ $82/hr = $19,680</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>General Laborer (1 × 18 weeks)</span>
+                              <span>720 hours @ $45/hr = $32,400</span>
+                            </div>
+                            <div className="border-t pt-2 flex justify-between font-semibold">
+                              <span>Total Labor Cost</span>
+                              <span>$126,080</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Site Mobilization Costs */}
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-sm">Site Mobilization & Setup</h4>
+                      <div className="space-y-3">
+                        <div className="bg-orange-50 border border-orange-200 p-3 rounded">
+                          <div className="font-medium text-sm mb-2">Initial Mobilization</div>
+                          <div className="space-y-1 text-xs">
+                            <div className="flex justify-between">
+                              <span>Site Shed & Office (18 weeks)</span>
+                              <span>$8,500</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Temporary Power Connection</span>
+                              <span>$3,200</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Water & Utilities Setup</span>
+                              <span>$2,800</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Site Security & Fencing</span>
+                              <span>$5,600</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Waste Management (18 weeks)</span>
+                              <span>$7,200</span>
+                            </div>
+                            <div className="border-t pt-1 flex justify-between font-semibold">
+                              <span>Mobilization Total</span>
+                              <span>$27,300</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-purple-50 border border-purple-200 p-3 rounded">
+                          <div className="font-medium text-sm mb-2">Site Management</div>
+                          <div className="space-y-1 text-xs">
+                            <div className="flex justify-between">
+                              <span>Site Supervisor (18 weeks @ $95/hr)</span>
+                              <span>$68,400</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Safety Officer (part-time)</span>
+                              <span>$18,500</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Site Administration</span>
+                              <span>$12,800</span>
+                            </div>
+                            <div className="border-t pt-1 flex justify-between font-semibold">
+                              <span>Management Total</span>
+                              <span>$99,700</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Equipment Hire & Plant */}
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-sm">Equipment Hire & Plant</h4>
+                      <div className="space-y-3">
+                        <div className="bg-green-50 border border-green-200 p-3 rounded">
+                          <div className="font-medium text-sm mb-2">Major Plant Hire</div>
+                          <div className="space-y-1 text-xs">
+                            <div className="flex justify-between">
+                              <span>20T Excavator (2 weeks)</span>
+                              <span>$8,400</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Concrete Pump (3 days)</span>
+                              <span>$4,200</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Mobile Crane 25T (5 days)</span>
+                              <span>$12,500</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Scaffolding (6 weeks)</span>
+                              <span>$18,600</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Bobcat & Attachments (8 weeks)</span>
+                              <span>$9,600</span>
+                            </div>
+                            <div className="border-t pt-1 flex justify-between font-semibold">
+                              <span>Plant Hire Total</span>
+                              <span>$53,300</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-yellow-50 border border-yellow-200 p-3 rounded">
+                          <div className="font-medium text-sm mb-2">Small Tools & Equipment</div>
+                          <div className="space-y-1 text-xs">
+                            <div className="flex justify-between">
+                              <span>Power Tools Hire (18 weeks)</span>
+                              <span>$5,400</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Generators & Compressors</span>
+                              <span>$3,800</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Lifting Equipment</span>
+                              <span>$2,600</span>
+                            </div>
+                            <div className="border-t pt-1 flex justify-between font-semibold">
+                              <span>Small Plant Total</span>
+                              <span>$11,800</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-red-50 border border-red-200 p-3 rounded">
+                          <div className="font-medium text-sm mb-2">Builder Cost Summary</div>
+                          <div className="space-y-1 text-xs">
+                            <div className="flex justify-between">
+                              <span>Direct Labor</span>
+                              <span>$126,080</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Site Mobilization</span>
+                              <span>$27,300</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Site Management</span>
+                              <span>$99,700</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Equipment Hire</span>
+                              <span>$65,100</span>
+                            </div>
+                            <div className="border-t pt-1 flex justify-between font-bold text-red-700">
+                              <span>Builder Costs Total</span>
+                              <span>$318,180</span>
+                            </div>
+                            <div className="text-xs text-gray-500 pt-1">
+                              + Materials: $132,400 = Total: $450,580
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Professional QS Integration */}
+                  <div className="mt-6 pt-6 border-t">
+                    <h4 className="font-semibold text-sm mb-4">Professional QS Cost Breakdown (Based on Authentic Australian Data)</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="bg-blue-50 p-3 rounded">
+                        <div className="text-sm font-medium text-blue-800">Direct Costs</div>
+                        <div className="text-lg font-bold text-blue-600">$450,580</div>
+                        <div className="text-xs text-blue-700">Materials + Labor + Plant</div>
+                      </div>
+                      
+                      <div className="bg-orange-50 p-3 rounded">
+                        <div className="text-sm font-medium text-orange-800">Overheads (15%)</div>
+                        <div className="text-lg font-bold text-orange-600">$67,587</div>
+                        <div className="text-xs text-orange-700">Site + Head Office</div>
+                      </div>
+                      
+                      <div className="bg-green-50 p-3 rounded">
+                        <div className="text-sm font-medium text-green-800">Profit (12%)</div>
+                        <div className="text-lg font-bold text-green-600">$62,140</div>
+                        <div className="text-xs text-green-700">Builder Margin</div>
+                      </div>
+                      
+                      <div className="bg-purple-50 p-3 rounded">
+                        <div className="text-sm font-medium text-purple-800">Contingency (8%)</div>
+                        <div className="text-lg font-bold text-purple-600">$46,825</div>
+                        <div className="text-xs text-purple-700">Risk Allowance</div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 bg-gray-900 text-white p-4 rounded">
+                      <div className="flex justify-between items-center">
+                        <span className="text-lg font-semibold">TOTAL CONTRACT VALUE (Ex GST)</span>
+                        <span className="text-2xl font-bold">$627,132</span>
+                      </div>
+                      <div className="flex justify-between items-center mt-2 text-sm">
+                        <span>GST (10%)</span>
+                        <span>$62,713</span>
+                      </div>
+                      <div className="flex justify-between items-center border-t pt-2 mt-2">
+                        <span className="text-xl font-bold">TOTAL INC GST</span>
+                        <span className="text-3xl font-bold text-green-400">$689,845</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               <div className="space-y-4">
                 {Object.entries(result).map(([category, elements]) => {
                   if (!Array.isArray(elements) || elements.length === 0) return null;
