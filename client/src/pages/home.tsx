@@ -12,9 +12,9 @@ import { Header } from "@/components/header";
 import { AICostPredictor } from "@/components/ai-cost-predictor";
 import { BIMProcessor } from "@/components/bim-processor";
 import { IntelligentAssistant } from "@/components/intelligent-assistant";
-import { Sidebar, SidebarHeader, SidebarContent, SidebarSection } from "@/components/ui/sidebar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { TrendingUp, FileBarChart, Users, Award, BarChart3, Upload, Sparkles, Zap, Brain, Share2, Moon, Sun, Settings, Layers, Palette } from "lucide-react";
 import type { MaterialType } from "@shared/schema";
@@ -420,43 +420,46 @@ export default function Home() {
         </div>
       </motion.div>
 
-      {/* Main Content Layout */}
+      {/* Main Content Layout with Better Proportions */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar - Tools & Controls */}
-        <div className="w-72 bg-white border-r border-gray-200 flex flex-col">
+        {/* Compact Sidebar with Accordion */}
+        <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} w-80 border-r flex flex-col`}>
           {/* Sidebar Header */}
-          <div className="p-5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
-            <h2 className="text-display text-base font-bold text-gray-900 uppercase tracking-wider">
-              Drawing Tools
+          <div className={`p-4 border-b ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-100 bg-gradient-to-r from-gray-50 to-white'}`}>
+            <h2 className="text-display text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Tools & Controls
             </h2>
           </div>
 
-          {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-6">
-            {/* Materials Section */}
-            <div>
-              <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 uppercase tracking-wide">
-                <div className="w-2.5 h-2.5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full shadow-sm"></div>
-                Materials
-              </h3>
-              <Card className="border-gray-200 shadow-card hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
+          {/* Scrollable Accordion Content */}
+          <div className="flex-1 overflow-y-auto p-3">
+            <Accordion type="multiple" defaultValue={["materials", "shapes", "ai-tools"]} className="space-y-2">
+              {/* Materials Section */}
+              <AccordionItem value="materials" className={`${darkMode ? 'border-gray-700' : 'border-gray-200'} border rounded-lg shadow-sm`}>
+                <AccordionTrigger className={`px-4 py-3 hover:no-underline ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}>
+                  <div className="flex items-center gap-2">
+                    <Palette className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-semibold uppercase tracking-wide">Materials</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4">
                   <MaterialSelector 
                     selectedMaterial={selectedMaterial}
                     onMaterialSelect={setSelectedMaterial}
                   />
-                </CardContent>
-              </Card>
-            </div>
+                </AccordionContent>
+              </AccordionItem>
 
-            {/* Drawing Tools Section */}
-            <div>
-              <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 uppercase tracking-wide">
-                <div className="w-2.5 h-2.5 bg-gradient-to-r from-green-500 to-green-600 rounded-full shadow-sm"></div>
-                Shapes
-              </h3>
-              <Card className="border-gray-200 shadow-card hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
+              {/* Drawing Tools Section */}
+              <AccordionItem value="shapes" className={`${darkMode ? 'border-gray-700' : 'border-gray-200'} border rounded-lg shadow-sm`}>
+                <AccordionTrigger className={`px-4 py-3 hover:no-underline ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}>
+                  <div className="flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-green-600" />
+                    <span className="text-sm font-semibold uppercase tracking-wide">Shapes</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4">
                   <ShapeSelector
                     selectedShape={selectedShape}
                     onShapeSelect={setSelectedShape}
@@ -466,133 +469,100 @@ export default function Home() {
                     hasBackground={hasBackground}
                     backgroundOpacity={backgroundOpacity}
                   />
-                </CardContent>
-              </Card>
-            </div>
+                </AccordionContent>
+              </AccordionItem>
 
-            {/* AI Tools Section */}
-            <div>
-              <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 uppercase tracking-wide">
-                <div className="w-2.5 h-2.5 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full shadow-sm"></div>
-                AI Tools
-              </h3>
-              <div className="space-y-3">
-                <AICostPredictor />
-                <BIMProcessor />
-              </div>
-            </div>
+              {/* AI Tools Section */}
+              <AccordionItem value="ai-tools" className={`${darkMode ? 'border-gray-700' : 'border-gray-200'} border rounded-lg shadow-sm`}>
+                <AccordionTrigger className={`px-4 py-3 hover:no-underline ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}>
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-purple-600" />
+                    <span className="text-sm font-semibold uppercase tracking-wide">AI Tools</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4 space-y-3">
+                  <AICostPredictor />
+                  <BIMProcessor />
+                </AccordionContent>
+              </AccordionItem>
 
-            {/* Element Details */}
-            {selectedRoom && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-orange-600 rounded-full"></div>
-                  Element Details
-                </h3>
-                <Card className="border-gray-200">
-                  <CardContent className="p-3">
+              {/* Element Details */}
+              {selectedRoom && (
+                <AccordionItem value="element-details" className={`${darkMode ? 'border-gray-700' : 'border-gray-200'} border rounded-lg shadow-sm`}>
+                  <AccordionTrigger className={`px-4 py-3 hover:no-underline ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}>
+                    <div className="flex items-center gap-2">
+                      <FileBarChart className="w-4 h-4 text-orange-600" />
+                      <span className="text-sm font-semibold uppercase tracking-wide">Element Details</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4">
                     <RoomDetails
                       selectedRoom={selectedRoom}
                       onRoomUpdate={handleRoomUpdate}
                     />
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+                  </AccordionContent>
+                </AccordionItem>
+              )}
 
-            {/* Project Cost */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                <div className="w-2 h-2 bg-red-600 rounded-full"></div>
-                Project Cost
-              </h3>
-              <Card className="border-gray-200">
-                <CardContent className="p-3">
+              {/* Project Cost */}
+              <AccordionItem value="project-cost" className={`${darkMode ? 'border-gray-700' : 'border-gray-200'} border rounded-lg shadow-sm`}>
+                <AccordionTrigger className={`px-4 py-3 hover:no-underline ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}>
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-red-600" />
+                    <span className="text-sm font-semibold uppercase tracking-wide">Project Cost</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4">
                   <CostDisplay rooms={rooms} totalCost={totalCost} />
-                </CardContent>
-              </Card>
-            </div>
+                </AccordionContent>
+              </AccordionItem>
 
-            {/* Enterprise Features */}
-            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-4">
-              <div className="text-center">
-                <Award className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                <h4 className="text-sm font-semibold text-purple-900 mb-1">Enterprise Active</h4>
-                <p className="text-xs text-purple-700 mb-2">
-                  Full BIM Auto-Takeoff • 500+ Materials • QS Department Replacement
-                </p>
-                <div className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded mb-2">
-                  ROI: $180k-270k savings annually
-                </div>
-                <div className="flex gap-1 text-xs">
-                  <div className="flex-1 bg-green-100 text-green-700 px-2 py-1 rounded">✓ BIM Processing</div>
-                  <div className="flex-1 bg-green-100 text-green-700 px-2 py-1 rounded">✓ AIQS Reports</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Enterprise Analytics */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                <div className="w-2 h-2 bg-indigo-600 rounded-full"></div>
-                Analytics Dashboard
-              </h3>
-              <Card className="border-gray-200">
-                <CardContent className="p-3 space-y-3">
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-blue-50 p-2 rounded">
-                      <div className="font-medium text-blue-900">Projects This Month</div>
-                      <div className="text-lg font-bold text-blue-600">127</div>
+              {/* Enterprise Features */}
+              <AccordionItem value="enterprise" className={`${darkMode ? 'border-gray-700' : 'border-gray-200'} border rounded-lg shadow-sm`}>
+                <AccordionTrigger className={`px-4 py-3 hover:no-underline ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}>
+                  <div className="flex items-center gap-2">
+                    <Award className="w-4 h-4 text-purple-600" />
+                    <span className="text-sm font-semibold uppercase tracking-wide">Enterprise</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4">
+                  <div className={`${darkMode ? 'bg-gray-700' : 'bg-gradient-to-br from-purple-50 to-indigo-50'} p-4 rounded-lg text-center`}>
+                    <Award className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                    <h4 className={`text-sm font-semibold mb-1 ${darkMode ? 'text-purple-300' : 'text-purple-900'}`}>Enterprise Active</h4>
+                    <p className={`text-xs mb-2 ${darkMode ? 'text-purple-400' : 'text-purple-700'}`}>
+                      Full BIM Auto-Takeoff • 500+ Materials • QS Department Replacement
+                    </p>
+                    <div className={`text-xs px-2 py-1 rounded mb-2 ${darkMode ? 'bg-purple-900 text-purple-300' : 'bg-purple-100 text-purple-600'}`}>
+                      ROI: $180k-270k savings annually
                     </div>
-                    <div className="bg-green-50 p-2 rounded">
-                      <div className="font-medium text-green-900">Cost Saved</div>
-                      <div className="text-lg font-bold text-green-600">$2.1M</div>
-                    </div>
-                    <div className="bg-purple-50 p-2 rounded">
-                      <div className="font-medium text-purple-900">BIM Files Processed</div>
-                      <div className="text-lg font-bold text-purple-600">89</div>
-                    </div>
-                    <div className="bg-orange-50 p-2 rounded">
-                      <div className="font-medium text-orange-900">Accuracy Rate</div>
-                      <div className="text-lg font-bold text-orange-600">98.7%</div>
+                    <div className="flex gap-1 text-xs">
+                      <div className={`flex-1 px-2 py-1 rounded ${darkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700'}`}>✓ BIM Processing</div>
+                      <div className={`flex-1 px-2 py-1 rounded ${darkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700'}`}>✓ AIQS Reports</div>
                     </div>
                   </div>
-                  <Button size="sm" className="w-full bg-gradient-to-r from-indigo-600 to-purple-600">
-                    <BarChart3 className="w-3 h-3 mr-1" />
-                    Full Analytics
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+                </AccordionContent>
+              </AccordionItem>
 
-            {/* BIM Auto-Takeoff Status */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                <div className="w-2 h-2 bg-yellow-600 rounded-full"></div>
-                BIM Processing Queue
-              </h3>
-              <Card className="border-gray-200">
-                <CardContent className="p-3 space-y-2">
-                  <div className="text-xs space-y-1">
-                    <div className="flex items-center justify-between p-2 bg-green-50 rounded">
-                      <span className="text-green-700">Office Tower.rvt</span>
-                      <span className="text-green-600 font-medium">✓ Complete</span>
-                    </div>
-                    <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
-                      <span className="text-blue-700">Warehouse.dwg</span>
-                      <span className="text-blue-600 font-medium">⏳ Processing 89%</span>
-                    </div>
-                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span className="text-gray-700">Retail Store.ifc</span>
-                      <span className="text-gray-600 font-medium">📁 Queued</span>
-                    </div>
-                  </div>
-                  <Button size="sm" className="w-full bg-gradient-to-r from-yellow-600 to-orange-600">
-                    <Upload className="w-3 h-3 mr-1" />
-                    Upload BIM Files
-                  </Button>
-                </CardContent>
-              </Card>
+            </Accordion>
+
+            {/* Quick Actions - Outside Accordion */}
+            <div className="mt-4 space-y-3">
+              <Button 
+                size="sm" 
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                onClick={() => {}}
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
+                View Full Analytics
+              </Button>
+              <Button 
+                size="sm" 
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+                onClick={() => {}}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Upload BIM Files
+              </Button>
             </div>
           </div>
         </div>
