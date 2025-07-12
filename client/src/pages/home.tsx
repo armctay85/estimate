@@ -435,7 +435,7 @@ export default function Home() {
 
           {/* Scrollable Accordion Content */}
           <div className="flex-1 overflow-y-auto p-3">
-            <Accordion type="multiple" defaultValue={["materials", "shapes", "ai-tools"]} className="space-y-2">
+            <Accordion type="multiple" defaultValue={["materials"]} className="space-y-2">
               {/* Materials Section */}
               <AccordionItem value="materials" className={`${darkMode ? 'border-gray-700' : 'border-gray-200'} border rounded-lg shadow-sm`}>
                 <AccordionTrigger className={`px-4 py-3 hover:no-underline ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}>
