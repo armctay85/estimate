@@ -147,16 +147,24 @@ export function BIMProcessor() {
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('handleFileUpload triggered');
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.log('No file selected');
+      return;
+    }
+    console.log('File selected:', file.name, file.type, file.size);
     processFile(file);
   };
 
   const processFile = async (file: File) => {
+    console.log('processFile called with:', file.name);
     const allowedTypes = ['.dwg', '.dxf', '.ifc', '.rvt', '.skp', '.pln', '.pdf'];
     const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+    console.log('File extension:', fileExtension);
     
     if (!allowedTypes.includes(fileExtension)) {
+      console.log('File type not supported');
       toast({
         title: "Unsupported File Type",
         description: "Please upload a DWG, DXF, IFC, Revit, SketchUp, ArchiCAD, or PDF file.",
@@ -165,6 +173,7 @@ export function BIMProcessor() {
       return;
     }
 
+    console.log('File accepted, starting processing...');
     await simulateProcessing(file);
   };
 
@@ -181,10 +190,14 @@ export function BIMProcessor() {
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
+    console.log('File dropped');
     
     const file = e.dataTransfer.files[0];
     if (file) {
+      console.log('Processing dropped file:', file.name);
       processFile(file);
+    } else {
+      console.log('No file in drop event');
     }
   };
 
@@ -202,7 +215,13 @@ export function BIMProcessor() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700">
+        <Button 
+          className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
+          onClick={() => {
+            console.log('BIM Auto-Takeoff button clicked, opening dialog');
+            setIsOpen(true);
+          }}
+        >
           <Upload className="w-4 h-4 mr-2" />
           BIM Auto-Takeoff
         </Button>
@@ -243,7 +262,18 @@ export function BIMProcessor() {
                     <p className="text-gray-600 mb-4">
                       Drag and drop your file here or click to browse
                     </p>
-                    <Button onClick={() => fileInputRef.current?.click()}>
+                    <Button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        console.log('Choose File button clicked');
+                        if (fileInputRef.current) {
+                          console.log('File input found, triggering click');
+                          fileInputRef.current.click();
+                        } else {
+                          console.error('File input ref not found');
+                        }
+                      }}
+                    >
                       <FileText className="w-4 h-4 mr-2" />
                       Choose File
                     </Button>
@@ -255,6 +285,17 @@ export function BIMProcessor() {
                     onChange={handleFileUpload}
                     className="hidden"
                   />
+                  
+                  {/* Backup direct upload button for testing */}
+                  <div className="mt-4 p-2 border rounded bg-gray-50">
+                    <p className="text-xs text-gray-600 mb-2">Direct Upload Test:</p>
+                    <input
+                      type="file"
+                      accept=".dwg,.dxf,.ifc,.rvt,.skp,.pln,.pdf"
+                      onChange={handleFileUpload}
+                      className="text-sm"
+                    />
+                  </div>
                 </CardContent>
               </Card>
 
