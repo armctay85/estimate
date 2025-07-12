@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Storage</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #f5f5f5;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .status {
+            margin-top: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Clearing EstiMate Storage...</h1>
+        <div class="status" id="status">Please wait...</div>
+    </div>
+    <script>
+        // Clear all EstiMate related storage
+        localStorage.removeItem('estimateWorkspaceMode');
+        localStorage.removeItem('estimateProject');
+        localStorage.removeItem('sharedProject');
+        localStorage.removeItem('darkMode');
+        
+        // Update status
+        document.getElementById('status').textContent = 'Storage cleared! Redirecting to dashboard...';
+        
+        // Redirect to main app
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 1500);
+    </script>
+</body>
+</html>

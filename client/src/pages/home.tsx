@@ -65,7 +65,11 @@ export default function Home() {
   const [onboardingStep, setOnboardingStep] = useState(0);
   const [leftPanelWidth, setLeftPanelWidth] = useState(300);
   const [rightPanelWidth, setRightPanelWidth] = useState(300);
-  const [showDashboard, setShowDashboard] = useState(true);
+  const [showDashboard, setShowDashboard] = useState(() => {
+    // Check if user has previously selected a workspace
+    const savedWorkspace = localStorage.getItem('estimateWorkspaceMode');
+    return savedWorkspace !== 'workspace';
+  });
   
   const canvasRef = useRef<{ uploadBackground: (file: File) => void } | null>(null);
   const isMobile = useIsMobile();
@@ -376,6 +380,7 @@ export default function Home() {
 
   // Show dashboard selection screen if not in workspace mode
   if (showDashboard) {
+    console.log('Rendering dashboard view');
     return (
       <motion.div 
         initial={{ opacity: 0 }} 
@@ -410,7 +415,10 @@ export default function Home() {
               transition={{ delay: 0.2 }}
             >
               <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group" 
-                    onClick={() => setShowDashboard(false)}>
+                    onClick={() => {
+                      localStorage.setItem('estimateWorkspaceMode', 'workspace');
+                      setShowDashboard(false);
+                    }}>
                 <CardContent className="p-8">
                   <div className="mb-6">
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -742,7 +750,10 @@ export default function Home() {
               {/* Navigation Tabs */}
               <nav className="flex items-center gap-2">
                 <button 
-                  onClick={() => setShowDashboard(true)}
+                  onClick={() => {
+                    localStorage.removeItem('estimateWorkspaceMode');
+                    setShowDashboard(true);
+                  }}
                   className="px-5 py-2.5 text-sm font-semibold text-orange-700 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg border border-orange-200 shadow-sm hover:shadow-md transition-all"
                 >
                   Dashboard
