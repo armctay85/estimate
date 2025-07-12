@@ -5,10 +5,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Upload, FileText, Building, Zap, CheckCircle, Clock, Target, Eye, Layers, Palette, TreePine, RotateCcw, ZoomIn, ZoomOut, Calendar } from "lucide-react";
+import { Upload, FileText, Building, Zap, CheckCircle, Clock, Target, Eye, Layers, Palette, TreePine, RotateCcw, ZoomIn, ZoomOut, Calendar, Move3d } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PARAMETRIC_ASSEMBLIES, AUSTRALIAN_RATES } from "@shared/schema";
 import { ProjectScheduler } from "./project-scheduler";
+import { WireframeViewer } from "./wireframe-viewer";
 
 interface BIMElement {
   id: string;
@@ -48,6 +49,8 @@ export function BIMProcessor() {
   const [currentStep, setCurrentStep] = useState('');
   const [result, setResult] = useState<ProcessingResult | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [showWireframe, setShowWireframe] = useState(false);
+  const [currentFileName, setCurrentFileName] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -175,6 +178,7 @@ export function BIMProcessor() {
     }
 
     console.log('File accepted, starting processing...');
+    setCurrentFileName(file.name); // Capture the actual file name
     await simulateProcessing(file);
   };
 
@@ -436,6 +440,14 @@ export function BIMProcessor() {
                         
                         {/* Controls */}
                         <div className="absolute bottom-2 right-2 flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-white border-white hover:bg-white/20"
+                            onClick={() => setShowWireframe(true)}
+                          >
+                            <Move3d className="w-3 h-3" />
+                          </Button>
                           <Button size="sm" variant="outline" className="text-white border-white hover:bg-white/20">
                             <RotateCcw className="w-3 h-3" />
                           </Button>
@@ -1137,10 +1149,33 @@ export function BIMProcessor() {
                   export to your accounting system, or generate client presentation reports.
                 </AlertDescription>
               </Alert>
+              
+              {/* 3D Wireframe View Button */}
+              <div className="mt-4">
+                <Button 
+                  onClick={() => setShowWireframe(true)}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  size="lg"
+                >
+                  <Move3d className="w-4 h-4 mr-2" />
+                  View 3D Wireframe Model - {currentFileName}
+                </Button>
+                <p className="text-sm text-gray-600 mt-2 text-center">
+                  Explore detected elements in 3D space with AIQS EDC compliance verification
+                </p>
+              </div>
             </div>
           )}
         </div>
       </DialogContent>
+      
+      {/* 3D Wireframe Viewer */}
+      <WireframeViewer 
+        isOpen={showWireframe}
+        onClose={() => setShowWireframe(false)}
+        fileName={currentFileName || "Current Model"}
+        elements={result ? [...result.structural, ...result.architectural, ...result.mep, ...result.finishes, ...result.external] : []}
+      />
     </Dialog>
   );
 }

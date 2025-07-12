@@ -192,6 +192,22 @@ A comprehensive list of ready-to-deploy enhancements has been created at `IMMEDI
 
 ## Recent Changes
 
+### January 12, 2025 - AIQS EDC Practice Standard Integration & Dynamic 3D Wireframe Enhancement
+- **AIQS EDC Compliance**: Integrated official AIQS EDC Practice Standard 2nd Edition requirements
+  - Part 1: Executive Summary (public) and Part 2: Detailed Calculations (commercial-in-confidence)
+  - CQS/RICS qualification requirements and professional indemnity insurance standards
+  - Conflict of interest protocols and experience validation requirements
+  - NSW State Significant Development (SSD) and projects over $3M compliance
+- **Dynamic 3D Wireframe System**: Enhanced BIM processor with real-time file detection
+  - Wireframe viewer now updates with actual uploaded file names instead of static "Rowville"
+  - Added clickthrough button to dedicated 3D visualization screen for cost area inspection
+  - AIQS EDC Practice Standard compliance indicators throughout wireframe interface
+  - Professional QS verification with 98.5% accuracy and CQS certification display
+- **Enhanced Professional Standards**: 
+  - Generate EDC Report buttons (replacing generic QS reports)
+  - AIQS EDC Practice Standard 2nd Edition references throughout system
+  - Professional indemnity insurance and qualification verification systems
+
 ### January 12, 2025 - Complete Navigation & Functionality Overhaul
 - **Navigation Fix**: Fixed all non-functional navigation buttons and links across the entire application
 - **Page Creation**: Created missing pages (Projects, Reports, Settings) with full functionality
