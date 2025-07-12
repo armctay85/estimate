@@ -202,9 +202,11 @@ export default function Home() {
         <div className={`sticky top-0 z-50 ${darkMode ? 'bg-gray-800' : 'bg-white'} border-b shadow-sm`}>
           <div className="px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
-                <Layers className="w-5 h-5 text-white" />
-              </div>
+              <img 
+                src="/estimate-logo.jpg" 
+                alt="EstiMate Logo" 
+                className="h-10 w-auto object-contain rounded-lg"
+              />
               <h1 className="text-xl font-bold tracking-tight">EstiMate</h1>
             </div>
             <div className="flex items-center gap-2">
@@ -372,9 +374,11 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-                  <Layers className="w-6 h-6 text-white" />
-                </div>
+                <img 
+                  src="/estimate-logo.jpg" 
+                  alt="EstiMate Logo" 
+                  className="h-12 w-auto object-contain rounded-lg"
+                />
                 <div>
                   <h1 className="text-2xl text-display tracking-tight">EstiMate</h1>
                   <p className="text-xs text-gray-500 font-medium tracking-wide uppercase">AI-Powered Construction Platform</p>
@@ -438,11 +442,11 @@ export default function Home() {
             <Accordion type="multiple" defaultValue={["materials"]} className="space-y-2">
               {/* Materials Section */}
               <AccordionItem value="materials" className={`${darkMode ? 'border-gray-700' : 'border-gray-200'} border rounded-lg shadow-sm`}>
-                <AccordionTrigger className={`px-4 py-3 hover:no-underline ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}>
-                  <div className="flex items-center gap-2">
+                <AccordionTrigger className={`px-4 py-3 hover:no-underline ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} text-left`}>
+                  <span className="flex items-center gap-2">
                     <Palette className="w-4 h-4 text-blue-600" />
                     <span className="text-sm font-semibold uppercase tracking-wide">Materials</span>
-                  </div>
+                  </span>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
                   <MaterialSelector 
@@ -454,11 +458,11 @@ export default function Home() {
 
               {/* Drawing Tools Section */}
               <AccordionItem value="shapes" className={`${darkMode ? 'border-gray-700' : 'border-gray-200'} border rounded-lg shadow-sm`}>
-                <AccordionTrigger className={`px-4 py-3 hover:no-underline ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}>
-                  <div className="flex items-center gap-2">
+                <AccordionTrigger className={`px-4 py-3 hover:no-underline ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} text-left`}>
+                  <span className="flex items-center gap-2">
                     <Layers className="w-4 h-4 text-green-600" />
                     <span className="text-sm font-semibold uppercase tracking-wide">Shapes</span>
-                  </div>
+                  </span>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
                   <ShapeSelector
@@ -475,11 +479,11 @@ export default function Home() {
 
               {/* AI Tools Section */}
               <AccordionItem value="ai-tools" className={`${darkMode ? 'border-gray-700' : 'border-gray-200'} border rounded-lg shadow-sm`}>
-                <AccordionTrigger className={`px-4 py-3 hover:no-underline ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}>
-                  <div className="flex items-center gap-2">
+                <AccordionTrigger className={`px-4 py-3 hover:no-underline ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} text-left`}>
+                  <span className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-purple-600" />
                     <span className="text-sm font-semibold uppercase tracking-wide">AI Tools</span>
-                  </div>
+                  </span>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4 space-y-3">
                   <AICostPredictor />
