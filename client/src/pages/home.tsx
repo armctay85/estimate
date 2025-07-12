@@ -15,9 +15,10 @@ import { IntelligentAssistant } from "@/components/intelligent-assistant";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { TrendingUp, FileBarChart, Users, Award, BarChart3, Upload, Sparkles, Zap, Brain, Share2, Moon, Sun, Settings, Layers, Palette } from "lucide-react";
-import type { MaterialType } from "@shared/schema";
+import { PARAMETRIC_ASSEMBLIES, type MaterialType } from "@shared/schema";
 import type { ShapeType, RoomData } from "@/lib/fabric-enhanced";
 
 // Lazy-load analytics chart for performance
@@ -538,6 +539,38 @@ export default function Home() {
                     <div className="flex gap-1 text-xs">
                       <div className={`flex-1 px-2 py-1 rounded ${darkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700'}`}>✓ BIM Processing</div>
                       <div className={`flex-1 px-2 py-1 rounded ${darkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700'}`}>✓ AIQS Reports</div>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Parametric Assemblies */}
+              <AccordionItem value="parametric" className={`${darkMode ? 'border-gray-700' : 'border-gray-200'} border rounded-lg shadow-sm`}>
+                <AccordionTrigger className={`px-4 py-3 hover:no-underline ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}>
+                  <div className="flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-indigo-600" />
+                    <span className="text-sm font-semibold uppercase tracking-wide">Parametric Assemblies</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4">
+                  <div className="space-y-2">
+                    <Select onValueChange={(value) => console.log('Selected assembly:', value)}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select assembly" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PARAMETRIC_ASSEMBLIES.map(assembly => (
+                          <SelectItem key={assembly.id} value={assembly.id}>
+                            <div className="flex justify-between items-center w-full">
+                              <span>{assembly.name}</span>
+                              <span className="text-sm text-muted-foreground ml-2">${assembly.total_cost}/unit</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="text-xs text-muted-foreground">
+                      Pre-configured building assemblies with supply & install costs
                     </div>
                   </div>
                 </AccordionContent>

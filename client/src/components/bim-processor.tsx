@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, FileText, Building, Zap, CheckCircle, Clock, Target } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { PARAMETRIC_ASSEMBLIES, AUSTRALIAN_RATES } from "@shared/schema";
 
 interface BIMElement {
   id: string;
@@ -23,10 +24,20 @@ interface ProcessingResult {
   mep: BIMElement[];
   finishes: BIMElement[];
   external: BIMElement[];
+  parametric?: ParametricElement[];
   accuracy: string;
   processingTime: string;
   totalElements: number;
   totalCost: number;
+}
+
+interface ParametricElement {
+  id: string;
+  name: string;
+  quantity: number;
+  cost: number;
+  eco_rating: number;
+  components: { material: string; quantity: number; unit: string }[];
 }
 
 export function BIMProcessor() {
@@ -99,14 +110,30 @@ export function BIMProcessor() {
       totalCost: 0
     };
 
-    // Calculate total cost
+    // Add parametric assemblies with escalation
+    const parametricElements = PARAMETRIC_ASSEMBLIES.slice(0, 5).map((assembly, index) => ({
+      id: `p${index + 1}`,
+      name: assembly.name,
+      quantity: Math.floor(Math.random() * 50) + 10,
+      cost: assembly.total_cost * (1 + (AUSTRALIAN_RATES.escalation_factors.annual_2025 / 100)) * (Math.floor(Math.random() * 50) + 10),
+      eco_rating: assembly.eco_rating,
+      components: assembly.components
+    }));
+
+    mockResult.parametric = parametricElements;
+
+    // Calculate total cost including parametric
     mockResult.totalCost = [
       ...mockResult.structural,
       ...mockResult.architectural,
       ...mockResult.mep,
       ...mockResult.finishes,
       ...mockResult.external
-    ].reduce((sum, element) => sum + element.cost, 0);
+    ].reduce((sum, element) => sum + element.cost, 0) + 
+    (parametricElements?.reduce((sum, element) => sum + element.cost, 0) || 0);
+
+    // Update total elements count
+    mockResult.totalElements = 13 + parametricElements.length;
 
     setResult(mockResult);
     setIsProcessing(false);
@@ -288,6 +315,49 @@ export function BIMProcessor() {
               <div className="space-y-4">
                 {Object.entries(result).map(([category, elements]) => {
                   if (!Array.isArray(elements) || elements.length === 0) return null;
+                  if (category === 'parametric') {
+                    // Special handling for parametric assemblies
+                    const categoryTotal = (elements as ParametricElement[]).reduce((sum, el) => sum + el.cost, 0);
+                    
+                    return (
+                      <Card key={category} className="border-purple-200 bg-purple-50">
+                        <CardHeader>
+                          <CardTitle className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Badge className="bg-purple-100 text-purple-800">
+                                Parametric Assemblies
+                              </Badge>
+                              <span className="text-lg">${categoryTotal.toLocaleString()}</span>
+                            </div>
+                            <span className="text-sm text-gray-600">{elements.length} assemblies</span>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            {(elements as ParametricElement[]).map((element) => (
+                              <div key={element.id} className="p-3 bg-white rounded-lg border border-purple-100">
+                                <div className="flex justify-between items-start mb-2">
+                                  <div>
+                                    <span className="font-medium text-purple-900">{element.name}</span>
+                                    <span className="text-gray-600 ml-2">
+                                      {element.quantity} units
+                                    </span>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="font-semibold text-purple-700">${element.cost.toLocaleString()}</div>
+                                    <div className="text-xs text-gray-500">Eco: {element.eco_rating}/10</div>
+                                  </div>
+                                </div>
+                                <div className="text-xs text-gray-600">
+                                  Components: {element.components.map(c => c.material).join(', ')}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  }
                   
                   const categoryTotal = elements.reduce((sum, el) => sum + el.cost, 0);
                   
@@ -306,7 +376,7 @@ export function BIMProcessor() {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2">
-                          {elements.map((element) => (
+                          {elements.map((element: any) => (
                             <div key={element.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
                               <div className="flex-1">
                                 <span className="font-medium">{element.type}</span>
