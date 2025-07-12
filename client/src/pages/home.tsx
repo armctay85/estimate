@@ -375,23 +375,23 @@ export default function Home() {
                   <Layers className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold tracking-tight">EstiMate</h1>
-                  <p className="text-xs text-gray-500">AI-Powered Construction Platform</p>
+                  <h1 className="text-2xl text-display tracking-tight">EstiMate</h1>
+                  <p className="text-xs text-gray-500 font-medium tracking-wide uppercase">AI-Powered Construction Platform</p>
                 </div>
               </div>
               
               {/* Navigation Tabs */}
-              <nav className="flex items-center gap-1">
-                <button className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg border border-blue-200">
+              <nav className="flex items-center gap-2">
+                <button className="px-5 py-2.5 text-sm font-semibold text-orange-700 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg border border-orange-200 shadow-sm hover:shadow-md transition-all">
                   Dashboard
                 </button>
-                <button className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg">
+                <button className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">
                   Projects
                 </button>
-                <button className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg">
+                <button className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">
                   Reports
                 </button>
-                <button className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg">
+                <button className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">
                   Settings
                 </button>
               </nav>
@@ -399,20 +399,20 @@ export default function Home() {
 
             <div className="flex items-center gap-4">
               {/* Subscription Status */}
-              <div className="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-full">
-                <Award className="w-3 h-3 text-purple-600" />
-                <span className="text-xs font-medium text-purple-700">Enterprise</span>
+              <div className="flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-full shadow-sm">
+                <Award className="w-4 h-4 text-purple-600" />
+                <span className="text-xs font-bold text-purple-700 tracking-wide uppercase">Enterprise</span>
               </div>
               
               {/* Cost Display */}
-              <div className="flex items-center gap-2 px-3 py-1 bg-gray-50 border border-gray-200 rounded-lg">
-                <TrendingUp className="w-4 h-4 text-gray-600" />
-                <span className="text-sm font-medium text-gray-900">
-                  ${totalCost.toLocaleString()}
+              <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg shadow-sm">
+                <TrendingUp className="w-4 h-4 text-orange-600" />
+                <span className="text-mono text-lg font-bold text-gray-900">
+                  ${totalCost.toLocaleString('en-AU')}
                 </span>
               </div>
 
-              <Button size="sm" onClick={handleSaveProject} className="bg-blue-600 hover:bg-blue-700">
+              <Button size="sm" onClick={handleSaveProject} className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold shadow-md hover:shadow-lg transition-all">
                 Save Project
               </Button>
             </div>
@@ -425,8 +425,8 @@ export default function Home() {
         {/* Left Sidebar - Tools & Controls */}
         <div className="w-72 bg-white border-r border-gray-200 flex flex-col">
           {/* Sidebar Header */}
-          <div className="p-4 border-b border-gray-100">
-            <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+          <div className="p-5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+            <h2 className="text-display text-base font-bold text-gray-900 uppercase tracking-wider">
               Drawing Tools
             </h2>
           </div>
@@ -435,12 +435,12 @@ export default function Home() {
           <div className="flex-1 overflow-y-auto p-4 space-y-6">
             {/* Materials Section */}
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+              <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 uppercase tracking-wide">
+                <div className="w-2.5 h-2.5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full shadow-sm"></div>
                 Materials
               </h3>
-              <Card className="border-gray-200">
-                <CardContent className="p-3">
+              <Card className="border-gray-200 shadow-card hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
                   <MaterialSelector 
                     selectedMaterial={selectedMaterial}
                     onMaterialSelect={setSelectedMaterial}
@@ -451,12 +451,12 @@ export default function Home() {
 
             {/* Drawing Tools Section */}
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+              <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 uppercase tracking-wide">
+                <div className="w-2.5 h-2.5 bg-gradient-to-r from-green-500 to-green-600 rounded-full shadow-sm"></div>
                 Shapes
               </h3>
-              <Card className="border-gray-200">
-                <CardContent className="p-3">
+              <Card className="border-gray-200 shadow-card hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
                   <ShapeSelector
                     selectedShape={selectedShape}
                     onShapeSelect={setSelectedShape}
@@ -472,8 +472,8 @@ export default function Home() {
 
             {/* AI Tools Section */}
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
+              <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 uppercase tracking-wide">
+                <div className="w-2.5 h-2.5 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full shadow-sm"></div>
                 AI Tools
               </h3>
               <div className="space-y-3">
