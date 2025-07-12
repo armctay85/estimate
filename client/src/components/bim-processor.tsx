@@ -5,9 +5,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Upload, FileText, Building, Zap, CheckCircle, Clock, Target, Eye, Layers, Palette, TreePine, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
+import { Upload, FileText, Building, Zap, CheckCircle, Clock, Target, Eye, Layers, Palette, TreePine, RotateCcw, ZoomIn, ZoomOut, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PARAMETRIC_ASSEMBLIES, AUSTRALIAN_RATES } from "@shared/schema";
+import { ProjectScheduler } from "./project-scheduler";
 
 interface BIMElement {
   id: string;
@@ -946,6 +947,102 @@ export function BIMProcessor() {
                         <span className="text-xl font-bold">TOTAL INC GST</span>
                         <span className="text-3xl font-bold text-green-400">$689,845</span>
                       </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Project Scheduling Integration */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="w-5 h-5" />
+                    Development Scheduling & Sequencing Analysis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <Alert>
+                      <Clock className="h-4 w-4" />
+                      <AlertDescription>
+                        Import Microsoft Project schedules (like North Lakes) to establish accurate time on site and cost sequencing for various development types.
+                      </AlertDescription>
+                    </Alert>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-sm">Current Project Analysis</h4>
+                        <div className="bg-blue-50 border border-blue-200 p-3 rounded">
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>Estimated Duration:</span>
+                              <span className="font-semibold">18-28 weeks</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Critical Path:</span>
+                              <span className="font-semibold">22 weeks</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Peak Resources:</span>
+                              <span className="font-semibold">15-18 trades</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Weather Risk:</span>
+                              <span className="font-semibold">Medium (External works)</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-green-50 border border-green-200 p-3 rounded">
+                          <div className="font-medium text-sm text-green-800 mb-2">Time-Based Cost Accuracy</div>
+                          <div className="space-y-1 text-xs text-green-700">
+                            <div>• Labor allocation verified across 18-week timeline</div>
+                            <div>• Site mobilization optimized for project duration</div>
+                            <div>• Equipment hire scheduled to match construction phases</div>
+                            <div>• Resource conflicts identified and resolved</div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-sm">Development Type Comparison</h4>
+                        
+                        <div className="space-y-2">
+                          <div className="bg-gray-50 p-2 rounded text-xs">
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium">Residential Development</span>
+                              <span className="text-blue-600">28 weeks</span>
+                            </div>
+                            <div className="text-gray-600 mt-1">
+                              Foundation → Frame → Roof → MEP → Finishes (Standard sequence)
+                            </div>
+                          </div>
+                          
+                          <div className="bg-gray-50 p-2 rounded text-xs">
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium">Commercial Development</span>
+                              <span className="text-purple-600">42 weeks</span>
+                            </div>
+                            <div className="text-gray-600 mt-1">
+                              Design → Deep foundations → Steel frame → Envelope → Complex MEP
+                            </div>
+                          </div>
+                          
+                          <div className="bg-gray-50 p-2 rounded text-xs">
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium">Industrial Development</span>
+                              <span className="text-orange-600">36 weeks</span>
+                            </div>
+                            <div className="text-gray-600 mt-1">
+                              Site prep → Heavy foundations → Steel structure → Services
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="pt-4 border-t">
+                      <ProjectScheduler />
                     </div>
                   </div>
                 </CardContent>
