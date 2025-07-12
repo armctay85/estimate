@@ -103,7 +103,26 @@ material schedules, labor allocations, and project timelines.`;
               <Home className="w-4 h-4 mr-2" />
               Back to Dashboard
             </Button>
-            <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700">
+            <Button 
+              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+              onClick={() => {
+                // Generate a new report
+                const newReport = {
+                  id: Date.now(),
+                  name: `Cost Analysis Report - ${new Date().toLocaleDateString('en-AU')}`,
+                  type: "Cost Analysis",
+                  date: new Date().toISOString().split('T')[0],
+                  size: "1.2 MB"
+                };
+                
+                // For demo, show a preview of the generated report
+                setSelectedReport(newReport);
+                setPreviewOpen(true);
+                
+                // Show success message
+                alert('Report generated successfully!');
+              }}
+            >
               <FileText className="w-4 h-4 mr-2" />
               Generate Report
             </Button>

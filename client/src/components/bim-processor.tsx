@@ -46,6 +46,7 @@ export function BIMProcessor() {
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
   const [result, setResult] = useState<ProcessingResult | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -148,7 +149,10 @@ export function BIMProcessor() {
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    processFile(file);
+  };
 
+  const processFile = async (file: File) => {
     const allowedTypes = ['.dwg', '.dxf', '.ifc', '.rvt', '.skp', '.pln', '.pdf'];
     const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
     
@@ -162,6 +166,26 @@ export function BIMProcessor() {
     }
 
     await simulateProcessing(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      processFile(file);
+    }
   };
 
   const getCategoryColor = (category: string) => {
@@ -202,7 +226,16 @@ export function BIMProcessor() {
                 </AlertDescription>
               </Alert>
 
-              <Card className="border-dashed border-2 border-gray-300 hover:border-emerald-400 transition-colors">
+              <Card 
+                className={`border-dashed border-2 transition-colors ${
+                  isDragging 
+                    ? 'border-emerald-500 bg-emerald-50' 
+                    : 'border-gray-300 hover:border-emerald-400'
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
                 <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
                   <Upload className="w-12 h-12 text-gray-400" />
                   <div className="text-center">

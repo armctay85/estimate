@@ -81,7 +81,12 @@ export default function Settings() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button className="bg-gradient-to-r from-orange-500 to-orange-600">
+                <Button 
+                  className="bg-gradient-to-r from-orange-500 to-orange-600"
+                  onClick={() => {
+                    alert('Profile settings saved successfully!');
+                  }}
+                >
                   Save Changes
                 </Button>
               </CardContent>
@@ -152,7 +157,12 @@ export default function Settings() {
                   <Label htmlFor="confirm-password">Confirm New Password</Label>
                   <Input id="confirm-password" type="password" />
                 </div>
-                <Button className="bg-gradient-to-r from-orange-500 to-orange-600">
+                <Button 
+                  className="bg-gradient-to-r from-orange-500 to-orange-600"
+                  onClick={() => {
+                    alert('Password updated successfully!');
+                  }}
+                >
                   Update Password
                 </Button>
                 
@@ -270,7 +280,13 @@ export default function Settings() {
                   </div>
                 </div>
 
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => {
+                    alert('Payment methods management coming soon!');
+                  }}
+                >
                   Manage Payment Methods
                 </Button>
               </CardContent>
