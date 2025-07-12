@@ -1,7 +1,7 @@
 import { Header } from "@/components/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, FolderOpen, Calendar, DollarSign } from "lucide-react";
+import { Plus, FolderOpen, Calendar, DollarSign, Home } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function Projects() {
@@ -45,13 +45,22 @@ export default function Projects() {
             <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
             <p className="text-gray-600 mt-1">Manage all your construction projects</p>
           </div>
-          <Button 
-            onClick={() => setLocation("/")}
-            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Project
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => setLocation("/")}
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Button>
+            <Button 
+              onClick={() => setLocation("/")}
+              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Project
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

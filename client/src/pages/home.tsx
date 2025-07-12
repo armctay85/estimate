@@ -150,7 +150,23 @@ export default function Home() {
 
   const handleSaveProject = () => {
     console.log("Saving project with rooms:", rooms);
-    // TODO: Implement project saving
+    // Save project to localStorage for demo
+    const projectData = {
+      id: Date.now(),
+      name: `Project_${new Date().toLocaleDateString('en-AU').replace(/\//g, '-')}`,
+      rooms,
+      totalCost,
+      projectType,
+      createdAt: new Date().toISOString()
+    };
+    
+    // Get existing projects
+    const existingProjects = JSON.parse(localStorage.getItem('savedProjects') || '[]');
+    existingProjects.push(projectData);
+    localStorage.setItem('savedProjects', JSON.stringify(existingProjects));
+    
+    // Show success notification (you can enhance this with a toast)
+    alert('Project saved successfully!');
   };
 
   const handleBackgroundUpload = async (file: File): Promise<void> => {
