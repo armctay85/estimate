@@ -40,6 +40,158 @@ export function ProjectScheduler() {
 
   // Development type schedules based on North Lakes project data
   const developmentSchedules: Record<string, DevelopmentType> = {
+    driveThru: {
+      type: 'Drive-Thru Restaurant (Starbucks)',
+      totalDuration: 13,
+      totalCost: 1320000,
+      peakResources: 25,
+      criticalPathWeeks: 11,
+      phases: [
+        {
+          id: 'site-establish',
+          name: 'Site Establishment & Set Out',
+          duration: 1,
+          startWeek: 1,
+          dependencies: [],
+          trades: ['Site Works', 'Surveyor'],
+          cost: 35000,
+          criticalPath: true,
+          resourceLevel: 'medium'
+        },
+        {
+          id: 'site-works',
+          name: 'Preliminary Site Works & Strip',
+          duration: 1,
+          startWeek: 2,
+          dependencies: ['site-establish'],
+          trades: ['Earthworks', 'Civil'],
+          cost: 45000,
+          criticalPath: true,
+          resourceLevel: 'high'
+        },
+        {
+          id: 'concrete-slab',
+          name: 'Concrete Slab & Footings',
+          duration: 3,
+          startWeek: 3,
+          dependencies: ['site-works'],
+          trades: ['Concrete', 'Steel Fixing', 'Plumbing'],
+          cost: 85000,
+          criticalPath: true,
+          resourceLevel: 'high'
+        },
+        {
+          id: 'precast-panels',
+          name: 'Precast Concrete Panels',
+          duration: 2,
+          startWeek: 5,
+          dependencies: ['concrete-slab'],
+          trades: ['Crane', 'Precast Install'],
+          cost: 120000,
+          criticalPath: true,
+          resourceLevel: 'high'
+        },
+        {
+          id: 'steel-structure',
+          name: 'Steel Structure & Awnings',
+          duration: 1,
+          startWeek: 6,
+          dependencies: ['precast-panels'],
+          trades: ['Steel Erection', 'Crane'],
+          cost: 95000,
+          criticalPath: true,
+          resourceLevel: 'high'
+        },
+        {
+          id: 'roofing',
+          name: 'Roofing & Cladding',
+          duration: 2,
+          startWeek: 7,
+          dependencies: ['steel-structure'],
+          trades: ['Roofing', 'Cladding'],
+          cost: 75000,
+          criticalPath: true,
+          resourceLevel: 'medium'
+        },
+        {
+          id: 'services-rough',
+          name: 'Services Rough-In',
+          duration: 2,
+          startWeek: 7,
+          dependencies: ['steel-structure'],
+          trades: ['Electrical', 'Plumbing', 'HVAC'],
+          cost: 110000,
+          criticalPath: false,
+          resourceLevel: 'high'
+        },
+        {
+          id: 'internal-fitout',
+          name: 'Internal Fitout & Finishes',
+          duration: 3,
+          startWeek: 9,
+          dependencies: ['roofing', 'services-rough'],
+          trades: ['Partitions', 'Plastering', 'Tiling'],
+          cost: 145000,
+          criticalPath: true,
+          resourceLevel: 'high'
+        },
+        {
+          id: 'kitchen-equipment',
+          name: 'Kitchen Equipment & Joinery',
+          duration: 2,
+          startWeek: 11,
+          dependencies: ['internal-fitout'],
+          trades: ['Commercial Kitchen', 'Joinery'],
+          cost: 180000,
+          criticalPath: true,
+          resourceLevel: 'medium'
+        },
+        {
+          id: 'external-works',
+          name: 'External Works & Drive-Thru Lane',
+          duration: 3,
+          startWeek: 9,
+          dependencies: ['roofing'],
+          trades: ['Civil', 'Concrete', 'Line Marking'],
+          cost: 165000,
+          criticalPath: false,
+          resourceLevel: 'high'
+        },
+        {
+          id: 'services-fitoff',
+          name: 'Services Fit-Off & Testing',
+          duration: 1,
+          startWeek: 12,
+          dependencies: ['kitchen-equipment'],
+          trades: ['Electrical', 'Plumbing', 'HVAC'],
+          cost: 55000,
+          criticalPath: true,
+          resourceLevel: 'medium'
+        },
+        {
+          id: 'signage-landscape',
+          name: 'Signage & Landscaping',
+          duration: 2,
+          startWeek: 12,
+          dependencies: ['external-works'],
+          trades: ['Signage', 'Landscaping'],
+          cost: 85000,
+          criticalPath: false,
+          resourceLevel: 'medium'
+        },
+        {
+          id: 'commissioning',
+          name: 'Commissioning & Handover',
+          duration: 1,
+          startWeek: 13,
+          dependencies: ['services-fitoff', 'signage-landscape'],
+          trades: ['All Trades', 'Consultants'],
+          cost: 45000,
+          criticalPath: true,
+          resourceLevel: 'low'
+        }
+      ]
+    },
     residential: {
       type: "Residential Development",
       totalDuration: 28,

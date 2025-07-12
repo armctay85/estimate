@@ -192,6 +192,28 @@ A comprehensive list of ready-to-deploy enhancements has been created at `IMMEDI
 
 ## Recent Changes
 
+### January 12, 2025 - Dashboard-Driven User Experience & Drive-Thru Restaurant Integration
+- **Home Page Redesign**: Transformed from basic canvas to comprehensive dashboard with user journey options
+  - Created selection screen showing all available tools and tiers
+  - Users now choose their workflow: Quick Sketch (Free), Professional QS ($39.99), or Enterprise BIM ($2,999)
+  - Added AI Cost Predictor, Upload Plans, and Recent Projects as standalone options
+  - Dashboard includes visual pricing tiers with feature comparison
+  - One-click navigation to appropriate workspace based on user needs
+- **Drive-Thru Restaurant Scheduling**: Added specialized Starbucks drive-thru construction schedule
+  - 13-week specialized timeline for quick-service restaurant construction
+  - Precast panel construction methodology with concurrent MEP rough-in
+  - Drive-thru lane and kitchen equipment phases specific to QSR projects
+  - Based on actual Starbucks Werribee construction program data
+  - Total cost: $1.32M with 25 peak resources
+- **User Flow Enhancement**: Clear separation between dashboard selection and workspace modes
+  - Dashboard button returns users to option selection screen
+  - Workspace preserves all drawing and project data
+  - Seamless transition between exploration and work modes
+- **Visual Hierarchy**: Professional card-based layout with hover effects and animations
+  - Color-coded tiers: Green (Free), Blue (Pro), Purple (Enterprise)
+  - Feature comparison with checkmarks for each tier capability
+  - "Why EstiMate?" banner showing 70-80% cost savings metrics
+
 ### January 12, 2025 - Comprehensive AIQS Technical Standards Integration & Dynamic 3D Wireframe Enhancement
 - **Complete AIQS Standards Integration**: Scraped and integrated all available AIQS technical documents
   - **EDC Practice Standard 2nd Edition**: Part 1/Part 2 report structure, CQS requirements, NSW SSD compliance

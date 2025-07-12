@@ -15,10 +15,11 @@ import { BIMProcessor } from "@/components/bim-processor";
 import { IntelligentAssistant } from "@/components/intelligent-assistant";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { TrendingUp, FileBarChart, Users, Award, BarChart3, Upload, Sparkles, Zap, Brain, Share2, Moon, Sun, Settings, Layers, Palette } from "lucide-react";
+import { TrendingUp, FileBarChart, Users, Award, BarChart3, Upload, Sparkles, Zap, Brain, Share2, Moon, Sun, Settings, Layers, Palette, CheckCircle } from "lucide-react";
 import { PARAMETRIC_ASSEMBLIES, type MaterialType } from "@shared/schema";
 import type { ShapeType, RoomData } from "@/lib/fabric-enhanced";
 
@@ -64,6 +65,7 @@ export default function Home() {
   const [onboardingStep, setOnboardingStep] = useState(0);
   const [leftPanelWidth, setLeftPanelWidth] = useState(300);
   const [rightPanelWidth, setRightPanelWidth] = useState(300);
+  const [showDashboard, setShowDashboard] = useState(true);
   
   const canvasRef = useRef<{ uploadBackground: (file: File) => void } | null>(null);
   const isMobile = useIsMobile();
@@ -372,6 +374,340 @@ export default function Home() {
     );
   }
 
+  // Show dashboard selection screen if not in workspace mode
+  if (showDashboard) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className={`min-h-screen font-sans ${darkMode ? 'bg-gray-900 text-white' : 'bg-gradient-to-br from-slate-50 to-gray-100'}`}
+      >
+        <Header />
+        
+        {/* Hero Section */}
+        <div className="px-6 py-12 max-w-7xl mx-auto">
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="text-center mb-12"
+          >
+            <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
+              Welcome to EstiMate
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              Choose how you want to estimate your construction project. From quick sketches to enterprise BIM processing.
+            </p>
+          </motion.div>
+
+          {/* Options Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Quick Sketch - Free Tier */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group" 
+                    onClick={() => setShowDashboard(false)}>
+                <CardContent className="p-8">
+                  <div className="mb-6">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <Layers className="w-8 h-8 text-green-600" />
+                    </div>
+                    <Badge className="bg-green-100 text-green-800 mb-2">Free</Badge>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3">Quick Floor Plan Sketch</h3>
+                  <p className="text-gray-600 mb-6">
+                    Draw simple floor plans and get instant cost estimates with 5 basic materials.
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <span>Basic drawing tools</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <span>5 material options</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <span>Instant cost calculation</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <span>3 projects per month</span>
+                    </div>
+                  </div>
+                  <Button className="w-full mt-6 bg-green-600 hover:bg-green-700">
+                    Start Sketching
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Professional QS - Pro Tier */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group border-2 border-blue-200"
+                    onClick={() => {
+                      setProjectType('commercial');
+                      setShowDashboard(false);
+                    }}>
+                <CardContent className="p-8">
+                  <div className="mb-6">
+                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <BarChart3 className="w-8 h-8 text-blue-600" />
+                    </div>
+                    <Badge className="bg-blue-100 text-blue-800 mb-2">Pro - $39.99/month</Badge>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3">Professional QS Tools</h3>
+                  <p className="text-gray-600 mb-6">
+                    Complete quantity surveying toolkit with 200+ materials and professional reports.
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-blue-600" />
+                      <span>200+ Australian materials</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-blue-600" />
+                      <span>MEP services calculation</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-blue-600" />
+                      <span>Professional PDF reports</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-blue-600" />
+                      <span>AIQS compliant outputs</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-blue-600" />
+                      <span>Unlimited projects</span>
+                    </div>
+                  </div>
+                  <Button className="w-full mt-6 bg-blue-600 hover:bg-blue-700">
+                    Launch Pro Tools
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Enterprise BIM - Enterprise Tier */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >
+              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group border-2 border-purple-200"
+                    onClick={() => {
+                      setProjectType('commercial');
+                      setShowDashboard(false);
+                    }}>
+                <CardContent className="p-8">
+                  <div className="mb-6">
+                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <Zap className="w-8 h-8 text-purple-600" />
+                    </div>
+                    <Badge className="bg-purple-100 text-purple-800 mb-2">Enterprise - $2,999/month</Badge>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3">BIM Auto-Takeoff</h3>
+                  <p className="text-gray-600 mb-6">
+                    AI-powered BIM processing to replace your entire QS department.
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-purple-600" />
+                      <span>Upload DWG, IFC, Revit files</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-purple-600" />
+                      <span>AI element detection</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-purple-600" />
+                      <span>±2% accuracy guarantee</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-purple-600" />
+                      <span>15-45 minute processing</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-purple-600" />
+                      <span>Replace 2-3 QS staff</span>
+                    </div>
+                  </div>
+                  <Button className="w-full mt-6 bg-purple-600 hover:bg-purple-700">
+                    Start BIM Processing
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* AI Cost Predictor */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group"
+                    onClick={() => setShowDashboard(false)}>
+                <CardContent className="p-8">
+                  <div className="mb-6">
+                    <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <Brain className="w-8 h-8 text-orange-600" />
+                    </div>
+                    <Badge className="bg-orange-100 text-orange-800 mb-2">AI Powered</Badge>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3">AI Cost Predictor</h3>
+                  <p className="text-gray-600 mb-6">
+                    Get instant cost predictions based on 10,000+ Australian projects.
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-orange-600" />
+                      <span>Regional cost variations</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-orange-600" />
+                      <span>Complexity factors</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-orange-600" />
+                      <span>Timeline impacts</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-orange-600" />
+                      <span>95% confidence ranges</span>
+                    </div>
+                  </div>
+                  <Button className="w-full mt-6 bg-orange-600 hover:bg-orange-700">
+                    Predict Costs
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Upload Plans */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
+              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group"
+                    onClick={() => setShowDashboard(false)}>
+                <CardContent className="p-8">
+                  <div className="mb-6">
+                    <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <Upload className="w-8 h-8 text-indigo-600" />
+                    </div>
+                    <Badge className="bg-indigo-100 text-indigo-800 mb-2">Import & Trace</Badge>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3">Upload Floor Plans</h3>
+                  <p className="text-gray-600 mb-6">
+                    Import PDF or image floor plans and trace over them for accurate estimates.
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-indigo-600" />
+                      <span>PDF & image support</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-indigo-600" />
+                      <span>Scale calibration</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-indigo-600" />
+                      <span>Trace assistance</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-indigo-600" />
+                      <span>Auto-measurement</span>
+                    </div>
+                  </div>
+                  <Button className="w-full mt-6 bg-indigo-600 hover:bg-indigo-700">
+                    Upload Plans
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Recent Projects */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.7 }}
+            >
+              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group"
+                    onClick={() => setLocation('/projects')}>
+                <CardContent className="p-8">
+                  <div className="mb-6">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <FileBarChart className="w-8 h-8 text-gray-600" />
+                    </div>
+                    <Badge className="bg-gray-100 text-gray-800 mb-2">Continue Working</Badge>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3">Recent Projects</h3>
+                  <p className="text-gray-600 mb-6">
+                    Access your saved projects and continue where you left off.
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <span>Starbucks Werribee</span>
+                      <span className="font-bold">$1.32M</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <span>North Lakes Development</span>
+                      <span className="font-bold">$850K</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <span>Commercial Fitout Sydney</span>
+                      <span className="font-bold">$2.1M</span>
+                    </div>
+                  </div>
+                  <Button className="w-full mt-6" variant="outline">
+                    View All Projects
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+
+          {/* Features Banner */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="mt-16 p-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl text-white"
+          >
+            <div className="text-center">
+              <h2 className="text-3xl font-bold mb-4">Why EstiMate?</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
+                <div>
+                  <div className="text-5xl font-bold mb-2">70-80%</div>
+                  <p className="text-blue-100">Cost savings vs traditional QS departments</p>
+                </div>
+                <div>
+                  <div className="text-5xl font-bold mb-2">±2%</div>
+                  <p className="text-blue-100">Accuracy guarantee on BIM takeoffs</p>
+                </div>
+                <div>
+                  <div className="text-5xl font-bold mb-2">15-45min</div>
+                  <p className="text-blue-100">Complete project analysis time</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </motion.div>
+    );
+  }
+
   // Enhanced Desktop Layout: Procore-inspired with orange accents, animations, and resizable panels
   return (
     <motion.div 
@@ -406,7 +742,7 @@ export default function Home() {
               {/* Navigation Tabs */}
               <nav className="flex items-center gap-2">
                 <button 
-                  onClick={() => setLocation("/")}
+                  onClick={() => setShowDashboard(true)}
                   className="px-5 py-2.5 text-sm font-semibold text-orange-700 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg border border-orange-200 shadow-sm hover:shadow-md transition-all"
                 >
                   Dashboard
