@@ -212,7 +212,7 @@ export default function Home() {
   };
 
   // Enhanced Mobile Layout with Procore-inspired design
-  if (isMobile) {
+  if (isMobile && !showDashboard) {
     return (
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }} 
@@ -244,10 +244,13 @@ export default function Home() {
               </Button>
               <Button
                 size="sm"
-                onClick={handleShareProject}
+                onClick={() => {
+                  localStorage.removeItem('estimateWorkspaceMode');
+                  setShowDashboard(true);
+                }}
                 className="bg-orange-600 hover:bg-orange-700 text-white"
               >
-                <Share2 className="w-4 h-4" />
+                Dashboard
               </Button>
             </div>
           </div>
@@ -425,6 +428,17 @@ export default function Home() {
                       <Layers className="w-8 h-8 text-green-600" />
                     </div>
                     <Badge className="bg-green-100 text-green-800 mb-2">Free</Badge>
+                    {/* Preview graphic */}
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="grid grid-cols-3 gap-1">
+                        <div className="h-8 bg-green-200 rounded"></div>
+                        <div className="h-8 bg-green-300 rounded"></div>
+                        <div className="h-8 bg-green-200 rounded"></div>
+                        <div className="h-8 bg-green-300 rounded col-span-2"></div>
+                        <div className="h-8 bg-green-200 rounded"></div>
+                      </div>
+                      <div className="text-xs text-center mt-2 text-gray-500">Simple floor plan sketch</div>
+                    </div>
                   </div>
                   <h3 className="text-2xl font-bold mb-3">Quick Floor Plan Sketch</h3>
                   <p className="text-gray-600 mb-6">
@@ -472,6 +486,24 @@ export default function Home() {
                       <BarChart3 className="w-8 h-8 text-blue-600" />
                     </div>
                     <Badge className="bg-blue-100 text-blue-800 mb-2">Pro - $39.99/month</Badge>
+                    {/* Preview graphic */}
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center p-2 bg-blue-50 rounded text-xs">
+                          <span>Concrete Slab</span>
+                          <span className="font-mono">$165/m²</span>
+                        </div>
+                        <div className="flex justify-between items-center p-2 bg-blue-50 rounded text-xs">
+                          <span>Steel Frame</span>
+                          <span className="font-mono">$1,230/t</span>
+                        </div>
+                        <div className="flex justify-between items-center p-2 bg-blue-50 rounded text-xs">
+                          <span>HVAC Systems</span>
+                          <span className="font-mono">$180/m²</span>
+                        </div>
+                      </div>
+                      <div className="text-xs text-center mt-2 text-gray-500">200+ Professional rates</div>
+                    </div>
                   </div>
                   <h3 className="text-2xl font-bold mb-3">Professional QS Tools</h3>
                   <p className="text-gray-600 mb-6">
@@ -523,6 +555,25 @@ export default function Home() {
                       <Zap className="w-8 h-8 text-purple-600" />
                     </div>
                     <Badge className="bg-purple-100 text-purple-800 mb-2">Enterprise - $2,999/month</Badge>
+                    {/* Preview graphic */}
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="relative h-32 overflow-hidden">
+                        {/* 3D wireframe preview */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-100 to-purple-50">
+                          <svg viewBox="0 0 200 100" className="w-full h-full">
+                            <g stroke="rgb(147, 51, 234)" strokeWidth="0.5" fill="none">
+                              <path d="M20,80 L20,40 L60,20 L60,60 Z" />
+                              <path d="M60,20 L100,20 L100,60 L60,60" />
+                              <path d="M100,20 L140,40 L140,80 L100,60" />
+                              <path d="M20,40 L60,20 L100,20 L140,40" />
+                              <path d="M20,80 L60,60 L100,60 L140,80" />
+                            </g>
+                            <text x="100" y="50" textAnchor="middle" className="text-xs fill-purple-600">BIM Model</text>
+                          </svg>
+                        </div>
+                      </div>
+                      <div className="text-xs text-center mt-2 text-gray-500">AI-powered 3D takeoff</div>
+                    </div>
                   </div>
                   <h3 className="text-2xl font-bold mb-3">BIM Auto-Takeoff</h3>
                   <p className="text-gray-600 mb-6">
@@ -571,6 +622,19 @@ export default function Home() {
                       <Brain className="w-8 h-8 text-orange-600" />
                     </div>
                     <Badge className="bg-orange-100 text-orange-800 mb-2">AI Powered</Badge>
+                    {/* Preview graphic */}
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="space-y-2">
+                        <div className="h-2 bg-orange-200 rounded-full w-3/4"></div>
+                        <div className="h-2 bg-orange-300 rounded-full w-full"></div>
+                        <div className="h-2 bg-orange-200 rounded-full w-2/3"></div>
+                        <div className="text-center mt-3">
+                          <span className="text-2xl font-bold text-orange-600">$2.4M</span>
+                          <span className="text-xs text-gray-500 block">± 5% confidence</span>
+                        </div>
+                      </div>
+                      <div className="text-xs text-center mt-2 text-gray-500">AI prediction engine</div>
+                    </div>
                   </div>
                   <h3 className="text-2xl font-bold mb-3">AI Cost Predictor</h3>
                   <p className="text-gray-600 mb-6">
@@ -615,6 +679,17 @@ export default function Home() {
                       <Upload className="w-8 h-8 text-indigo-600" />
                     </div>
                     <Badge className="bg-indigo-100 text-indigo-800 mb-2">Import & Trace</Badge>
+                    {/* Preview graphic */}
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-center h-24">
+                        <div className="border-2 border-dashed border-indigo-300 rounded-lg p-4 text-center">
+                          <Upload className="w-8 h-8 text-indigo-400 mx-auto mb-2" />
+                          <div className="text-xs text-gray-600">Drag & Drop</div>
+                          <div className="text-xs text-gray-500">PDF, DWG, DXF</div>
+                        </div>
+                      </div>
+                      <div className="text-xs text-center mt-2 text-gray-500">Import existing plans</div>
+                    </div>
                   </div>
                   <h3 className="text-2xl font-bold mb-3">Upload Floor Plans</h3>
                   <p className="text-gray-600 mb-6">
@@ -659,6 +734,24 @@ export default function Home() {
                       <FileBarChart className="w-8 h-8 text-gray-600" />
                     </div>
                     <Badge className="bg-gray-100 text-gray-800 mb-2">Continue Working</Badge>
+                    {/* Preview graphic */}
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between p-2 bg-white border rounded text-xs">
+                          <span className="font-medium">Starbucks Werribee</span>
+                          <span className="text-blue-600">40%</span>
+                        </div>
+                        <div className="flex items-center justify-between p-2 bg-white border rounded text-xs">
+                          <span className="font-medium">Kmart Gladstone</span>
+                          <span className="text-green-600">65%</span>
+                        </div>
+                        <div className="flex items-center justify-between p-2 bg-white border rounded text-xs">
+                          <span className="font-medium">Brisbane Residential</span>
+                          <span className="text-gray-600">100%</span>
+                        </div>
+                      </div>
+                      <div className="text-xs text-center mt-2 text-gray-500">Your saved projects</div>
+                    </div>
                   </div>
                   <h3 className="text-2xl font-bold mb-3">Recent Projects</h3>
                   <p className="text-gray-600 mb-6">

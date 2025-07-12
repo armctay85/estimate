@@ -30,11 +30,58 @@ interface DevelopmentType {
   criticalPathWeeks: number;
 }
 
+// Scope Training PM Templates Integration for Enhanced Pricing
+const scopeTrainingTemplates = {
+  projectCharter: {
+    name: "Project Charter",
+    description: "Initiation document for mutual understanding",
+    costImpact: 0.02, // 2% impact on project cost for proper initiation
+    riskReduction: 0.15 // 15% risk reduction
+  },
+  scopeMatrix: {
+    name: "Scope Matrix", 
+    description: "Filtering tool to define project scope and priorities",
+    costImpact: -0.05, // 5% cost reduction through clear scope
+    riskReduction: 0.20 // 20% risk reduction
+  },
+  qualityManagementPlan: {
+    name: "Quality Management Plan",
+    description: "Defines deliverable criteria and standards",
+    costImpact: 0.03, // 3% cost for quality processes
+    riskReduction: 0.25 // 25% risk reduction
+  },
+  riskRegister: {
+    name: "Risk Register",
+    description: "Excel format for risk identification and management",
+    costImpact: -0.08, // 8% cost savings through risk mitigation
+    riskReduction: 0.30 // 30% risk reduction
+  },
+  costManagementPlan: {
+    name: "Cost Management Plan",
+    description: "Word format for cost management processes",
+    costImpact: -0.10, // 10% cost optimization
+    riskReduction: 0.20 // 20% risk reduction
+  },
+  communicationPlan: {
+    name: "Communication Plan",
+    description: "Stakeholder communication strategy",
+    costImpact: -0.03, // 3% efficiency gains
+    riskReduction: 0.15 // 15% risk reduction
+  },
+  responsibilityMatrix: {
+    name: "Responsibility Assignment Matrix (RAM)",
+    description: "Clear role definition for all parties",
+    costImpact: -0.04, // 4% efficiency through clear responsibilities
+    riskReduction: 0.18 // 18% risk reduction
+  }
+};
+
 export function ProjectScheduler() {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDevelopment, setSelectedDevelopment] = useState<string>('residential');
   const [scheduleAnalysis, setScheduleAnalysis] = useState<DevelopmentType | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [selectedTemplates, setSelectedTemplates] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 

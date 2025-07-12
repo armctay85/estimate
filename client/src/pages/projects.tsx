@@ -6,34 +6,54 @@ import { useLocation } from "wouter";
 
 export default function Projects() {
   const [, setLocation] = useLocation();
-
-  // Placeholder project data
-  const projects = [
-    {
-      id: 1,
-      name: "Kmart Gladstone Renovation",
-      status: "In Progress",
-      cost: 1245000,
-      date: "2025-01-10",
-      completion: 65
-    },
-    {
-      id: 2,
-      name: "Starbucks Drive-Through",
-      status: "Planning",
-      cost: 780000,
-      date: "2025-01-08",
-      completion: 20
-    },
-    {
-      id: 3,
-      name: "Residential Complex - Brisbane",
-      status: "Completed",
-      cost: 3400000,
-      date: "2024-12-15",
-      completion: 100
+  
+  // Load saved projects from localStorage
+  const getSavedProjects = () => {
+    const saved = localStorage.getItem('estimateProjects');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Error loading projects:', e);
+      }
     }
-  ];
+    
+    // Default projects if none saved
+    return [
+      {
+        id: "starbucks-werribee",
+        name: "Starbucks Werribee Drive-Through",
+        status: "In Progress",
+        cost: 1320000,
+        date: new Date().toISOString().split('T')[0],
+        completion: 40,
+        type: "Commercial - QSR",
+        area: 285
+      },
+      {
+        id: "kmart-gladstone",
+        name: "Kmart Gladstone Renovation",
+        status: "In Progress", 
+        cost: 1245000,
+        date: "2025-01-10",
+        completion: 65,
+        type: "Retail",
+        area: 2400
+      },
+      {
+        id: "residential-brisbane",
+        name: "Residential Complex - Brisbane",
+        status: "Completed",
+        cost: 3400000,
+        date: "2024-12-15",
+        completion: 100,
+        type: "Residential",
+        area: 1850
+      }
+    ];
+  };
+
+  const projects = getSavedProjects();
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -120,7 +140,7 @@ export default function Projects() {
                 <Button 
                   variant="outline" 
                   className="w-full mt-3"
-                  onClick={() => setLocation("/")}
+                  onClick={() => setLocation(`/project/${project.id}`)}
                 >
                   Open Project
                 </Button>

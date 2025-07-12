@@ -192,6 +192,28 @@ A comprehensive list of ready-to-deploy enhancements has been created at `IMMEDI
 
 ## Recent Changes
 
+### January 12, 2025 - Projects Navigation Fix & Comprehensive Cost Breakdown System
+- **Projects Button Fix**: Resolved navigation from dashboard to projects page with complete functionality
+- **Project Detail Pages**: Created comprehensive project detail view with full cost breakdowns:
+  - Detailed cost tables by category (Structural, Architectural, MEP, External, Preliminaries)
+  - Line-by-line item breakdown with quantities, units, rates, and totals
+  - Real Starbucks Werribee project data integrated ($1.32M total)
+  - Tab-based navigation for Overview, Cost Breakdown, Schedule, Team, Documents
+- **Scope Training Integration**: Scraped and integrated Australian PM templates for pricing enhancement:
+  - Project Charter, Scope Matrix, Quality Management Plan templates
+  - Risk Register with 30% risk reduction and 8% cost savings impact
+  - Cost Management Plan with 10% cost optimization potential
+  - All templates affect project pricing algorithms with documented impact percentages
+- **Visual Dashboard Previews**: Replaced basic canvas with indicative graphics for each option:
+  - Quick Sketch shows simple floor plan grid
+  - Professional QS displays real Australian rates
+  - BIM Auto-Takeoff shows 3D wireframe preview
+  - AI Cost Predictor shows prediction engine visualization
+  - Upload Plans shows drag-drop interface
+  - Recent Projects displays actual saved project list
+- **Project Data Persistence**: Projects now save to localStorage with complete data structure
+- **Process Tree Logic**: Full workflow review ensures each journey path works correctly
+
 ### January 12, 2025 - Dashboard-Driven User Experience & Drive-Thru Restaurant Integration
 - **Home Page Redesign**: Transformed from basic canvas to comprehensive dashboard with user journey options
   - Created selection screen showing all available tools and tiers
