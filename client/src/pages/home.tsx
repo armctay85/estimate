@@ -13,6 +13,7 @@ import { Header } from "@/components/header";
 import { AICostPredictor } from "@/components/ai-cost-predictor";
 import { BIMProcessor } from "@/components/bim-processor";
 import { IntelligentAssistant } from "@/components/intelligent-assistant";
+import { Wireframe3DViewer } from "@/components/wireframe-3d-viewer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +71,7 @@ export default function Home() {
     const savedWorkspace = localStorage.getItem('estimateWorkspaceMode');
     return savedWorkspace !== 'workspace';
   });
+  const [show3DWireframe, setShow3DWireframe] = useState(false);
   
   const canvasRef = useRef<{ uploadBackground: (file: File) => void } | null>(null);
   const isMobile = useIsMobile();
@@ -287,6 +289,15 @@ export default function Home() {
                 </div>
                 <div className="bim-processor">
                   <BIMProcessor />
+                </div>
+                <div className="mt-4">
+                  <Button 
+                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                    onClick={() => setShow3DWireframe(true)}
+                  >
+                    <Box className="w-4 h-4 mr-2" />
+                    View 3D Wireframe Model
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -555,24 +566,13 @@ export default function Home() {
                       <Zap className="w-8 h-8 text-purple-600" />
                     </div>
                     <Badge className="bg-purple-100 text-purple-800 mb-2">Enterprise - $2,999/month</Badge>
-                    {/* Preview graphic */}
-                    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                      <div className="relative h-32 overflow-hidden">
-                        {/* 3D wireframe preview */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-purple-100 to-purple-50">
-                          <svg viewBox="0 0 200 100" className="w-full h-full">
-                            <g stroke="rgb(147, 51, 234)" strokeWidth="0.5" fill="none">
-                              <path d="M20,80 L20,40 L60,20 L60,60 Z" />
-                              <path d="M60,20 L100,20 L100,60 L60,60" />
-                              <path d="M100,20 L140,40 L140,80 L100,60" />
-                              <path d="M20,40 L60,20 L100,20 L140,40" />
-                              <path d="M20,80 L60,60 L100,60 L140,80" />
-                            </g>
-                            <text x="100" y="50" textAnchor="middle" className="text-xs fill-purple-600">BIM Model</text>
-                          </svg>
-                        </div>
-                      </div>
-                      <div className="text-xs text-center mt-2 text-gray-500">AI-powered 3D takeoff</div>
+                    {/* Preview graphic - Interactive 3D Model */}
+                    <div className="mt-4 rounded-lg overflow-hidden">
+                      <Wireframe3DViewer 
+                        embedded={true}
+                        fileName="Demo BIM Model"
+                      />
+                      <div className="text-xs text-center mt-2 text-gray-500">Live 3D Model Preview</div>
                     </div>
                   </div>
                   <h3 className="text-2xl font-bold mb-3">BIM Auto-Takeoff</h3>
@@ -1113,6 +1113,19 @@ export default function Home() {
       </div>
 
       <IntelligentAssistant />
+      
+      {/* 3D Wireframe Viewer */}
+      <Wireframe3DViewer
+        isOpen={show3DWireframe}
+        onClose={() => setShow3DWireframe(false)}
+        fileName="Current Project 3D Model"
+        projectData={{
+          name: "Current Project",
+          totalCost: totalCost,
+          rooms: rooms,
+          projectType: projectType
+        }}
+      />
     </motion.div>
   );
 }

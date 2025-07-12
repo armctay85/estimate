@@ -9,8 +9,9 @@ import { Progress } from "@/components/ui/progress";
 import { 
   ArrowLeft, Download, FileText, DollarSign, Calendar, Users, 
   Building, Layers, TrendingUp, Clock, AlertCircle, CheckCircle,
-  BarChart3, FileSpreadsheet, Hammer
+  BarChart3, FileSpreadsheet, Hammer, Box, Eye
 } from "lucide-react";
+import { Wireframe3DViewer } from "@/components/wireframe-3d-viewer";
 
 // Mock project data with comprehensive details
 const getProjectData = (id: string) => {
@@ -126,6 +127,7 @@ export default function ProjectDetail() {
   const [match, params] = useRoute("/project/:id");
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
+  const [show3DView, setShow3DView] = useState(false);
   
   const project = getProjectData(params?.id || "starbucks-werribee");
 
@@ -172,6 +174,10 @@ export default function ProjectDetail() {
           </div>
           
           <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShow3DView(true)}>
+              <Box className="w-4 h-4 mr-2" />
+              3D View
+            </Button>
             <Button variant="outline">
               <FileSpreadsheet className="w-4 h-4 mr-2" />
               Export CSV
@@ -443,6 +449,14 @@ export default function ProjectDetail() {
           </TabsContent>
         </Tabs>
       </div>
+      
+      {/* 3D Wireframe Viewer */}
+      <Wireframe3DViewer
+        isOpen={show3DView}
+        onClose={() => setShow3DView(false)}
+        fileName={`${project.name} - 3D Model`}
+        projectData={project}
+      />
     </div>
   );
 }
