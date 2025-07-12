@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PARAMETRIC_ASSEMBLIES, AUSTRALIAN_RATES } from "@shared/schema";
 import { ProjectScheduler } from "./project-scheduler";
 import { WireframeViewer } from "./wireframe-viewer";
+import { AIQSCompliancePanel } from "./aiqs-compliance-panel";
 
 interface BIMElement {
   id: string;
@@ -1055,6 +1056,14 @@ export function BIMProcessor() {
                     
                     <div className="pt-4 border-t">
                       <ProjectScheduler />
+                    </div>
+                    
+                    <div className="pt-4 border-t">
+                      <AIQSCompliancePanel 
+                        projectType="commercial"
+                        projectValue={result.totalCost}
+                        reportType="edc"
+                      />
                     </div>
                   </div>
                 </CardContent>
