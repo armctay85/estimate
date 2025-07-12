@@ -14,13 +14,14 @@ import { AICostPredictor } from "@/components/ai-cost-predictor";
 import { BIMProcessor } from "@/components/bim-processor";
 import { IntelligentAssistant } from "@/components/intelligent-assistant";
 import { Wireframe3DViewer } from "@/components/wireframe-3d-viewer";
+import { PhotoRenovationTool } from "@/components/photo-renovation-tool";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { TrendingUp, FileBarChart, Users, Award, BarChart3, Upload, Sparkles, Zap, Brain, Share2, Moon, Sun, Settings, Layers, Palette, CheckCircle } from "lucide-react";
+import { TrendingUp, FileBarChart, Users, Award, BarChart3, Upload, Sparkles, Zap, Brain, Share2, Moon, Sun, Settings, Layers, Palette, CheckCircle, Camera, Box, Clock, Star, ChevronDown, Calculator, Download } from "lucide-react";
 import { PARAMETRIC_ASSEMBLIES, type MaterialType } from "@shared/schema";
 import type { ShapeType, RoomData } from "@/lib/fabric-enhanced";
 
@@ -72,6 +73,7 @@ export default function Home() {
     return savedWorkspace !== 'workspace';
   });
   const [show3DWireframe, setShow3DWireframe] = useState(false);
+  const [showPhotoRenovation, setShowPhotoRenovation] = useState(false);
   
   const canvasRef = useRef<{ uploadBackground: (file: File) => void } | null>(null);
   const isMobile = useIsMobile();
@@ -720,11 +722,67 @@ export default function Home() {
               </Card>
             </motion.div>
 
-            {/* Recent Projects */}
+            {/* Photo Renovation Tool */}
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.7 }}
+            >
+              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group border-2 border-pink-200"
+                    onClick={() => setShowPhotoRenovation(true)}>
+                <CardContent className="p-8">
+                  <div className="mb-6">
+                    <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <Camera className="w-8 h-8 text-pink-600" />
+                    </div>
+                    <Badge className="bg-pink-100 text-pink-800 mb-2">AI Renovation</Badge>
+                    {/* Preview graphic */}
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="aspect-video bg-gray-200 rounded flex items-center justify-center">
+                          <Camera className="w-6 h-6 text-gray-400" />
+                        </div>
+                        <div className="aspect-video bg-gradient-to-br from-pink-200 to-purple-200 rounded flex items-center justify-center">
+                          <Sparkles className="w-6 h-6 text-white animate-pulse" />
+                        </div>
+                      </div>
+                      <div className="text-xs text-center mt-2 text-gray-500">Before → After AI Render</div>
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3">Photo-to-Renovation</h3>
+                  <p className="text-gray-600 mb-6">
+                    Upload photos of kitchens & bathrooms, select areas, and get AI renovation renders with instant costs.
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-pink-600" />
+                      <span>AI area detection</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-pink-600" />
+                      <span>Multiple style options</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-pink-600" />
+                      <span>Instant cost estimates</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-pink-600" />
+                      <span>Before/after comparison</span>
+                    </div>
+                  </div>
+                  <Button className="w-full mt-6 bg-pink-600 hover:bg-pink-700">
+                    Start Renovation Design
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Recent Projects */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.8 }}
             >
               <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group"
                     onClick={() => setLocation('/projects')}>
@@ -1125,6 +1183,12 @@ export default function Home() {
           rooms: rooms,
           projectType: projectType
         }}
+      />
+      
+      {/* Photo Renovation Tool */}
+      <PhotoRenovationTool
+        isOpen={showPhotoRenovation}
+        onClose={() => setShowPhotoRenovation(false)}
       />
     </motion.div>
   );
