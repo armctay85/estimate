@@ -871,7 +871,7 @@ export default function Home() {
               transition={{ delay: 0.8 }}
             >
               <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group"
-                    onClick={() => setLocation('/projects')}>
+                    onClick={() => navigate('/projects')}>
                 <CardContent className="p-8">
                   <div className="mb-6">
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -996,19 +996,19 @@ export default function Home() {
                   Dashboard
                 </button>
                 <button 
-                  onClick={() => setLocation("/projects")}
+                  onClick={() => navigate("/projects")}
                   className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all"
                 >
                   Projects
                 </button>
                 <button 
-                  onClick={() => setLocation("/reports")}
+                  onClick={() => navigate("/reports")}
                   className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all"
                 >
                   Reports
                 </button>
                 <button 
-                  onClick={() => setLocation("/settings")}
+                  onClick={() => navigate("/settings")}
                   className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all"
                 >
                   Settings
@@ -1132,11 +1132,11 @@ export default function Home() {
                   </span>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4 space-y-2">
-                  <Button size="sm" variant="outline" className="w-full justify-start" onClick={() => setLocation("/projects")}>
+                  <Button size="sm" variant="outline" className="w-full justify-start" onClick={() => navigate("/projects")}>
                     <FileBarChart className="w-4 h-4 mr-2" />
                     View All Projects
                   </Button>
-                  <Button size="sm" variant="outline" className="w-full justify-start" onClick={() => setLocation("/reports")}>
+                  <Button size="sm" variant="outline" className="w-full justify-start" onClick={() => navigate("/reports")}>
                     <Download className="w-4 h-4 mr-2" />
                     Generate Reports
                   </Button>

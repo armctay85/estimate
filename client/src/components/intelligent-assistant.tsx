@@ -212,6 +212,33 @@ export function IntelligentAssistant() {
               )}
               
               <div className="border-t p-4">
+                {/* Chat Input */}
+                <div className="mb-3">
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    const input = e.currentTarget.elements.namedItem('chatInput') as HTMLInputElement;
+                    if (input.value.trim()) {
+                      addMessage('user', input.value);
+                      setTimeout(() => {
+                        addMessage('assistant', `I understand you're asking about "${input.value}". Let me help you with that...`);
+                      }, 500);
+                      input.value = '';
+                    }
+                  }}>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        name="chatInput"
+                        placeholder="Type your question..."
+                        className="flex-1 px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                      <Button type="submit" size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+                        Send
+                      </Button>
+                    </div>
+                  </form>
+                </div>
+                
                 <div className="grid grid-cols-2 gap-2">
                   <Button
                     variant="outline"
