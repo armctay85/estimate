@@ -44,8 +44,16 @@ interface ParametricElement {
   components: { material: string; quantity: number; unit: string }[];
 }
 
-export function BIMProcessor() {
-  const [isOpen, setIsOpen] = useState(false);
+interface BIMProcessorProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function BIMProcessor({ isOpen: controlledIsOpen, onOpenChange }: BIMProcessorProps = {}) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+  const setIsOpen = onOpenChange || setInternalIsOpen;
+  
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');

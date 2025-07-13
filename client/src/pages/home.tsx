@@ -77,6 +77,7 @@ export default function Home() {
   const [showPhotoRenovation, setShowPhotoRenovation] = useState(false);
   const [showScheduler, setShowScheduler] = useState(false);
   const [showCollaborators, setShowCollaborators] = useState(false);
+  const [showBIMProcessor, setShowBIMProcessor] = useState(false);
   
   const canvasRef = useRef<{ uploadBackground: (file: File) => void } | null>(null);
   const isMobile = useIsMobile();
@@ -580,11 +581,7 @@ export default function Home() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4 }}
             >
-              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group border-2 border-purple-200"
-                    onClick={() => {
-                      setProjectType('commercial');
-                      setShowDashboard(false);
-                    }}>
+              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group border-2 border-purple-200">
                 <CardContent className="p-8">
                   <div className="mb-6">
                     <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -630,7 +627,13 @@ export default function Home() {
                       <span>Replace 2-3 QS staff</span>
                     </div>
                   </div>
-                  <Button className="w-full mt-6 bg-purple-600 hover:bg-purple-700">
+                  <Button 
+                    className="w-full mt-6 bg-purple-600 hover:bg-purple-700"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowBIMProcessor(true);
+                    }}
+                  >
                     Start BIM Processing
                   </Button>
                 </CardContent>
@@ -1443,6 +1446,12 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* BIM Processor Dialog */}
+      <BIMProcessor 
+        isOpen={showBIMProcessor} 
+        onOpenChange={setShowBIMProcessor}
+      />
     </motion.div>
   );
 }
