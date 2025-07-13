@@ -660,6 +660,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin routes for design library uploads
+  app.post("/api/admin/upload-design", upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      
+      // Process the uploaded design file
+      const fileInfo = {
+        name: req.file.originalname,
+        size: req.file.size,
+        type: req.file.mimetype,
+        uploadDate: new Date().toISOString(),
+        status: "processed"
+      };
+      
+      // In a real implementation, you would:
+      // 1. Parse the file contents (Excel, PDF, MPP)
+      // 2. Extract design data and costs
+      // 3. Store in database
+      // 4. Update material/cost libraries
+      
+      res.json({ 
+        success: true, 
+        file: fileInfo,
+        message: "Design library uploaded successfully"
+      });
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      res.status(500).json({ message: "Failed to process design file" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

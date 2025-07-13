@@ -12,6 +12,7 @@ import ProjectDetail from "@/pages/project-detail";
 import Reports from "@/pages/reports";
 import Settings from "@/pages/settings";
 import ThreeDProcessor from "@/pages/3d-processor";
+import AdminDashboard from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/reports" component={Reports} />
       <Route path="/settings" component={Settings} />
       <Route path="/3d-processor" component={ThreeDProcessor} />
+      <Route path="/admin" component={AdminDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
