@@ -111,6 +111,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Configure multer for BIM file uploads
+  const bimUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 100 * 1024 * 1024, // 100MB limit for BIM files
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedExtensions = ['.rvt', '.ifc', '.dwg', '.dxf', '.fbx', '.obj', '.skp', '.pln', '.pdf'];
+      const fileName = file.originalname.toLowerCase();
+      const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+      
+      if (hasValidExtension) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Please upload RVT, IFC, DWG, DXF, FBX, OBJ, SKP, PLN, or PDF files.'));
+      }
+    }
+  });
+
   // Session configuration
   app.use(session({
     secret: process.env.SESSION_SECRET || 'fallback-secret-key',
@@ -595,7 +614,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupForgeRoutes(app);
 
   // BIM file upload route with Forge integration
-  app.post('/api/forge/upload', upload.single('file'), async (req, res) => {
+  app.post('/api/forge/upload', bimUpload.single('file'), async (req, res) => {
     try {
       const file = req.file;
       if (!file) {

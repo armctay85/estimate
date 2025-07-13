@@ -365,18 +365,6 @@ export function BIMProcessor({ isOpen: controlledIsOpen, onOpenChange }: BIMProc
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button 
-          className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
-          onClick={() => {
-            console.log('BIM Auto-Takeoff button clicked, opening dialog');
-            setIsOpen(true);
-          }}
-        >
-          <Upload className="w-4 h-4 mr-2" />
-          BIM Auto-Takeoff
-        </Button>
-      </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto" aria-describedby="bim-dialog-description">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

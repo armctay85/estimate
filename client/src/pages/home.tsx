@@ -631,6 +631,7 @@ export default function Home() {
                     className="w-full mt-6 bg-purple-600 hover:bg-purple-700"
                     onClick={(e) => {
                       e.stopPropagation();
+                      console.log('BIM button clicked, setting showBIMProcessor to true');
                       setShowBIMProcessor(true);
                     }}
                   >
