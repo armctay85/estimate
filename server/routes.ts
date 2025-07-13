@@ -111,6 +111,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Configure multer for admin design library uploads  
+  const adminUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 50 * 1024 * 1024, // 50MB limit for design files
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedMimes = [
+        'application/pdf',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/msword', 
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-project',
+        'text/csv',
+        'image/jpeg',
+        'image/png'
+      ];
+      
+      if (allowedMimes.includes(file.mimetype) || file.originalname.toLowerCase().endsWith('.mpp')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Please upload Excel, Word, PDF, MPP, CSV, or image files.'));
+      }
+    }
+  });
+
   // Configure multer for BIM file uploads
   const bimUpload = multer({
     storage: multer.memoryStorage(),
@@ -661,7 +688,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin routes for design library uploads
-  app.post("/api/admin/upload-design", upload.single('file'), async (req, res) => {
+  app.post("/api/admin/upload-design", adminUpload.single('file'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
