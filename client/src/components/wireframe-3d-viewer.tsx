@@ -605,7 +605,10 @@ export function Wireframe3DViewer({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden" aria-describedby="wireframe-3d-description">
+        <p id="wireframe-3d-description" className="sr-only">
+          3D wireframe visualization of construction elements
+        </p>
         {content}
       </DialogContent>
     </Dialog>

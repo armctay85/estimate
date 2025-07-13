@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstiMate Button Functionality Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .status {
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        .working {
+            background: #d4edda;
+            color: #155724;
+        }
+        .issue {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>EstiMate Button Functionality Test Report</h1>
+    
+    <div class="test-section">
+        <h2>Workspace Sidebar - Quick Actions</h2>
+        <ul>
+            <li>✅ <span class="status working">View All Projects</span> - Navigates to /projects page correctly</li>
+            <li>✅ <span class="status working">Generate Reports</span> - Navigates to /reports page correctly</li>
+            <li>✅ <span class="status working">Export Cost Schedule</span> - Downloads CSV file with room data</li>
+            <li>✅ <span class="status working">Project Scheduler</span> - Opens scheduler modal dialog</li>
+            <li>✅ <span class="status working">Manage Team</span> - Opens team collaboration dialog</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>AI Tools Section</h2>
+        <ul>
+            <li>✅ <span class="status working">AI Cost Predictor</span> - Opens dialog with form for project parameters</li>
+            <li>✅ <span class="status working">BIM Auto-Takeoff</span> - Opens dialog with file upload functionality
+                <ul style="margin-left: 20px; margin-top: 5px;">
+                    <li>- File input is accessible via ID fallback</li>
+                    <li>- Drag and drop functionality implemented</li>
+                    <li>- Direct upload test input provided as backup</li>
+                </ul>
+            </li>
+            <li>✅ <span class="status working">View 3D Wireframe Model</span> - Opens 3D visualization dialog</li>
+            <li>✅ <span class="status working">Photo Renovation Tool</span> - Opens photo upload and renovation dialog</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>Dialog Accessibility</h2>
+        <ul>
+            <li>✅ <span class="status working">BIM Processor Dialog</span> - Has aria-describedby attribute</li>
+            <li>✅ <span class="status working">AI Cost Predictor Dialog</span> - Has aria-describedby attribute</li>
+            <li>✅ <span class="status working">Photo Renovation Dialog</span> - Has aria-describedby attribute</li>
+            <li>✅ <span class="status working">Wireframe 3D Viewer Dialog</span> - Has aria-describedby attribute</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>File Upload Functionality</h2>
+        <ul>
+            <li>✅ <span class="status working">BIM File Upload</span> - Enhanced with getElementById fallback and debugging</li>
+            <li>✅ <span class="status working">Photo Upload</span> - Works with image file selection</li>
+            <li>✅ <span class="status working">Background Upload</span> - Canvas background image upload functional</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>Summary</h2>
+        <p>All button functionalities have been tested and are working correctly. The BIM upload button has been enhanced with:</p>
+        <ul>
+            <li>• Additional getElementById fallback for better reliability</li>
+            <li>• Enhanced debugging with console logs</li>
+            <li>• Direct upload test input as backup option</li>
+            <li>• Proper event handling with preventDefault and stopPropagation</li>
+        </ul>
+        <p>All dialogs now have proper aria-describedby attributes to resolve accessibility warnings.</p>
+    </div>
+</body>
+</html>

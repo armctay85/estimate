@@ -237,13 +237,16 @@ export function PhotoRenovationTool({ isOpen, onClose }: PhotoRenovationToolProp
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden" aria-describedby="photo-renovation-description">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Camera className="w-5 h-5" />
             Photo-to-Renovation AI Tool
             <Badge variant="secondary" className="ml-2">Beta</Badge>
           </DialogTitle>
+          <p id="photo-renovation-description" className="sr-only">
+            Upload photos and use AI to visualize renovation options
+          </p>
         </DialogHeader>
 
         <Tabs value={currentStep} className="w-full">

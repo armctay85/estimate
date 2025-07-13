@@ -232,12 +232,15 @@ export function BIMProcessor() {
           BIM Auto-Takeoff
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto" aria-describedby="bim-dialog-description">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building className="w-5 h-5" />
             Enterprise BIM Auto-Takeoff System
           </DialogTitle>
+          <p id="bim-dialog-description" className="sr-only">
+            Upload BIM and CAD files for automated quantity takeoff
+          </p>
         </DialogHeader>
         
         <div className="space-y-6">
@@ -269,14 +272,20 @@ export function BIMProcessor() {
                       Drag and drop your file here or click to browse
                     </p>
                     <Button 
+                      type="button"
                       onClick={(e) => {
                         e.preventDefault();
+                        e.stopPropagation();
                         console.log('Choose File button clicked');
-                        if (fileInputRef.current) {
-                          console.log('File input found, triggering click');
+                        const fileInput = document.getElementById('bim-file-input') as HTMLInputElement;
+                        if (fileInput) {
+                          console.log('File input found via getElementById, triggering click');
+                          fileInput.click();
+                        } else if (fileInputRef.current) {
+                          console.log('File input found via ref, triggering click');
                           fileInputRef.current.click();
                         } else {
-                          console.error('File input ref not found');
+                          console.error('File input not found');
                         }
                       }}
                     >
@@ -286,6 +295,7 @@ export function BIMProcessor() {
                   </div>
                   <input
                     ref={fileInputRef}
+                    id="bim-file-input"
                     type="file"
                     accept=".dwg,.dxf,.ifc,.rvt,.skp,.pln,.pdf"
                     onChange={handleFileUpload}

@@ -136,12 +136,15 @@ export function AICostPredictor() {
           </Button>
         </motion.div>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="ai-predictor-description">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Brain className="w-5 h-5" />
             AI-Powered Project Cost Predictor
           </DialogTitle>
+          <p id="ai-predictor-description" className="sr-only">
+            AI-powered cost prediction based on project parameters
+          </p>
         </DialogHeader>
         
         <div className="space-y-6">
