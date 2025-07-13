@@ -9,7 +9,7 @@ import { Upload, FileText, Building, Zap, CheckCircle, Clock, Target, Eye, Layer
 import { useToast } from "@/hooks/use-toast";
 import { PARAMETRIC_ASSEMBLIES, AUSTRALIAN_RATES } from "@shared/schema";
 import { ProjectScheduler } from "./project-scheduler";
-import { WireframeViewer } from "./wireframe-viewer";
+import { Wireframe3DViewer as WireframeViewer } from "./wireframe-3d-viewer";
 import { AIQSCompliancePanel } from "./aiqs-compliance-panel";
 
 interface BIMElement {
