@@ -192,6 +192,19 @@ A comprehensive list of ready-to-deploy enhancements has been created at `IMMEDI
 
 ## Recent Changes
 
+### January 13, 2025 - Project Data Separation & 3D Model Fixes
+- **Fixed Project Name Clashes**: Kmart Gladstone was showing Starbucks Werribee data
+  - Added complete Kmart Gladstone project data with retail-specific costs
+  - Separated project data to prevent conflicts between different projects
+- **Fixed 3D Viewer Import Error**: Component was importing non-existent 'wireframe-viewer'
+  - Corrected import path to 'wireframe-3d-viewer'
+  - Resolved blank canvas issue in 3D visualization
+- **Dynamic 3D Models**: Different 3D models now display based on project type
+  - Starbucks shows QSR elements: drive-thru canopy, commercial kitchen, precast panels
+  - Kmart shows retail elements: suspended ceiling, retail fixtures, shopfront glazing
+  - Default generic building elements for other project types
+- **Preview Loading Fixed**: Restarted workflow to ensure server runs properly
+
 ### January 13, 2025 - Complete Platform Testing & Deployment Readiness
 - **100% Deployment Ready Status**: Thoroughly tested every button and function across entire platform
   - Fixed AI Assistant chat functionality with proper input field and form submission
