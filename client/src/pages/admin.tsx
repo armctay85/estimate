@@ -59,11 +59,21 @@ export default function AdminDashboard() {
         formData.append("file", file);
         formData.append("type", "design-library");
         
-        // Simulate upload progress
+        // Update upload progress
         setUploadProgress((processed / totalFiles) * 100);
         
-        // In a real implementation, this would upload to your server
-        const response = await apiRequest("POST", "/api/admin/upload-design", formData);
+        // Upload file with proper fetch API (FormData doesn't work with apiRequest)
+        const response = await fetch("/api/admin/upload-design", {
+          method: "POST",
+          body: formData,
+          credentials: "include"
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
         
         setUploadedFiles(prev => [...prev, {
           id: Date.now() + Math.random(),
