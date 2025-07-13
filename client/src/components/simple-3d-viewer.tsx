@@ -31,6 +31,7 @@ export function Simple3DViewer({
   const [zoom, setZoom] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [visibleCategories, setVisibleCategories] = useState<Set<string>>(new Set(['structural', 'architectural', 'mep', 'external']));
   const { toast } = useToast();
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -58,71 +59,308 @@ export function Simple3DViewer({
     setZoom(1);
   };
 
-  // Generate Starbucks drive-thru elements
-  const driveThruElements = [
-    {
-      id: 'building',
-      name: 'Main Building',
-      x: 0,
-      y: 0,
-      z: 0,
-      width: 150,
-      height: 100,
-      depth: 120,
-      color: '#8B4513',
-      cost: 280000
-    },
-    {
-      id: 'drive-lane',
-      name: 'Drive-Thru Lane',
-      x: 160,
-      y: -45,
-      z: 20,
-      width: 100,
-      height: 10,
-      depth: 80,
-      color: '#4A4A4A',
-      cost: 45000
-    },
-    {
-      id: 'canopy',
-      name: 'Drive-Thru Canopy',
-      x: 180,
-      y: 30,
-      z: 40,
-      width: 60,
-      height: 20,
-      depth: 40,
-      color: '#00563F',
-      cost: 25000
-    },
-    {
-      id: 'order-kiosk',
-      name: 'Order Kiosk',
-      x: 200,
-      y: -20,
-      z: 70,
-      width: 15,
-      height: 40,
-      depth: 10,
-      color: '#2F4F4F',
-      cost: 8500
-    },
-    {
-      id: 'kitchen',
-      name: 'Kitchen Equipment',
-      x: 30,
-      y: 0,
-      z: 30,
-      width: 60,
-      height: 50,
-      depth: 50,
-      color: '#C0C0C0',
-      cost: 180000
+  // Generate project-specific 3D elements based on project data
+  const getProjectElements = () => {
+    // Check if this is Starbucks Werribee project
+    if (projectData?.id === 'starbucks-werribee' || projectData?.name?.includes('Starbucks Werribee')) {
+      return [
+        // Main building structure (285m² footprint)
+        {
+          id: 'building-main',
+          name: 'Main Building Structure',
+          x: 0,
+          y: 0,
+          z: 0,
+          width: 200,
+          height: 120,
+          depth: 150,
+          color: '#8B6F47',
+          cost: 320000,
+          category: 'structural'
+        },
+        // Precast concrete panels
+        {
+          id: 'precast-panels',
+          name: 'Precast Concrete Panels',
+          x: 0,
+          y: 60,
+          z: 0,
+          width: 205,
+          height: 80,
+          depth: 155,
+          color: '#D3D3D3',
+          cost: 106400,
+          category: 'structural'
+        },
+        // Drive-thru lane structure
+        {
+          id: 'drive-lane-concrete',
+          name: 'Drive-Thru Lane & Paving',
+          x: 220,
+          y: -55,
+          z: 20,
+          width: 120,
+          height: 10,
+          depth: 100,
+          color: '#696969',
+          cost: 65000,
+          category: 'external'
+        },
+        // Drive-thru canopy with steel structure
+        {
+          id: 'canopy-structure',
+          name: 'Drive-Thru Canopy',
+          x: 240,
+          y: 40,
+          z: 50,
+          width: 80,
+          height: 25,
+          depth: 50,
+          color: '#00563F',
+          cost: 42000,
+          category: 'structural'
+        },
+        // Order point kiosk
+        {
+          id: 'order-point',
+          name: 'Digital Order Point',
+          x: 260,
+          y: -25,
+          z: 90,
+          width: 20,
+          height: 50,
+          depth: 15,
+          color: '#2F4F4F',
+          cost: 12000,
+          category: 'architectural'
+        },
+        // Commercial kitchen block
+        {
+          id: 'kitchen-zone',
+          name: 'Commercial Kitchen Zone',
+          x: 40,
+          y: 0,
+          z: 40,
+          width: 80,
+          height: 60,
+          depth: 70,
+          color: '#C0C0C0',
+          cost: 180000,
+          category: 'architectural'
+        },
+        // Shopfront glazing
+        {
+          id: 'shopfront',
+          name: 'Glazing & Shopfront',
+          x: -105,
+          y: 30,
+          z: 0,
+          width: 5,
+          height: 70,
+          depth: 120,
+          color: '#87CEEB',
+          cost: 29250,
+          category: 'architectural'
+        },
+        // Roofing structure
+        {
+          id: 'roof',
+          name: 'Colorbond Roofing',
+          x: 0,
+          y: 120,
+          z: 0,
+          width: 210,
+          height: 15,
+          depth: 160,
+          color: '#708090',
+          cost: 27200,
+          category: 'structural'
+        },
+        // MEP services block
+        {
+          id: 'mep-services',
+          name: 'MEP Services Zone',
+          x: 120,
+          y: 20,
+          z: 60,
+          width: 40,
+          height: 40,
+          depth: 40,
+          color: '#FFD700',
+          cost: 110000,
+          category: 'mep'
+        }
+      ];
     }
-  ];
+    
+    // Check if this is Kmart Gladstone project
+    if (projectData?.id === 'kmart-gladstone' || projectData?.name?.includes('Kmart Gladstone')) {
+      return [
+        // Main retail building (8,500m²)
+        {
+          id: 'retail-floor',
+          name: 'Retail Floor Space',
+          x: 0,
+          y: 0,
+          z: 0,
+          width: 300,
+          height: 150,
+          depth: 280,
+          color: '#E50019',
+          cost: 850000,
+          category: 'structural'
+        },
+        // Suspended ceiling system
+        {
+          id: 'suspended-ceiling',
+          name: 'Suspended Ceiling Grid',
+          x: 0,
+          y: 140,
+          z: 0,
+          width: 300,
+          height: 10,
+          depth: 280,
+          color: '#F0F0F0',
+          cost: 180000,
+          category: 'architectural'
+        },
+        // Retail fixtures & gondolas
+        {
+          id: 'retail-fixtures',
+          name: 'Retail Fixtures & Gondolas',
+          x: 50,
+          y: 20,
+          z: 50,
+          width: 200,
+          height: 80,
+          depth: 180,
+          color: '#4A4A4A',
+          cost: 320000,
+          category: 'architectural'
+        },
+        // Loading dock area
+        {
+          id: 'loading-dock',
+          name: 'Loading Dock & Back of House',
+          x: 310,
+          y: 0,
+          z: 100,
+          width: 80,
+          height: 120,
+          depth: 80,
+          color: '#808080',
+          cost: 125000,
+          category: 'external'
+        },
+        // Shopfront glazing
+        {
+          id: 'shopfront-glazing',
+          name: 'Shopfront & Entry',
+          x: -5,
+          y: 50,
+          z: 0,
+          width: 10,
+          height: 100,
+          depth: 200,
+          color: '#87CEEB',
+          cost: 95000,
+          category: 'architectural'
+        },
+        // HVAC & services
+        {
+          id: 'hvac-system',
+          name: 'HVAC & Building Services',
+          x: 150,
+          y: 155,
+          z: 140,
+          width: 100,
+          height: 30,
+          depth: 100,
+          color: '#FFD700',
+          cost: 280000,
+          category: 'mep'
+        },
+        // Fire services
+        {
+          id: 'fire-services',
+          name: 'Fire Services & Sprinklers',
+          x: 0,
+          y: 150,
+          z: 0,
+          width: 305,
+          height: 5,
+          depth: 285,
+          color: '#FF4500',
+          cost: 145000,
+          category: 'mep'
+        },
+        // External works
+        {
+          id: 'carpark',
+          name: 'Carpark & External Works',
+          x: -150,
+          y: -10,
+          z: 0,
+          width: 140,
+          height: 5,
+          depth: 280,
+          color: '#2F4F4F',
+          cost: 220000,
+          category: 'external'
+        }
+      ];
+    }
+    
+    // Default elements for other projects
+    return [
+      {
+        id: 'building',
+        name: 'Main Building',
+        x: 0,
+        y: 0,
+        z: 0,
+        width: 150,
+        height: 100,
+        depth: 120,
+        color: '#8B4513',
+        cost: 280000,
+        category: 'structural'
+      },
+      {
+        id: 'structure',
+        name: 'Structural Frame',
+        x: 0,
+        y: 50,
+        z: 0,
+        width: 155,
+        height: 60,
+        depth: 125,
+        color: '#696969',
+        cost: 150000,
+        category: 'structural'
+      }
+    ];
+  };
 
-  const totalCost = driveThruElements.reduce((sum, el) => sum + el.cost, 0);
+  const driveThruElements = getProjectElements();
+
+  // Filter elements by visible categories
+  const visibleElements = driveThruElements.filter(el => visibleCategories.has(el.category || 'structural'));
+  
+  const totalCost = visibleElements.reduce((sum, el) => sum + el.cost, 0);
+  
+  // Get unique categories
+  const categories = Array.from(new Set(driveThruElements.map(el => el.category || 'structural')));
+  
+  const toggleCategory = (category: string) => {
+    const newVisible = new Set(visibleCategories);
+    if (newVisible.has(category)) {
+      newVisible.delete(category);
+    } else {
+      newVisible.add(category);
+    }
+    setVisibleCategories(newVisible);
+  };
 
   const content = (
     <div className="max-w-6xl">
@@ -186,8 +424,8 @@ export function Simple3DViewer({
                       }}
                     />
                     
-                    {/* Render drive-thru elements */}
-                    {driveThruElements.map(element => (
+                    {/* Render visible elements */}
+                    {visibleElements.map(element => (
                       <div
                         key={element.id}
                         className="absolute cursor-pointer group"
@@ -270,19 +508,38 @@ export function Simple3DViewer({
             <CardHeader>
               <CardTitle className="text-sm">Building Elements</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              {driveThruElements.map(element => (
-                <div key={element.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-4 h-4 rounded" 
-                      style={{ backgroundColor: element.color }}
+            <CardContent className="space-y-3">
+              {/* Category toggles */}
+              <div className="space-y-2 pb-3 border-b">
+                <p className="text-xs text-gray-600 mb-2">Toggle Categories:</p>
+                {categories.map(category => (
+                  <label key={category} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={visibleCategories.has(category)}
+                      onChange={() => toggleCategory(category)}
+                      className="rounded border-gray-300"
                     />
-                    <span className="text-sm">{element.name}</span>
+                    <span className="text-sm capitalize">{category}</span>
+                  </label>
+                ))}
+              </div>
+              
+              {/* Element list */}
+              <div className="space-y-2">
+                {visibleElements.map(element => (
+                  <div key={element.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-4 h-4 rounded" 
+                        style={{ backgroundColor: element.color }}
+                      />
+                      <span className="text-sm">{element.name}</span>
+                    </div>
+                    <span className="text-sm font-mono">${element.cost.toLocaleString()}</span>
                   </div>
-                  <span className="text-sm font-mono">${element.cost.toLocaleString()}</span>
-                </div>
-              ))}
+                ))}
+              </div>
             </CardContent>
           </Card>
           
