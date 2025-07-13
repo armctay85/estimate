@@ -541,7 +541,13 @@ export function Wireframe3DViewer({
                     <Separator className="my-2" />
                     <Alert className="p-2 bg-yellow-50 border-yellow-200">
                       <AlertDescription className="text-xs">
-                        <strong>Note:</strong> This shows a representative 3D model. Full {projectData.fileType || 'RVT'} parsing requires specialized CAD libraries.
+                        <strong>Important:</strong> This is a <u>demo visualization only</u>. The actual {projectData.fileType || 'RVT'} file cannot be rendered here. 
+                        True RVT parsing requires:
+                        <ul className="mt-1 ml-4 list-disc">
+                          <li>Autodesk Forge API or similar CAD engine</li>
+                          <li>Server-side processing (not available in browser)</li>
+                          <li>Licensed CAD libraries</li>
+                        </ul>
                       </AlertDescription>
                     </Alert>
                   </div>

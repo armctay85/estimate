@@ -258,11 +258,18 @@ export function BIMProcessor() {
                 </AlertDescription>
               </Alert>
               
-              <Alert className="border-yellow-200 bg-yellow-50">
+              <Alert className="border-orange-200 bg-orange-50">
                 <AlertDescription className="text-sm">
-                  <strong>Note:</strong> This is a demonstration of BIM processing capabilities. 
-                  Full RVT/IFC parsing requires server-side processing. The 3D viewer shows a 
-                  representative model based on typical project elements.
+                  <strong>⚠️ Demo Mode:</strong> This does NOT actually parse or display your RVT file. 
+                  <br />
+                  What you see is a pre-built example model showing what the system would detect.
+                  <br /><br />
+                  <strong>For actual RVT viewing, you would need:</strong>
+                  <ul className="list-disc ml-5 mt-1">
+                    <li>Autodesk Forge Viewer API ($$$)</li>
+                    <li>Server-side RVT conversion tools</li>
+                    <li>Or desktop software like Revit/Navisworks</li>
+                  </ul>
                 </AlertDescription>
               </Alert>
 
