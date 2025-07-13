@@ -255,6 +255,9 @@ export function Wireframe3DViewer({
             <Box className="w-5 h-5" />
             3D Model Viewer - {fileName}
             <Badge variant="outline" className="ml-2">AI Enhanced</Badge>
+            {projectData?.fileType && (
+              <Badge variant="secondary" className="ml-2">{projectData.fileType}</Badge>
+            )}
           </DialogTitle>
         </DialogHeader>
       )}
@@ -497,6 +500,54 @@ export function Wireframe3DViewer({
         {/* Controls Panel - only show if not embedded */}
         {!embedded && (
           <div className="space-y-4">
+            {/* File Information */}
+            {projectData && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    File Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between items-center">
+                      <span>File:</span>
+                      <span className="font-mono text-xs truncate max-w-[120px]" title={projectData.fileName}>
+                        {projectData.fileName || 'Demo Model'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>Type:</span>
+                      <Badge variant="secondary" className="text-xs h-5">
+                        {projectData.fileType || 'RVT'}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Elements:</span>
+                      <span className="font-bold">{projectData.totalElements}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Total Cost:</span>
+                      <span className="font-bold text-green-600">
+                        ${projectData.totalCost?.toLocaleString() || '0'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Accuracy:</span>
+                      <span className="text-green-600 font-semibold">{projectData.accuracy}</span>
+                    </div>
+                    <Separator className="my-2" />
+                    <Alert className="p-2 bg-yellow-50 border-yellow-200">
+                      <AlertDescription className="text-xs">
+                        <strong>Note:</strong> This shows a representative 3D model. Full {projectData.fileType || 'RVT'} parsing requires specialized CAD libraries.
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
             {/* Element Visibility */}
             <Card>
               <CardHeader className="pb-2">

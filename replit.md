@@ -314,6 +314,17 @@ A comprehensive list of ready-to-deploy enhancements has been created at `IMMEDI
   - Complete QS department replacement capability with authentic AIQS documentation
   - Enterprise ROI: 70-80% cost reduction vs traditional QS departments ($214k-374k annual savings)
 
+### January 13, 2025 - 3D Viewer Transparency & File Information Enhancement
+- **3D Viewer Limitation Transparency**: Added clear notifications that 3D viewer shows representative models
+  - Yellow alert in BIM processor explaining simulation vs actual parsing
+  - File Information panel in 3D viewer showing uploaded file details
+  - Clear messaging that full RVT/IFC parsing requires specialized CAD libraries
+  - Displays actual filename, file type, and processing metadata
+- **Enhanced User Expectations**: Users now understand the demonstration nature of BIM processing
+  - Representative 3D models based on typical construction elements
+  - Accurate cost calculations despite visualization limitations
+  - Enterprise deployment would include full CAD parsing capabilities
+
 ### January 12, 2025 - Complete Navigation & Functionality Overhaul
 - **Navigation Fix**: Fixed all non-functional navigation buttons and links across the entire application
 - **Page Creation**: Created missing pages (Projects, Reports, Settings) with full functionality

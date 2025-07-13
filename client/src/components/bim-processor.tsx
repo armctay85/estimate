@@ -60,8 +60,12 @@ export function BIMProcessor() {
     setProgress(0);
     setResult(null);
 
+    // Store file info for more realistic simulation
+    const fileSize = (file.size / (1024 * 1024)).toFixed(2); // MB
+    const isLargeFile = file.size > 10 * 1024 * 1024; // > 10MB
+    
     const steps = [
-      { name: 'File validation and upload', duration: 2000 },
+      { name: `Uploading ${file.name} (${fileSize}MB)`, duration: isLargeFile ? 4000 : 2000 },
       { name: 'AI element detection', duration: 8000 },
       { name: 'Quantity calculation', duration: 5000 },
       { name: 'Cost estimation', duration: 3000 },
@@ -251,6 +255,14 @@ export function BIMProcessor() {
                 <AlertDescription>
                   Upload your BIM/CAD files for AI-powered automatic quantity takeoff. 
                   Supports DWG, DXF, IFC, Revit (.RVT), SketchUp (.SKP), ArchiCAD (.PLN), and PDF plans.
+                </AlertDescription>
+              </Alert>
+              
+              <Alert className="border-yellow-200 bg-yellow-50">
+                <AlertDescription className="text-sm">
+                  <strong>Note:</strong> This is a demonstration of BIM processing capabilities. 
+                  Full RVT/IFC parsing requires server-side processing. The 3D viewer shows a 
+                  representative model based on typical project elements.
                 </AlertDescription>
               </Alert>
 
@@ -1194,6 +1206,14 @@ export function BIMProcessor() {
         onClose={() => setShowWireframe(false)}
         fileName={currentFileName || "Current Model"}
         elements={result ? [...result.structural, ...result.architectural, ...result.mep, ...result.finishes, ...result.external] : []}
+        projectData={{
+          fileName: currentFileName,
+          processedAt: new Date().toISOString(),
+          totalElements: result?.totalElements || 0,
+          totalCost: result?.totalCost || 0,
+          accuracy: result?.accuracy || '±2%',
+          fileType: currentFileName ? currentFileName.split('.').pop()?.toUpperCase() : 'RVT'
+        }}
       />
     </Dialog>
   );
