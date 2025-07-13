@@ -117,6 +117,97 @@ const getProjectData = (id: string) => {
         { level: "medium", description: "Kitchen equipment lead time - 8 weeks" },
         { level: "low", description: "Minor design changes pending client approval" }
       ]
+    },
+    "kmart-gladstone": {
+      id: "kmart-gladstone",
+      name: "Kmart Gladstone Renovation",
+      client: "Kmart Australia",
+      location: "Gladstone, QLD",
+      status: "In Progress",
+      totalCost: 1245000,
+      paidToDate: 809250,
+      startDate: "2024-11-15",
+      endDate: "2025-03-15",
+      completion: 65,
+      projectType: "Retail",
+      area: 2400,
+      phases: [
+        { name: "Site Establishment", status: "complete", cost: 45000 },
+        { name: "Demolition Works", status: "complete", cost: 85000 },
+        { name: "Structural Modifications", status: "complete", cost: 125000 },
+        { name: "Services Rough-In", status: "in-progress", cost: 165000 },
+        { name: "Internal Fitout", status: "in-progress", cost: 285000 },
+        { name: "Flooring Installation", status: "pending", cost: 145000 },
+        { name: "Shelving & Fixtures", status: "pending", cost: 195000 },
+        { name: "External Works", status: "pending", cost: 85000 },
+        { name: "Final Finishes", status: "pending", cost: 115000 }
+      ],
+      costBreakdown: {
+        structural: {
+          total: 285000,
+          items: [
+            { name: "Structural Steel Modifications", quantity: 45, unit: "t", rate: 3200, total: 144000 },
+            { name: "Concrete Works", quantity: 180, unit: "m³", rate: 450, total: 81000 },
+            { name: "Masonry Repairs", quantity: 240, unit: "m²", rate: 125, total: 30000 },
+            { name: "Roof Repairs", quantity: 320, unit: "m²", rate: 85, total: 27200 },
+            { name: "Miscellaneous", quantity: 1, unit: "item", rate: 2800, total: 2800 }
+          ]
+        },
+        architectural: {
+          total: 485000,
+          items: [
+            { name: "Internal Partitions", quantity: 480, unit: "m²", rate: 75, total: 36000 },
+            { name: "Suspended Ceilings", quantity: 1850, unit: "m²", rate: 55, total: 101750 },
+            { name: "Floor Finishes - Vinyl", quantity: 2100, unit: "m²", rate: 45, total: 94500 },
+            { name: "Wall Finishes", quantity: 1200, unit: "m²", rate: 35, total: 42000 },
+            { name: "Doors & Hardware", quantity: 28, unit: "no", rate: 950, total: 26600 },
+            { name: "Shopfront Glazing", quantity: 85, unit: "m²", rate: 380, total: 32300 },
+            { name: "Retail Fixtures", quantity: 1, unit: "item", rate: 125000, total: 125000 },
+            { name: "Signage Package", quantity: 1, unit: "item", rate: 26850, total: 26850 }
+          ]
+        },
+        mep: {
+          total: 325000,
+          items: [
+            { name: "Electrical Upgrade", quantity: 2400, unit: "m²", rate: 75, total: 180000 },
+            { name: "Lighting Systems", quantity: 2400, unit: "m²", rate: 45, total: 108000 },
+            { name: "Fire Services", quantity: 2400, unit: "m²", rate: 35, total: 84000 },
+            { name: "Plumbing Modifications", quantity: 1, unit: "item", rate: 45000, total: 45000 },
+            { name: "HVAC Upgrade", quantity: 2400, unit: "m²", rate: 95, total: 228000 },
+            { name: "Data & Communications", quantity: 2400, unit: "m²", rate: 25, total: 60000 },
+            { name: "Security Systems", quantity: 1, unit: "item", rate: 20000, total: 20000 }
+          ]
+        },
+        external: {
+          total: 85000,
+          items: [
+            { name: "Facade Repairs", quantity: 320, unit: "m²", rate: 125, total: 40000 },
+            { name: "External Painting", quantity: 480, unit: "m²", rate: 45, total: 21600 },
+            { name: "Loading Dock Upgrade", quantity: 1, unit: "item", rate: 18000, total: 18000 },
+            { name: "External Lighting", quantity: 18, unit: "no", rate: 300, total: 5400 }
+          ]
+        },
+        preliminaries: {
+          total: 65000,
+          items: [
+            { name: "Site Establishment", quantity: 1, unit: "item", rate: 25000, total: 25000 },
+            { name: "Site Management", quantity: 16, unit: "weeks", rate: 2000, total: 32000 },
+            { name: "Safety & Compliance", quantity: 1, unit: "item", rate: 5000, total: 5000 },
+            { name: "Insurances", quantity: 1, unit: "item", rate: 3000, total: 3000 }
+          ]
+        }
+      },
+      team: [
+        { name: "Lisa Johnson", role: "Project Manager", company: "RetailBuild Co" },
+        { name: "David Wong", role: "Quantity Surveyor", company: "QS Associates" },
+        { name: "Tom Harris", role: "Site Supervisor", company: "RetailBuild Co" },
+        { name: "Rachel Green", role: "Retail Designer", company: "Store Design Plus" }
+      ],
+      risks: [
+        { level: "high", description: "Trading while construction ongoing - coordination critical" },
+        { level: "medium", description: "Fixture delivery delays - 6 week lead time" },
+        { level: "low", description: "Minor scope variations expected" }
+      ]
     }
   };
 

@@ -94,8 +94,153 @@ export function Wireframe3DViewer({
   const canvasRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Generate demo 3D elements for showcase
+  // Generate demo 3D elements based on project type
   const generateDemo3DElements = (): Wireframe3DElement[] => {
+    // Check if it's a Starbucks project (QSR/Drive-Through)
+    if (fileName.toLowerCase().includes('starbucks') || projectData?.projectType?.includes('QSR')) {
+      return [
+        {
+          id: 'foundation-3d',
+          category: 'structural',
+          type: 'Concrete Slab Foundation',
+          geometry: { x: 0, y: 0, z: 0, width: 220, height: 15, depth: 180 },
+          material: { color: '#8B7355', roughness: 0.9, metalness: 0.1 },
+          quantity: 165,
+          unit: 'm²',
+          cost: 27225,
+          visible: true
+        },
+        {
+          id: 'precast-walls-3d',
+          category: 'structural',
+          type: 'Precast Concrete Panels',
+          geometry: { x: 0, y: 15, z: 0, width: 10, height: 120, depth: 180 },
+          material: { color: '#D3D3D3', roughness: 0.7, metalness: 0 },
+          quantity: 380,
+          unit: 'm²',
+          cost: 106400,
+          visible: true
+        },
+        {
+          id: 'drive-thru-canopy-3d',
+          category: 'architectural',
+          type: 'Drive-Thru Canopy',
+          geometry: { x: 220, y: 100, z: 60, width: 100, height: 20, depth: 60, rotation: { x: 0, y: 0, z: -5 } },
+          material: { color: '#228B22', roughness: 0.4, metalness: 0.6 },
+          quantity: 60,
+          unit: 'm²',
+          cost: 18000,
+          visible: true
+        },
+        {
+          id: 'kitchen-area-3d',
+          category: 'architectural',
+          type: 'Commercial Kitchen',
+          geometry: { x: 60, y: 15, z: 40, width: 100, height: 100, depth: 100 },
+          material: { color: '#C0C0C0', roughness: 0.3, metalness: 0.8 },
+          quantity: 1,
+          unit: 'item',
+          cost: 180000,
+          visible: true
+        },
+        {
+          id: 'roof-qsr-3d',
+          category: 'structural',
+          type: 'Colorbond Roof',
+          geometry: { x: -10, y: 135, z: -10, width: 240, height: 15, depth: 200, rotation: { x: 3, y: 0, z: 0 } },
+          material: { color: '#708090', roughness: 0.4, metalness: 0.6 },
+          quantity: 320,
+          unit: 'm²',
+          cost: 27200,
+          visible: true
+        },
+        {
+          id: 'storefront-3d',
+          category: 'architectural',
+          type: 'Glazing & Shopfront',
+          geometry: { x: 210, y: 15, z: 20, width: 5, height: 100, depth: 140 },
+          material: { color: '#87CEEB', roughness: 0.1, metalness: 0.2 },
+          quantity: 65,
+          unit: 'm²',
+          cost: 29250,
+          visible: true
+        }
+      ];
+    }
+    
+    // Check if it's a Kmart project (Retail)
+    if (fileName.toLowerCase().includes('kmart') || projectData?.projectType?.includes('Retail')) {
+      return [
+        {
+          id: 'foundation-retail-3d',
+          category: 'structural',
+          type: 'Existing Slab',
+          geometry: { x: 0, y: 0, z: 0, width: 400, height: 10, depth: 300 },
+          material: { color: '#808080', roughness: 0.9, metalness: 0.1 },
+          quantity: 2400,
+          unit: 'm²',
+          cost: 0,
+          visible: true
+        },
+        {
+          id: 'steel-structure-3d',
+          category: 'structural',
+          type: 'Steel Structure Modifications',
+          geometry: { x: 100, y: 10, z: 100, width: 30, height: 150, depth: 30 },
+          material: { color: '#FF6347', roughness: 0.3, metalness: 0.8 },
+          quantity: 45,
+          unit: 't',
+          cost: 144000,
+          visible: true
+        },
+        {
+          id: 'retail-walls-3d',
+          category: 'architectural',
+          type: 'Internal Partitions',
+          geometry: { x: 50, y: 10, z: 150, width: 300, height: 100, depth: 5 },
+          material: { color: '#F5DEB3', roughness: 0.6, metalness: 0 },
+          quantity: 480,
+          unit: 'm²',
+          cost: 36000,
+          visible: true
+        },
+        {
+          id: 'ceiling-retail-3d',
+          category: 'architectural',
+          type: 'Suspended Ceiling',
+          geometry: { x: 0, y: 110, z: 0, width: 400, height: 5, depth: 300 },
+          material: { color: '#FFFFFF', roughness: 0.8, metalness: 0 },
+          quantity: 1850,
+          unit: 'm²',
+          cost: 101750,
+          visible: true
+        },
+        {
+          id: 'shelving-3d',
+          category: 'architectural',
+          type: 'Retail Fixtures',
+          geometry: { x: 150, y: 10, z: 100, width: 100, height: 80, depth: 40 },
+          material: { color: '#4682B4', roughness: 0.5, metalness: 0.3 },
+          quantity: 1,
+          unit: 'item',
+          cost: 125000,
+          visible: true
+        },
+        {
+          id: 'shopfront-retail-3d',
+          category: 'architectural',
+          type: 'Shopfront Glazing',
+          geometry: { x: 395, y: 10, z: 50, width: 5, height: 100, depth: 200 },
+          material: { color: '#87CEEB', roughness: 0.1, metalness: 0.2 },
+          quantity: 85,
+          unit: 'm²',
+          cost: 32300,
+          visible: true
+        }
+      ];
+    }
+    
+    // Default generic building elements
     return [
       {
         id: 'foundation-3d',
@@ -166,7 +311,12 @@ export function Wireframe3DViewer({
     ];
   };
 
-  const [wireframe3DElements] = useState<Wireframe3DElement[]>(generateDemo3DElements());
+  const [wireframe3DElements, setWireframe3DElements] = useState<Wireframe3DElement[]>([]);
+  
+  // Generate elements when component mounts or when project data changes
+  useEffect(() => {
+    setWireframe3DElements(generateDemo3DElements());
+  }, [fileName, projectData]);
 
   // Handle camera rotation with mouse drag
   const handleMouseMove = (e: React.MouseEvent) => {

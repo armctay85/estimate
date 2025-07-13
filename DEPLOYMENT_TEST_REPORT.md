@@ -22,6 +22,16 @@ Testing all platform functionality to ensure 100% deployment readiness.
    - Fix: Added new card with route to /3d-processor page
    - Status: FIXED - Card navigates to dedicated 3D processor page
 
+4. **Project Name Clashes**
+   - Issue: Kmart Gladstone showing "Starbucks Werribee" 3D model
+   - Fix: Added separate project data for Kmart Gladstone
+   - Status: FIXED - Each project now has its own unique data
+
+5. **3D Model Viewer**
+   - Issue: Empty canvas showing no 3D elements
+   - Fix: Fixed import path and made 3D elements dynamic based on project type
+   - Status: FIXED - Different 3D models for Starbucks (QSR) vs Kmart (Retail)
+
 ### 🔍 Components Tested
 
 #### Dashboard Navigation (100% Working)
