@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { TrendingUp, FileBarChart, Users, Award, BarChart3, Upload, Sparkles, Zap, Brain, Share2, Moon, Sun, Settings, Layers, Palette, CheckCircle, Camera, Box, Clock, Star, ChevronDown, Calculator, Download, X, Plus } from "lucide-react";
+import { TrendingUp, FileBarChart, Users, Award, BarChart3, Upload, Sparkles, Zap, Brain, Share2, Moon, Sun, Settings, Layers, Palette, CheckCircle, Camera, Box, Clock, Star, ChevronDown, Calculator, Download, X, Plus, Grid3x3 } from "lucide-react";
 import { PARAMETRIC_ASSEMBLIES, type MaterialType } from "@shared/schema";
 import type { ShapeType, RoomData } from "@/lib/fabric-enhanced";
 
@@ -52,7 +52,7 @@ function useDarkMode() {
 }
 
 export default function Home() {
-  const [location, setLocation] = useLocation();
+  const [location, navigate] = useLocation();
   const [darkMode, setDarkMode] = useDarkMode();
   const [selectedMaterial, setSelectedMaterial] = useState<MaterialType>("timber");
   const [selectedShape, setSelectedShape] = useState<ShapeType>("rectangle");
@@ -745,11 +745,74 @@ export default function Home() {
               </Card>
             </motion.div>
 
-            {/* Photo Renovation Tool */}
+            {/* 3D Wireframe Processor */}
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.7 }}
+            >
+              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group border-2 border-indigo-200"
+                    onClick={() => navigate('/3d-processor')}>
+                <CardContent className="p-8">
+                  <div className="mb-6">
+                    <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <Grid3x3 className="w-8 h-8 text-indigo-600" />
+                    </div>
+                    <Badge className="bg-indigo-100 text-indigo-800 mb-2">Geometry Engine</Badge>
+                    {/* Preview graphic */}
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="relative h-24">
+                        {/* Simple wireframe preview */}
+                        <svg viewBox="0 0 200 100" className="w-full h-full">
+                          <g stroke="#6366f1" strokeWidth="1" fill="none">
+                            <rect x="20" y="40" width="60" height="40" />
+                            <rect x="20" y="20" width="60" height="20" />
+                            <line x1="20" y1="40" x2="20" y2="20" />
+                            <line x1="80" y1="40" x2="80" y2="20" />
+                            <rect x="80" y="30" width="40" height="30" />
+                            <rect x="120" y="50" width="60" height="30" />
+                            <line x1="80" y1="60" x2="120" y2="60" />
+                            <line x1="80" y1="30" x2="120" y2="50" />
+                          </g>
+                        </svg>
+                      </div>
+                      <div className="text-xs text-center mt-2 text-gray-500">Wireframe extraction</div>
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3">3D Wireframe Processor</h3>
+                  <p className="text-gray-600 mb-6">
+                    Extract true wireframes from IFC, DWG, DXF files. Convert RVT to IFC for processing.
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-indigo-600" />
+                      <span>IFC direct parsing</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-indigo-600" />
+                      <span>Vertex & edge extraction</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-indigo-600" />
+                      <span>Wireframe visualization</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-indigo-600" />
+                      <span>Export to DXF/OBJ</span>
+                    </div>
+                  </div>
+                  <Button className="w-full mt-6 bg-indigo-600 hover:bg-indigo-700">
+                    Process 3D Files
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Photo Renovation Tool */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.8 }}
             >
               <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group border-2 border-pink-200"
                     onClick={() => setShowPhotoRenovation(true)}>

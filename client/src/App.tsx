@@ -11,6 +11,7 @@ import Projects from "@/pages/projects";
 import ProjectDetail from "@/pages/project-detail";
 import Reports from "@/pages/reports";
 import Settings from "@/pages/settings";
+import ThreeDProcessor from "@/pages/3d-processor";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/project/:id" component={ProjectDetail} />
       <Route path="/reports" component={Reports} />
       <Route path="/settings" component={Settings} />
+      <Route path="/3d-processor" component={ThreeDProcessor} />
       <Route component={NotFound} />
     </Switch>
   );
