@@ -99,70 +99,217 @@ export function Wireframe3DViewer({
     // Check if it's a Starbucks project (QSR/Drive-Through)
     if (fileName.toLowerCase().includes('starbucks') || projectData?.projectType?.includes('QSR')) {
       return [
+        // Foundation and base
         {
           id: 'foundation-3d',
           category: 'structural',
           type: 'Concrete Slab Foundation',
-          geometry: { x: 0, y: 0, z: 0, width: 220, height: 15, depth: 180 },
+          geometry: { x: 0, y: 0, z: 0, width: 250, height: 20, depth: 200 },
           material: { color: '#8B7355', roughness: 0.9, metalness: 0.1 },
           quantity: 165,
           unit: 'm²',
           cost: 27225,
           visible: true
         },
+        // Main building structure
         {
-          id: 'precast-walls-3d',
+          id: 'main-building-3d',
           category: 'structural',
-          type: 'Precast Concrete Panels',
-          geometry: { x: 0, y: 15, z: 0, width: 10, height: 120, depth: 180 },
+          type: 'Main Building Structure',
+          geometry: { x: 20, y: 20, z: 20, width: 160, height: 120, depth: 160 },
           material: { color: '#D3D3D3', roughness: 0.7, metalness: 0 },
-          quantity: 380,
-          unit: 'm²',
+          quantity: 1,
+          unit: 'item',
           cost: 106400,
           visible: true
         },
+        // Drive-thru lane
         {
-          id: 'drive-thru-canopy-3d',
+          id: 'drive-thru-lane-3d',
+          category: 'external',
+          type: 'Drive-Thru Lane',
+          geometry: { x: 180, y: 0, z: 50, width: 120, height: 5, depth: 100 },
+          material: { color: '#4A4A4A', roughness: 0.8, metalness: 0 },
+          quantity: 120,
+          unit: 'm²',
+          cost: 14400,
+          visible: true
+        },
+        // Drive-thru canopy structure
+        {
+          id: 'canopy-structure-3d',
           category: 'architectural',
-          type: 'Drive-Thru Canopy',
-          geometry: { x: 220, y: 100, z: 60, width: 100, height: 20, depth: 60, rotation: { x: 0, y: 0, z: -5 } },
-          material: { color: '#228B22', roughness: 0.4, metalness: 0.6 },
+          type: 'Drive-Thru Canopy Structure',
+          geometry: { x: 200, y: 100, z: 80, width: 80, height: 30, depth: 40, rotation: { x: 0, y: 0, z: -5 } },
+          material: { color: '#00563F', roughness: 0.4, metalness: 0.6 },
           quantity: 60,
           unit: 'm²',
           cost: 18000,
           visible: true
         },
+        // Canopy support columns
         {
-          id: 'kitchen-area-3d',
+          id: 'canopy-columns-3d',
+          category: 'structural',
+          type: 'Canopy Support Columns',
+          geometry: { x: 210, y: 0, z: 85, width: 10, height: 100, depth: 10 },
+          material: { color: '#595959', roughness: 0.3, metalness: 0.8 },
+          quantity: 4,
+          unit: 'units',
+          cost: 4800,
+          visible: true
+        },
+        {
+          id: 'canopy-columns-2-3d',
+          category: 'structural',
+          type: 'Canopy Support Columns',
+          geometry: { x: 260, y: 0, z: 85, width: 10, height: 100, depth: 10 },
+          material: { color: '#595959', roughness: 0.3, metalness: 0.8 },
+          quantity: 4,
+          unit: 'units',
+          cost: 4800,
+          visible: true
+        },
+        {
+          id: 'canopy-columns-3-3d',
+          category: 'structural',
+          type: 'Canopy Support Columns',
+          geometry: { x: 210, y: 0, z: 105, width: 10, height: 100, depth: 10 },
+          material: { color: '#595959', roughness: 0.3, metalness: 0.8 },
+          quantity: 4,
+          unit: 'units',
+          cost: 4800,
+          visible: true
+        },
+        {
+          id: 'canopy-columns-4-3d',
+          category: 'structural',
+          type: 'Canopy Support Columns',
+          geometry: { x: 260, y: 0, z: 105, width: 10, height: 100, depth: 10 },
+          material: { color: '#595959', roughness: 0.3, metalness: 0.8 },
+          quantity: 4,
+          unit: 'units',
+          cost: 4800,
+          visible: true
+        },
+        // Order point structure
+        {
+          id: 'order-point-3d',
           category: 'architectural',
-          type: 'Commercial Kitchen',
-          geometry: { x: 60, y: 15, z: 40, width: 100, height: 100, depth: 100 },
+          type: 'Order Point Kiosk',
+          geometry: { x: 230, y: 20, z: 120, width: 20, height: 40, depth: 15 },
+          material: { color: '#00563F', roughness: 0.5, metalness: 0.3 },
+          quantity: 1,
+          unit: 'item',
+          cost: 8500,
+          visible: true
+        },
+        // Pickup window
+        {
+          id: 'pickup-window-3d',
+          category: 'architectural',
+          type: 'Drive-Thru Pickup Window',
+          geometry: { x: 180, y: 40, z: 60, width: 5, height: 30, depth: 20 },
+          material: { color: '#87CEEB', roughness: 0.1, metalness: 0.2 },
+          quantity: 1,
+          unit: 'item',
+          cost: 4500,
+          visible: true
+        },
+        // Kitchen equipment area
+        {
+          id: 'kitchen-equipment-3d',
+          category: 'mep',
+          type: 'Commercial Kitchen Equipment',
+          geometry: { x: 60, y: 20, z: 60, width: 80, height: 60, depth: 80 },
           material: { color: '#C0C0C0', roughness: 0.3, metalness: 0.8 },
           quantity: 1,
           unit: 'item',
           cost: 180000,
           visible: true
         },
+        // Main roof
         {
-          id: 'roof-qsr-3d',
+          id: 'main-roof-3d',
           category: 'structural',
-          type: 'Colorbond Roof',
-          geometry: { x: -10, y: 135, z: -10, width: 240, height: 15, depth: 200, rotation: { x: 3, y: 0, z: 0 } },
+          type: 'Colorbond Main Roof',
+          geometry: { x: 10, y: 140, z: 10, width: 180, height: 15, depth: 180, rotation: { x: 3, y: 0, z: 0 } },
           material: { color: '#708090', roughness: 0.4, metalness: 0.6 },
           quantity: 320,
           unit: 'm²',
           cost: 27200,
           visible: true
         },
+        // Storefront glazing
         {
-          id: 'storefront-3d',
+          id: 'storefront-glazing-3d',
           category: 'architectural',
           type: 'Glazing & Shopfront',
-          geometry: { x: 210, y: 15, z: 20, width: 5, height: 100, depth: 140 },
+          geometry: { x: 180, y: 20, z: 40, width: 5, height: 80, depth: 100 },
           material: { color: '#87CEEB', roughness: 0.1, metalness: 0.2 },
           quantity: 65,
           unit: 'm²',
           cost: 29250,
+          visible: true
+        },
+        // Side windows
+        {
+          id: 'side-windows-3d',
+          category: 'architectural',
+          type: 'Side Windows',
+          geometry: { x: 20, y: 40, z: 180, width: 160, height: 60, depth: 5 },
+          material: { color: '#87CEEB', roughness: 0.1, metalness: 0.2 },
+          quantity: 40,
+          unit: 'm²',
+          cost: 12000,
+          visible: true
+        },
+        // Signage pylon
+        {
+          id: 'signage-pylon-3d',
+          category: 'external',
+          type: 'Signage Pylon',
+          geometry: { x: 280, y: 0, z: 150, width: 15, height: 180, depth: 15 },
+          material: { color: '#00563F', roughness: 0.5, metalness: 0.3 },
+          quantity: 1,
+          unit: 'item',
+          cost: 18500,
+          visible: true
+        },
+        // Outdoor seating area
+        {
+          id: 'outdoor-seating-3d',
+          category: 'external',
+          type: 'Outdoor Seating Area',
+          geometry: { x: 20, y: 0, z: -30, width: 100, height: 5, depth: 50 },
+          material: { color: '#8B6F47', roughness: 0.7, metalness: 0 },
+          quantity: 50,
+          unit: 'm²',
+          cost: 7500,
+          visible: true
+        },
+        // HVAC units on roof
+        {
+          id: 'hvac-units-3d',
+          category: 'mep',
+          type: 'HVAC Rooftop Units',
+          geometry: { x: 80, y: 155, z: 80, width: 40, height: 25, depth: 40 },
+          material: { color: '#4169E1', roughness: 0.5, metalness: 0.7 },
+          quantity: 3,
+          unit: 'units',
+          cost: 45000,
+          visible: true
+        },
+        // Landscape elements
+        {
+          id: 'landscape-3d',
+          category: 'external',
+          type: 'Landscaping',
+          geometry: { x: -20, y: 0, z: -20, width: 40, height: 10, depth: 240 },
+          material: { color: '#228B22', roughness: 0.9, metalness: 0 },
+          quantity: 200,
+          unit: 'm²',
+          cost: 8000,
           visible: true
         }
       ];
