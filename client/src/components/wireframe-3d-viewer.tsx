@@ -77,8 +77,8 @@ export function Wireframe3DViewer({
 }: Wireframe3DViewerProps) {
   const [viewMode, setViewMode] = useState<'wireframe' | 'solid' | 'realistic'>('wireframe');
   const [selectedElement, setSelectedElement] = useState<Wireframe3DElement | null>(null);
-  const [cameraRotation, setCameraRotation] = useState({ x: -30, y: 45, z: 0 });
-  const [zoom, setZoom] = useState(1);
+  const [cameraRotation, setCameraRotation] = useState({ x: -20, y: 45, z: 0 });
+  const [zoom, setZoom] = useState(0.5);
   const [aiRenderMode, setAiRenderMode] = useState<'none' | 'photorealistic' | 'architectural' | 'concept'>('none');
   const [renderProgress, setRenderProgress] = useState(0);
   const [isRendering, setIsRendering] = useState(false);
@@ -462,7 +462,9 @@ export function Wireframe3DViewer({
   
   // Generate elements when component mounts or when project data changes
   useEffect(() => {
-    setWireframe3DElements(generateDemo3DElements());
+    const elements = generateDemo3DElements();
+    console.log('Generated 3D elements:', elements.length, elements);
+    setWireframe3DElements(elements);
   }, [fileName, projectData]);
 
   // Handle camera rotation with mouse drag
@@ -500,8 +502,8 @@ export function Wireframe3DViewer({
   };
 
   const resetView = () => {
-    setCameraRotation({ x: -30, y: 45, z: 0 });
-    setZoom(1);
+    setCameraRotation({ x: -20, y: 45, z: 0 });
+    setZoom(0.5);
   };
 
   const exportModel = () => {
@@ -532,16 +534,12 @@ export function Wireframe3DViewer({
   // Calculate 3D transformation for isometric view
   const get3DTransform = (element: Wireframe3DElement) => {
     const { x, y, z, rotation } = element.geometry;
-    const rotX = cameraRotation.x + (rotation?.x || 0);
-    const rotY = cameraRotation.y + (rotation?.y || 0);
-    const rotZ = cameraRotation.z + (rotation?.z || 0);
     
     return `
-      translate3d(${x}px, ${-y}px, ${z}px)
-      rotateX(${rotX}deg)
-      rotateY(${rotY}deg)
-      rotateZ(${rotZ}deg)
-      scale3d(${zoom}, ${zoom}, ${zoom})
+      translate3d(${x - 200}px, ${-y}px, ${z - 100}px)
+      rotateX(${rotation?.x || 0}deg)
+      rotateY(${rotation?.y || 0}deg)
+      rotateZ(${rotation?.z || 0}deg)
     `;
   };
 
@@ -623,10 +621,12 @@ export function Wireframe3DViewer({
                 }`} />
                 
                 {/* 3D Scene Container */}
-                <div className="absolute inset-0 flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center justify-center" style={{ perspective: '1200px' }}>
                   <div className="relative" style={{ 
                     transformStyle: 'preserve-3d',
-                    transform: `rotateX(${cameraRotation.x}deg) rotateY(${cameraRotation.y}deg) scale(${zoom})`
+                    transform: `rotateX(${cameraRotation.x}deg) rotateY(${cameraRotation.y}deg) scale(${zoom})`,
+                    width: '600px',
+                    height: '600px'
                   }}>
                     {/* Grid floor */}
                     <div className="absolute" style={{
@@ -639,20 +639,45 @@ export function Wireframe3DViewer({
                       backgroundSize: '20px 20px'
                     }} />
                     
+                    {/* Debug info */}
+                    <div className="absolute text-white text-xs bg-red-600 px-2 py-1 rounded z-50"
+                      style={{ transform: 'translate(-300px, -300px)' }}>
+                      Debug: {wireframe3DElements.length} elements, Zoom: {zoom}
+                    </div>
+                    
+                    {/* Test cube to verify 3D rendering */}
+                    <div className="absolute" style={{
+                      transform: 'translate3d(0px, 0px, 0px)',
+                      transformStyle: 'preserve-3d',
+                      width: '100px',
+                      height: '100px'
+                    }}>
+                      <div className="absolute bg-red-500 border-2 border-red-700" style={{
+                        width: '100px',
+                        height: '100px',
+                        transform: 'translateZ(50px)'
+                      }} />
+                      <div className="absolute bg-blue-500 border-2 border-blue-700" style={{
+                        width: '100px',
+                        height: '100px',
+                        transform: 'translateZ(-50px) rotateY(180deg)'
+                      }} />
+                    </div>
+                    
                     {/* Render 3D elements */}
                     <AnimatePresence>
-                      {wireframe3DElements.map((element) => {
-                        if (!visibilitySettings[element.category]) return null;
+                      {wireframe3DElements.map((element, index) => {
+                        if (!visibilitySettings[element.category]) {
+                          console.log('Element hidden by category:', element.id, element.category);
+                          return null;
+                        }
                         
                         const { width, height, depth } = element.geometry;
                         const isSelected = selectedElement?.id === element.id;
                         
                         return (
-                          <motion.div
+                          <div
                             key={element.id}
-                            initial={{ opacity: 0, scale: 0 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0 }}
                             className="absolute cursor-pointer"
                             style={{
                               transform: get3DTransform(element),
@@ -662,28 +687,25 @@ export function Wireframe3DViewer({
                             }}
                             onClick={() => setSelectedElement(element)}
                           >
+                            {/* All faces for 3D box */}
                             {/* Front face */}
                             <div className="absolute" style={{
                               width: `${width}px`,
                               height: `${height}px`,
-                              backgroundColor: viewMode === 'realistic' ? element.material.color : getCategoryColor(element.category),
-                              opacity: viewMode === 'wireframe' ? 0 : (isSelected ? 0.9 : 0.7),
-                              border: viewMode === 'wireframe' ? `2px solid ${getCategoryColor(element.category)}` : 'none',
+                              backgroundColor: getCategoryColor(element.category),
+                              opacity: viewMode === 'wireframe' ? 0.3 : 0.8,
+                              border: `2px solid ${getCategoryColor(element.category)}`,
                               boxShadow: isSelected ? '0 0 20px rgba(255,255,255,0.5)' : 'none',
                               transform: `translateZ(${depth/2}px)`
-                            }}>
-                              {viewMode === 'realistic' && aiRenderMode !== 'none' && (
-                                <div className="w-full h-full bg-gradient-to-br from-transparent to-black/20" />
-                              )}
-                            </div>
+                            }} />
                             
                             {/* Back face */}
                             <div className="absolute" style={{
                               width: `${width}px`,
                               height: `${height}px`,
-                              backgroundColor: viewMode === 'realistic' ? element.material.color : getCategoryColor(element.category),
-                              opacity: viewMode === 'wireframe' ? 0 : (isSelected ? 0.9 : 0.7),
-                              border: viewMode === 'wireframe' ? `2px solid ${getCategoryColor(element.category)}` : 'none',
+                              backgroundColor: getCategoryColor(element.category),
+                              opacity: viewMode === 'wireframe' ? 0.3 : 0.8,
+                              border: `2px solid ${getCategoryColor(element.category)}`,
                               transform: `translateZ(-${depth/2}px) rotateY(180deg)`
                             }} />
                             
@@ -691,11 +713,44 @@ export function Wireframe3DViewer({
                             <div className="absolute" style={{
                               width: `${width}px`,
                               height: `${depth}px`,
-                              backgroundColor: viewMode === 'realistic' ? element.material.color : getCategoryColor(element.category),
-                              opacity: viewMode === 'wireframe' ? 0 : (isSelected ? 0.9 : 0.7),
-                              border: viewMode === 'wireframe' ? `2px solid ${getCategoryColor(element.category)}` : 'none',
+                              backgroundColor: getCategoryColor(element.category),
+                              opacity: viewMode === 'wireframe' ? 0.3 : 0.8,
+                              border: `2px solid ${getCategoryColor(element.category)}`,
                               transform: `rotateX(90deg) translateZ(${height/2}px)`,
                               transformOrigin: 'center bottom'
+                            }} />
+                            
+                            {/* Bottom face */}
+                            <div className="absolute" style={{
+                              width: `${width}px`,
+                              height: `${depth}px`,
+                              backgroundColor: getCategoryColor(element.category),
+                              opacity: viewMode === 'wireframe' ? 0.3 : 0.8,
+                              border: `2px solid ${getCategoryColor(element.category)}`,
+                              transform: `rotateX(-90deg) translateZ(${height/2}px)`,
+                              transformOrigin: 'center top'
+                            }} />
+                            
+                            {/* Left face */}
+                            <div className="absolute" style={{
+                              width: `${depth}px`,
+                              height: `${height}px`,
+                              backgroundColor: getCategoryColor(element.category),
+                              opacity: viewMode === 'wireframe' ? 0.3 : 0.8,
+                              border: `2px solid ${getCategoryColor(element.category)}`,
+                              transform: `rotateY(-90deg) translateZ(${width/2}px)`,
+                              transformOrigin: 'right center'
+                            }} />
+                            
+                            {/* Right face */}
+                            <div className="absolute" style={{
+                              width: `${depth}px`,
+                              height: `${height}px`,
+                              backgroundColor: getCategoryColor(element.category),
+                              opacity: viewMode === 'wireframe' ? 0.3 : 0.8,
+                              border: `2px solid ${getCategoryColor(element.category)}`,
+                              transform: `rotateY(90deg) translateZ(${width/2}px)`,
+                              transformOrigin: 'left center'
                             }} />
                             
                             {/* Cost label */}
@@ -705,7 +760,7 @@ export function Wireframe3DViewer({
                                 ${element.cost.toLocaleString()}
                               </div>
                             )}
-                          </motion.div>
+                          </div>
                         );
                       })}
                     </AnimatePresence>

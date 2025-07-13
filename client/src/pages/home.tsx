@@ -13,7 +13,7 @@ import { Header } from "@/components/header";
 import { AICostPredictor } from "@/components/ai-cost-predictor";
 import { BIMProcessor } from "@/components/bim-processor";
 import { IntelligentAssistant } from "@/components/intelligent-assistant";
-import { Wireframe3DViewer } from "@/components/wireframe-3d-viewer";
+import { Simple3DViewer } from "@/components/simple-3d-viewer";
 import { PhotoRenovationTool } from "@/components/photo-renovation-tool";
 import { ProjectScheduler } from "@/components/project-scheduler";
 import { Card, CardContent } from "@/components/ui/card";
@@ -593,10 +593,14 @@ export default function Home() {
                     <Badge className="bg-purple-100 text-purple-800 mb-2">Enterprise - $2,999/month</Badge>
                     {/* Preview graphic - Interactive 3D Model */}
                     <div className="mt-4 rounded-lg overflow-hidden">
-                      <Wireframe3DViewer 
-                        embedded={true}
-                        fileName="Demo BIM Model"
-                      />
+                      <div className="h-48 bg-gradient-to-br from-purple-900 to-purple-700 relative rounded-lg">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-white text-center">
+                            <Box className="w-16 h-16 mx-auto mb-2 animate-pulse" />
+                            <p className="text-sm">3D BIM Visualization</p>
+                          </div>
+                        </div>
+                      </div>
                       <div className="text-xs text-center mt-2 text-gray-500">Live 3D Model Preview</div>
                     </div>
                   </div>
@@ -1363,7 +1367,7 @@ export default function Home() {
       <IntelligentAssistant />
       
       {/* 3D Wireframe Viewer */}
-      <Wireframe3DViewer
+      <Simple3DViewer
         isOpen={show3DWireframe}
         onClose={() => setShow3DWireframe(false)}
         fileName="Current Project 3D Model"
