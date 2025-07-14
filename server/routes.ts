@@ -706,11 +706,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin routes for design library uploads - OPTIMIZED FOR SPEED
-  app.post("/api/admin/upload-design", adminUpload.single('file'), async (req, res) => {
-    try {
+  app.post("/api/admin/upload-design", (req, res, next) => {
+    // Set immediate response for speed
+    const startTime = Date.now();
+    
+    adminUpload.single('file')(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({ message: err.message });
+      }
+      
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
       }
+      
+      const processingTime = Date.now() - startTime;
       
       // Immediate response - no processing delay
       res.json({ 
@@ -719,15 +728,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: req.file.originalname,
           size: req.file.size,
           type: req.file.mimetype
-        }
+        },
+        processingTime: processingTime / 1000, // Convert to seconds
+        uploadSpeed: (req.file.size / processingTime * 1000) / (1024 * 1024) // MB/s
       });
-      
-      // Any background processing would happen asynchronously
-      // without blocking the HTTP response
-      
-    } catch (error: any) {
-      res.status(500).json({ message: "Upload failed" });
-    }
+    });
   });
 
   const httpServer = createServer(app);

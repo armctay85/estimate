@@ -103,29 +103,60 @@ export default function AdminDashboard() {
     let bytesUploaded = 0;
     const startTime = Date.now();
     
-    // Create upload with progress tracking using XMLHttpRequest for real progress
-    const allUploadPromises = filesToUpload.map(async (file, index) => {
-      return new Promise<{success: boolean, file: string, error?: string}>((resolve) => {
-        const xhr = new XMLHttpRequest();
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("type", "design-library");
+    // Limit concurrent uploads for better performance
+    const maxConcurrent = 3;
+    const uploadQueue = [...filesToUpload];
+    const activeUploads: Promise<any>[] = [];
+    const results: {success: boolean, file: string, error?: string}[] = [];
+    
+    // Process uploads with concurrency limit
+    while (uploadQueue.length > 0 || activeUploads.length > 0) {
+      // Start new uploads up to the limit
+      while (activeUploads.length < maxConcurrent && uploadQueue.length > 0) {
+        const file = uploadQueue.shift()!;
+        const index = filesToUpload.indexOf(file);
+        
+        const uploadPromise = new Promise<{success: boolean, file: string, error?: string}>((resolve) => {
+          const xhr = new XMLHttpRequest();
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("type", "design-library");
         
         // Track upload progress
+        let lastProgressTime = Date.now();
+        let lastLoaded = 0;
+        
         xhr.upload.addEventListener("progress", (e) => {
           if (e.lengthComputable) {
             const fileProgress = (e.loaded / e.total) * 100;
             
-            // Update real-time metrics
-            const elapsed = (Date.now() - startTime) / 1000;
-            const speed = bytesUploaded / elapsed / (1024 * 1024); // MB/s
-            const remainingBytes = totalBytes - bytesUploaded;
-            const eta = remainingBytes / (speed * 1024 * 1024);
+            // Calculate instantaneous speed
+            const now = Date.now();
+            const timeDiff = (now - lastProgressTime) / 1000;
+            const bytesDiff = e.loaded - lastLoaded;
+            const instantSpeed = timeDiff > 0 ? (bytesDiff / timeDiff) / (1024 * 1024) : 0;
+            
+            lastProgressTime = now;
+            lastLoaded = e.loaded;
+            
+            // Update total bytes uploaded
+            const currentTotalBytes = bytesUploaded + e.loaded;
+            
+            // Calculate overall speed
+            const elapsed = Math.max((Date.now() - startTime) / 1000, 0.1);
+            const overallSpeed = currentTotalBytes / elapsed / (1024 * 1024);
+            
+            // Use the higher of instant or overall speed for display
+            const displaySpeed = Math.max(instantSpeed, overallSpeed, 0.5);
+            
+            // Calculate remaining time
+            const remainingBytes = totalBytes - currentTotalBytes;
+            const eta = remainingBytes / (displaySpeed * 1024 * 1024);
             
             setUploadMetrics({
-              speed: Math.max(0.1, speed),
-              eta: eta > 0 ? `${Math.ceil(eta)}s remaining` : "Calculating...",
-              bytesTransferred: bytesUploaded,
+              speed: displaySpeed,
+              eta: eta > 0 ? `${Math.ceil(eta)}s remaining` : "Processing...",
+              bytesTransferred: currentTotalBytes,
               totalBytes,
               activeConnections: Math.min(filesToUpload.length - completedCount, 10)
             });
@@ -181,18 +212,29 @@ export default function AdminDashboard() {
           resolve({ success: false, file: file.name, error: "Network error" });
         };
         
-        xhr.open("POST", "/api/admin/upload-design");
-        xhr.withCredentials = true;
-        xhr.send(formData);
-      });
-    });
-    
-    // Execute all uploads simultaneously
-    const results = await Promise.allSettled(allUploadPromises);
+          xhr.open("POST", "/api/admin/upload-design");
+          xhr.withCredentials = true;
+          xhr.send(formData);
+        }).then(result => {
+          results.push(result);
+          // Remove from active uploads
+          const idx = activeUploads.findIndex(p => p === uploadPromise);
+          if (idx > -1) activeUploads.splice(idx, 1);
+          return result;
+        });
+        
+        activeUploads.push(uploadPromise);
+      }
+      
+      // Wait for at least one upload to complete before continuing
+      if (activeUploads.length > 0) {
+        await Promise.race(activeUploads);
+      }
+    }
     
     // Count final results
-    processed = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
-    failed = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)).length;
+    processed = results.filter(r => r.success).length;
+    failed = results.filter(r => !r.success).length;
 
     setIsUploading(false);
     setUploadProgress(100);
