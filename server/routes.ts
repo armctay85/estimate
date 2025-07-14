@@ -118,6 +118,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       fileSize: 50 * 1024 * 1024, // 50MB limit for design files
     },
     fileFilter: (req, file, cb) => {
+      console.log('Admin upload - File:', file.originalname, 'MIME type:', file.mimetype);
+      
       const allowedMimes = [
         'application/pdf',
         'application/vnd.ms-excel',
@@ -127,13 +129,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'application/vnd.ms-project',
         'text/csv',
         'image/jpeg',
-        'image/png'
+        'image/png',
+        'application/octet-stream', // Generic binary files
+        'application/x-ole-storage' // Some Office files use this
       ];
       
-      if (allowedMimes.includes(file.mimetype) || file.originalname.toLowerCase().endsWith('.mpp')) {
+      const fileName = file.originalname.toLowerCase();
+      const allowedExtensions = ['.pdf', '.xls', '.xlsx', '.doc', '.docx', '.mpp', '.csv', '.jpg', '.jpeg', '.png'];
+      const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+      
+      if (allowedMimes.includes(file.mimetype) || hasValidExtension) {
+        console.log('Admin upload - File accepted:', file.originalname);
         cb(null, true);
       } else {
-        cb(new Error('Invalid file type. Please upload Excel, Word, PDF, MPP, CSV, or image files.'));
+        console.log('Admin upload - File rejected:', file.originalname, 'MIME:', file.mimetype);
+        cb(new Error(`Invalid file type. File: ${file.originalname}, MIME: ${file.mimetype}. Please upload Excel, Word, PDF, MPP, CSV, or image files.`));
       }
     }
   });
