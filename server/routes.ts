@@ -115,7 +115,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const adminUpload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 50 * 1024 * 1024, // 50MB limit for design files
+      fileSize: 500 * 1024 * 1024, // 500MB limit for design files
+      fieldSize: 500 * 1024 * 1024,
     },
     fileFilter: (req, file, cb) => {
       console.log('Admin upload - File:', file.originalname, 'MIME type:', file.mimetype);
@@ -168,7 +169,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const bimUpload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 200 * 1024 * 1024, // 200MB limit for BIM files
+      fileSize: 500 * 1024 * 1024, // 500MB limit for BIM files
+      fieldSize: 500 * 1024 * 1024,
     },
     fileFilter: (req, file, cb) => {
       const allowedExtensions = [

@@ -58,48 +58,61 @@ export default function AdminDashboard() {
     
     setUploadStats({ processed: 0, total: totalFiles, failed: 0 });
 
-    for (const file of Array.from(files)) {
-      try {
-        setCurrentUpload(file.name);
-        
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("type", "design-library");
-        
-        // Update upload progress
-        setUploadProgress((processed / totalFiles) * 100);
-        
-        // Upload file with proper fetch API (FormData doesn't work with apiRequest)
-        const response = await fetch("/api/admin/upload-design", {
-          method: "POST",
-          body: formData,
-          credentials: "include"
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Upload failed: ${response.statusText}`);
+    // Process files in parallel batches of 3 for speed
+    const batchSize = 3;
+    const fileArray = Array.from(files);
+    
+    for (let i = 0; i < fileArray.length; i += batchSize) {
+      const batch = fileArray.slice(i, i + batchSize);
+      
+      const uploadPromises = batch.map(async (file) => {
+        try {
+          setCurrentUpload(file.name);
+          
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("type", "design-library");
+          
+          const response = await fetch("/api/admin/upload-design", {
+            method: "POST",
+            body: formData,
+            credentials: "include"
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Upload failed: ${response.statusText}`);
+          }
+          
+          const data = await response.json();
+          
+          setUploadedFiles(prev => [...prev, {
+            id: Date.now() + Math.random(),
+            name: file.name,
+            size: (file.size / 1024 / 1024).toFixed(2) + " MB",
+            type: file.name.split('.').pop(),
+            uploadDate: new Date().toISOString(),
+            status: "processed"
+          }]);
+          
+          return { success: true, file: file.name };
+        } catch (error) {
+          console.error("Upload failed:", error);
+          return { success: false, file: file.name, error };
         }
-        
-        const data = await response.json();
-        
-        setUploadedFiles(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          name: file.name,
-          size: (file.size / 1024 / 1024).toFixed(2) + " MB",
-          type: file.name.split('.').pop(),
-          uploadDate: new Date().toISOString(),
-          status: "processed"
-        }]);
-        
-        processed++;
-        setUploadStats({ processed, total: totalFiles, failed });
-        setUploadProgress((processed / totalFiles) * 100);
-        
-      } catch (error) {
-        console.error("Upload failed:", error);
-        failed++;
-        setUploadStats({ processed, total: totalFiles, failed });
-      }
+      });
+      
+      // Wait for batch to complete
+      const results = await Promise.all(uploadPromises);
+      
+      // Update stats
+      const batchSuccess = results.filter(r => r.success).length;
+      const batchFailed = results.filter(r => !r.success).length;
+      
+      processed += batchSuccess;
+      failed += batchFailed;
+      
+      setUploadStats({ processed, total: totalFiles, failed });
+      setUploadProgress((processed / totalFiles) * 100);
     }
 
     setIsUploading(false);
