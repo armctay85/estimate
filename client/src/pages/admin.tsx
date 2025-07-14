@@ -82,9 +82,10 @@ export default function AdminDashboard() {
     for (let i = 0; i < filesToUpload.length; i += batchSize) {
       const batch = filesToUpload.slice(i, i + batchSize);
       
-      const uploadPromises = batch.map(async (file) => {
+      const uploadPromises = batch.map(async (file, index) => {
         try {
-          setCurrentUpload(file.name);
+          // Update current upload with batch info
+          setCurrentUpload(`${file.name} (${i + index + 1}/${filesToUpload.length})`);
           
           const formData = new FormData();
           formData.append("file", file);
@@ -94,47 +95,77 @@ export default function AdminDashboard() {
             method: "POST",
             body: formData,
             credentials: "include"
+          }).catch(fetchError => {
+            throw new Error(`Network error: ${fetchError.message}`);
           });
           
           if (!response.ok) {
-            throw new Error(`Upload failed: ${response.statusText}`);
+            const errorText = await response.text().catch(() => 'Unknown error');
+            throw new Error(`Upload failed (${response.status}): ${errorText}`);
           }
           
-          const data = await response.json();
+          const data = await response.json().catch(() => {
+            throw new Error('Invalid server response');
+          });
           
+          // Update UI immediately upon success
           setUploadedFiles(prev => [...prev, {
-            id: Date.now() + Math.random(),
+            id: Date.now() + Math.random() + index,
             name: file.name,
             size: (file.size / 1024 / 1024).toFixed(2) + " MB",
-            type: file.name.split('.').pop(),
+            type: file.name.split('.').pop()?.toUpperCase() || 'FILE',
             uploadDate: new Date().toISOString(),
             status: "processed"
           }]);
           
           return { success: true, file: file.name };
-        } catch (error) {
-          console.error("Upload failed:", error);
-          return { success: false, file: file.name, error };
+        } catch (error: any) {
+          console.error(`Upload failed for ${file.name}:`, error);
+          return { success: false, file: file.name, error: error.message };
         }
       });
       
-      // Wait for batch to complete
-      const results = await Promise.all(uploadPromises);
+      // Wait for batch to complete with error handling
+      const results = await Promise.allSettled(uploadPromises);
       
-      // Update stats
-      const batchSuccess = results.filter(r => r.success).length;
-      const batchFailed = results.filter(r => !r.success).length;
+      // Process results safely
+      const batchSuccess = results.filter(r => 
+        r.status === 'fulfilled' && r.value.success
+      ).length;
+      const batchFailed = results.filter(r => 
+        r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)
+      ).length;
       
       processed += batchSuccess;
       failed += batchFailed;
       
+      // Update progress immediately
       setUploadStats({ processed, total: filesToUpload.length, failed });
       setUploadProgress((processed / filesToUpload.length) * 100);
+      
+      // Log any failures for debugging
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          console.error(`Batch upload ${i + index + 1} rejected:`, result.reason);
+        } else if (!result.value.success) {
+          console.error(`File upload failed:`, result.value.error);
+        }
+      });
     }
 
     setIsUploading(false);
-    setUploadProgress(0);
-    setCurrentUpload("");
+    setUploadProgress(100);
+    setCurrentUpload(
+      failed > 0 
+        ? `Completed: ${processed} uploaded, ${failed} failed`
+        : `All ${processed} files uploaded successfully`
+    );
+    
+    // Clear current upload after 3 seconds
+    setTimeout(() => {
+      setUploadProgress(0);
+      setCurrentUpload("");
+    }, 3000);
     
     // Show final results
     if (failed === 0) {
