@@ -16,13 +16,13 @@ import { IntelligentAssistant } from "@/components/intelligent-assistant";
 import { Simple3DViewer } from "@/components/simple-3d-viewer";
 import { PhotoRenovationTool } from "@/components/photo-renovation-tool";
 import { ProjectScheduler } from "@/components/project-scheduler";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { TrendingUp, FileBarChart, Users, Award, BarChart3, Upload, Sparkles, Zap, Brain, Share2, Moon, Sun, Settings, Layers, Palette, CheckCircle, Camera, Box, Clock, Star, ChevronDown, Calculator, Download, X, Plus, Grid3x3 } from "lucide-react";
+import { TrendingUp, FileBarChart, Users, Award, BarChart3, Upload, Sparkles, Zap, Brain, Share2, Moon, Sun, Settings, Layers, Palette, CheckCircle, Camera, Box, Clock, Star, ChevronDown, Calculator, Download, X, Plus, Grid3x3, Pencil } from "lucide-react";
 import { PARAMETRIC_ASSEMBLIES, type MaterialType } from "@shared/schema";
 import type { ShapeType, RoomData } from "@/lib/fabric-enhanced";
 
