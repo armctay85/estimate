@@ -84,6 +84,12 @@ export default function Home() {
     return savedWorkspace !== 'workspace';
   });
   const [show3DWireframe, setShow3DWireframe] = useState(false);
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('show3DWireframe state:', show3DWireframe);
+    console.log('showDashboard state:', showDashboard);
+  }, [show3DWireframe, showDashboard]);
   const [showPhotoRenovation, setShowPhotoRenovation] = useState(false);
   const [showScheduler, setShowScheduler] = useState(false);
   const [showCollaborators, setShowCollaborators] = useState(false);
@@ -635,6 +641,7 @@ export default function Home() {
                     <div className="mt-4 rounded-lg overflow-hidden">
                       <div className="h-48 relative rounded-lg bg-gray-900">
                         <Simple3DViewer 
+                          isOpen={true}
                           elements={[
                             { id: '1', name: 'Structural Frame', category: 'structural', color: '#ef4444', cost: 125000, 
                               position: { x: 0, y: -30, z: 0 }, dimensions: { width: 100, height: 150, depth: 80 } },
