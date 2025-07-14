@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   Upload, Database, Users, FileSpreadsheet, Settings, 
   Shield, FolderPlus, Download, Trash2, Eye, Edit,
@@ -81,11 +83,12 @@ export default function AdminDashboard() {
     }
   };
 
+  const [showLibraryDialog, setShowLibraryDialog] = useState(false);
+  const [selectedLibrary, setSelectedLibrary] = useState<string>("");
+  
   const handleViewLibrary = (libraryName: string) => {
-    toast({
-      title: "Opening Library",
-      description: `Loading ${libraryName}...`
-    });
+    setSelectedLibrary(libraryName);
+    setShowLibraryDialog(true);
   };
 
   const handleExportLibrary = (libraryName: string) => {
@@ -93,6 +96,56 @@ export default function AdminDashboard() {
       title: "Export Started",
       description: `Exporting ${libraryName} to CSV...`
     });
+    // Simulate export
+    setTimeout(() => {
+      const csvContent = getLibraryData(libraryName);
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${libraryName.replace(/\s+/g, '_')}_export.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast({
+        title: "Export Complete",
+        description: `${libraryName} has been exported successfully.`
+      });
+    }, 1000);
+  };
+  
+  const getLibraryData = (libraryName: string) => {
+    const libraries: Record<string, any[]> = {
+      "Starbucks Drive-Through Templates": [
+        { id: "SB-001", name: "Standard Drive-Through 2800sqft", type: "QSR", area: 2800, cost: 1320000 },
+        { id: "SB-002", name: "Compact Urban 2200sqft", type: "QSR", area: 2200, cost: 1100000 },
+        { id: "SB-003", name: "Premium Reserve 3500sqft", type: "QSR", area: 3500, cost: 1750000 },
+        { id: "SB-004", name: "Kiosk Only 1500sqft", type: "QSR", area: 1500, cost: 750000 },
+        { id: "SB-005", name: "Double Lane DT 3200sqft", type: "QSR", area: 3200, cost: 1600000 }
+      ],
+      "Kmart Retail Fitout Standards": [
+        { id: "KM-001", name: "Metro Store 5000m²", type: "Retail", area: 5000, cost: 1500000 },
+        { id: "KM-002", name: "Regional Store 8500m²", type: "Retail", area: 8500, cost: 2420000 },
+        { id: "KM-003", name: "Express Store 3000m²", type: "Retail", area: 3000, cost: 900000 },
+        { id: "KM-004", name: "Flagship Store 12000m²", type: "Retail", area: 12000, cost: 3600000 }
+      ],
+      "Residential Construction Library": [
+        { id: "RES-001", name: "Single Storey 180m²", type: "Residential", area: 180, cost: 360000 },
+        { id: "RES-002", name: "Double Storey 280m²", type: "Residential", area: 280, cost: 560000 },
+        { id: "RES-003", name: "Duplex 320m²", type: "Residential", area: 320, cost: 640000 },
+        { id: "RES-004", name: "Townhouse 150m²", type: "Residential", area: 150, cost: 300000 }
+      ],
+      "Commercial Building Standards": [
+        { id: "COM-001", name: "Small Office 500m²", type: "Commercial", area: 500, cost: 1000000 },
+        { id: "COM-002", name: "Medium Office 2000m²", type: "Commercial", area: 2000, cost: 4000000 },
+        { id: "COM-003", name: "Corporate Tower 10000m²", type: "Commercial", area: 10000, cost: 25000000 },
+        { id: "COM-004", name: "Mixed Use 5000m²", type: "Commercial", area: 5000, cost: 12500000 }
+      ]
+    };
+    
+    const data = libraries[libraryName] || [];
+    const headers = ["ID", "Name", "Type", "Area", "Cost"];
+    const rows = data.map(item => [item.id, item.name, item.type, item.area, item.cost].join(","));
+    return [headers.join(","), ...rows].join("\n");
   };
 
   const handleSystemSettings = (setting: string) => {
@@ -767,6 +820,126 @@ export default function AdminDashboard() {
           </Button>
         </div>
       </div>
+      
+      {/* Library Viewing Dialog */}
+      <Dialog open={showLibraryDialog} onOpenChange={setShowLibraryDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedLibrary}</DialogTitle>
+            <DialogDescription>
+              Browse and manage design templates in this library
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="mt-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Area</TableHead>
+                  <TableHead className="text-right">Estimated Cost</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(() => {
+                  const libraries: Record<string, any[]> = {
+                    "Starbucks Drive-Through Templates": [
+                      { id: "SB-001", name: "Standard Drive-Through 2800sqft", type: "QSR", area: "2,800 sqft", cost: 1320000 },
+                      { id: "SB-002", name: "Compact Urban 2200sqft", type: "QSR", area: "2,200 sqft", cost: 1100000 },
+                      { id: "SB-003", name: "Premium Reserve 3500sqft", type: "QSR", area: "3,500 sqft", cost: 1750000 },
+                      { id: "SB-004", name: "Kiosk Only 1500sqft", type: "QSR", area: "1,500 sqft", cost: 750000 },
+                      { id: "SB-005", name: "Double Lane DT 3200sqft", type: "QSR", area: "3,200 sqft", cost: 1600000 }
+                    ],
+                    "Kmart Retail Fitout Standards": [
+                      { id: "KM-001", name: "Metro Store 5000m²", type: "Retail", area: "5,000 m²", cost: 1500000 },
+                      { id: "KM-002", name: "Regional Store 8500m²", type: "Retail", area: "8,500 m²", cost: 2420000 },
+                      { id: "KM-003", name: "Express Store 3000m²", type: "Retail", area: "3,000 m²", cost: 900000 },
+                      { id: "KM-004", name: "Flagship Store 12000m²", type: "Retail", area: "12,000 m²", cost: 3600000 }
+                    ],
+                    "Residential Construction Library": [
+                      { id: "RES-001", name: "Single Storey 180m²", type: "Residential", area: "180 m²", cost: 360000 },
+                      { id: "RES-002", name: "Double Storey 280m²", type: "Residential", area: "280 m²", cost: 560000 },
+                      { id: "RES-003", name: "Duplex 320m²", type: "Residential", area: "320 m²", cost: 640000 },
+                      { id: "RES-004", name: "Townhouse 150m²", type: "Residential", area: "150 m²", cost: 300000 }
+                    ],
+                    "Commercial Building Standards": [
+                      { id: "COM-001", name: "Small Office 500m²", type: "Commercial", area: "500 m²", cost: 1000000 },
+                      { id: "COM-002", name: "Medium Office 2000m²", type: "Commercial", area: "2,000 m²", cost: 4000000 },
+                      { id: "COM-003", name: "Corporate Tower 10000m²", type: "Commercial", area: "10,000 m²", cost: 25000000 },
+                      { id: "COM-004", name: "Mixed Use 5000m²", type: "Commercial", area: "5,000 m²", cost: 12500000 }
+                    ]
+                  };
+                  
+                  const data = libraries[selectedLibrary] || [];
+                  return data.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-mono">{item.id}</TableCell>
+                      <TableCell>{item.name}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{item.type}</Badge>
+                      </TableCell>
+                      <TableCell>{item.area}</TableCell>
+                      <TableCell className="text-right font-semibold">
+                        ${item.cost.toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => {
+                            toast({
+                              title: "Opening Design",
+                              description: `Loading ${item.name} in workspace...`
+                            });
+                            setTimeout(() => {
+                              navigate(`/?project=${item.id}`);
+                            }, 500);
+                          }}>
+                            Open
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => {
+                            navigator.clipboard.writeText(item.id);
+                            toast({
+                              title: "Copied",
+                              description: `Project ID ${item.id} copied to clipboard`
+                            });
+                          }}>
+                            Copy ID
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ));
+                })()}
+              </TableBody>
+            </Table>
+          </div>
+          
+          <div className="mt-6 flex justify-between items-center">
+            <p className="text-sm text-gray-600">
+              {(() => {
+                const libraries: Record<string, any[]> = {
+                  "Starbucks Drive-Through Templates": Array(5),
+                  "Kmart Retail Fitout Standards": Array(4),
+                  "Residential Construction Library": Array(4),
+                  "Commercial Building Standards": Array(4)
+                };
+                return `${libraries[selectedLibrary]?.length || 0} designs available`;
+              })()}
+            </p>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => handleExportLibrary(selectedLibrary)}>
+                <Download className="w-4 h-4 mr-2" />
+                Export All
+              </Button>
+              <Button onClick={() => setShowLibraryDialog(false)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
