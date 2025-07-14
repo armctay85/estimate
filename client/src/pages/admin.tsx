@@ -48,20 +48,22 @@ export default function AdminDashboard() {
 
   // Handle multiple file uploads
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
+    try {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
 
-    setIsUploading(true);
-    const totalFiles = files.length;
-    let processed = 0;
-    let failed = 0;
-    
-    setUploadStats({ processed: 0, total: totalFiles, failed: 0 });
+      setIsUploading(true);
+      const fileArray = Array.from(files);
+      const totalFiles = fileArray.length;
+      let processed = 0;
+      let failed = 0;
+      
+      setUploadStats({ processed: 0, total: totalFiles, failed: 0 });
 
-    // Check for duplicates first
-    const existingFileNames = uploadedFiles.map(f => f.name);
-    const newFiles = fileArray.filter(file => !existingFileNames.includes(file.name));
-    const duplicates = fileArray.filter(file => existingFileNames.includes(file.name));
+      // Check for duplicates first
+      const existingFileNames = uploadedFiles.map(f => f.name);
+      const newFiles = fileArray.filter(file => !existingFileNames.includes(file.name));
+      const duplicates = fileArray.filter(file => existingFileNames.includes(file.name));
     
     if (duplicates.length > 0) {
       const proceed = window.confirm(
@@ -167,17 +169,28 @@ export default function AdminDashboard() {
       setCurrentUpload("");
     }, 3000);
     
-    // Show final results
-    if (failed === 0) {
+      // Show final results
+      if (failed === 0) {
+        toast({
+          title: "All Files Uploaded Successfully!",
+          description: `${processed} files processed successfully`,
+        });
+      } else {
+        toast({
+          title: "Upload Complete with Errors",
+          description: `${processed} successful, ${failed} failed`,
+          variant: failed > processed / 2 ? "destructive" : "default",
+        });
+      }
+    } catch (error: any) {
+      console.error("Upload function error:", error);
+      setIsUploading(false);
+      setUploadProgress(0);
+      setCurrentUpload("");
       toast({
-        title: "All Files Uploaded Successfully!",
-        description: `${processed} files processed successfully`,
-      });
-    } else {
-      toast({
-        title: "Upload Complete with Errors",
-        description: `${processed} successful, ${failed} failed`,
-        variant: failed > processed / 2 ? "destructive" : "default",
+        title: "Upload Error",
+        description: `Upload failed: ${error.message}`,
+        variant: "destructive",
       });
     }
   };
