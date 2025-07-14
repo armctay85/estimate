@@ -242,10 +242,11 @@ export default function ProjectDetail() {
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
-              onClick={() => setLocation("/projects")}
-              className="p-2"
+              onClick={() => setLocation("/")}
+              className="flex items-center gap-2"
             >
               <ArrowLeft className="w-5 h-5" />
+              Back to Dashboard
             </Button>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
