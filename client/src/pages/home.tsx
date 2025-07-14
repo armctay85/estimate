@@ -17,6 +17,7 @@ import { Simple3DViewer } from "@/components/simple-3d-viewer";
 import { PhotoRenovationTool } from "@/components/photo-renovation-tool";
 import { ProjectScheduler } from "@/components/project-scheduler";
 import { ModelLibrary } from "@/components/model-library";
+import { Forge3DViewer } from "@/components/forge-3d-viewer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -87,6 +88,7 @@ export default function Home() {
   const [showCollaborators, setShowCollaborators] = useState(false);
   const [showBIMProcessor, setShowBIMProcessor] = useState(false);
   const [showModelLibrary, setShowModelLibrary] = useState(false);
+  const [showForgeViewer, setShowForgeViewer] = useState(false);
   const [selectedWorkspaceMode, setSelectedWorkspaceMode] = useState<string | null>(null);
   
   const canvasRef = useRef<{ uploadBackground: (file: File) => void } | null>(null);
@@ -340,6 +342,13 @@ export default function Home() {
                   >
                     <Box className="w-4 h-4 mr-2" />
                     View 3D Wireframe Model
+                  </Button>
+                  <Button 
+                    className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white mt-2"
+                    onClick={() => setShowForgeViewer(true)}
+                  >
+                    <Box className="w-4 h-4 mr-2" />
+                    Forge 3D Viewer (Best Quality)
                   </Button>
                 </div>
               </CardContent>
@@ -1371,6 +1380,13 @@ export default function Home() {
                       <Box className="w-4 h-4 mr-2" />
                       View 3D Wireframe Model
                     </Button>
+                    <Button 
+                      className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white mt-2"
+                      onClick={() => setShowForgeViewer(true)}
+                    >
+                      <Box className="w-4 h-4 mr-2" />
+                      Forge 3D Viewer (Best Quality)
+                    </Button>
                   </div>
                   <div className="mt-2">
                     <Button 
@@ -1723,6 +1739,15 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Forge 3D Viewer Dialog */}
+      <Forge3DViewer
+        isOpen={showForgeViewer}
+        onClose={() => setShowForgeViewer(false)}
+        fileName="High-Quality BIM Model"
+        urn={localStorage.getItem('currentModelUrn') || undefined}
+        accessToken={localStorage.getItem('forgeAccessToken') || undefined}
+      />
     </motion.div>
   );
 }
