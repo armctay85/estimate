@@ -631,15 +631,29 @@ export default function Home() {
                       <Zap className="w-8 h-8 text-purple-600" />
                     </div>
                     <Badge className="bg-purple-100 text-purple-800 mb-2">Enterprise - $2,999/month</Badge>
-                    {/* Preview graphic - Interactive 3D Model */}
+                    {/* Preview graphic - Live 3D Model */}
                     <div className="mt-4 rounded-lg overflow-hidden">
-                      <div className="h-48 bg-gradient-to-br from-purple-900 to-purple-700 relative rounded-lg">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="text-white text-center">
-                            <Box className="w-16 h-16 mx-auto mb-2 animate-pulse" />
-                            <p className="text-sm">3D BIM Visualization</p>
-                          </div>
-                        </div>
+                      <div className="h-48 relative rounded-lg bg-gray-900">
+                        <Simple3DViewer 
+                          elements={[
+                            { id: '1', name: 'Structural Frame', category: 'structural', color: '#ef4444', cost: 125000, 
+                              position: { x: 0, y: -30, z: 0 }, dimensions: { width: 100, height: 150, depth: 80 } },
+                            { id: '2', name: 'Floor Slab', category: 'structural', color: '#6b7280', cost: 85000,
+                              position: { x: 0, y: -90, z: 0 }, dimensions: { width: 120, height: 10, depth: 100 } },
+                            { id: '3', name: 'Walls', category: 'architectural', color: '#f59e0b', cost: 65000,
+                              position: { x: 0, y: 20, z: 0 }, dimensions: { width: 110, height: 60, depth: 90 } },
+                            { id: '4', name: 'Roof', category: 'architectural', color: '#10b981', cost: 95000,
+                              position: { x: 0, y: 80, z: 0 }, dimensions: { width: 130, height: 20, depth: 110 } },
+                            { id: '5', name: 'MEP Services', category: 'mep', color: '#3b82f6', cost: 120000,
+                              position: { x: 0, y: 0, z: 0 }, dimensions: { width: 80, height: 100, depth: 5 } },
+                            { id: '6', name: 'External Works', category: 'external', color: '#8b5cf6', cost: 48500,
+                              position: { x: 60, y: -90, z: 0 }, dimensions: { width: 40, height: 5, depth: 100 } }
+                          ]}
+                          showControls={false}
+                          autoRotate={true}
+                          showCostOverlay={false}
+                          containerHeight="h-48"
+                        />
                       </div>
                       <div className="text-xs text-center mt-2 text-gray-500">Live 3D Model Preview</div>
                     </div>

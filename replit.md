@@ -205,6 +205,20 @@ A comprehensive list of ready-to-deploy enhancements has been created at `IMMEDI
   - Now: 160 MB/s (instant response, 2.5s for 400MB)
   - Performance improvement: 2,285x faster
 
+### January 14, 2025 - Dashboard 3D Model Integration & Admin Auto-Access
+- **Live 3D Model Preview**: Embedded interactive 3D visualization directly on dashboard
+  - BIM Auto-Takeoff card now shows rotating 3D building model
+  - Real construction elements: structural frame, walls, roof, MEP, external works
+  - Auto-rotating preview with cost overlay showing $538,500 total
+  - Embedded Simple3DViewer component works in both dialog and inline modes
+- **Admin Auto-Access Landing Page Bypass**: Admins automatically skip tier selection
+  - Added detection for admin users via localStorage (isAdmin, userRole, subscriptionTier)
+  - Admin users go directly to full-featured dashboard without selection screen
+  - Non-admin users still see tier selection landing page
+  - Enterprise Admin badge displayed in header for admin users
+  - Upgrade button hidden for admin users
+  - Full access to all enterprise features without restrictions
+
 ### January 14, 2025 - Admin Auto-Access Landing Page Bypass
 - **Landing Page Enhancement**: Admins now automatically bypass tier selection screen
   - Added detection for admin users via localStorage (isAdmin, userRole, subscriptionTier)

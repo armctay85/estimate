@@ -19,13 +19,23 @@ interface Simple3DViewerProps {
   onClose?: () => void;
   fileName?: string;
   projectData?: any;
+  elements?: any[];
+  showControls?: boolean;
+  autoRotate?: boolean;
+  showCostOverlay?: boolean;
+  containerHeight?: string;
 }
 
 export function Simple3DViewer({ 
   isOpen = true, 
   onClose = () => {}, 
   fileName = "Demo Project", 
-  projectData
+  projectData,
+  elements,
+  showControls = true,
+  autoRotate = false,
+  showCostOverlay = true,
+  containerHeight = "h-[600px]"
 }: Simple3DViewerProps) {
   const [rotation, setRotation] = useState({ x: -20, y: 45 });
   const [zoom, setZoom] = useState(1);
@@ -33,6 +43,20 @@ export function Simple3DViewer({
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [visibleCategories, setVisibleCategories] = useState<Set<string>>(new Set(['structural', 'architectural', 'mep', 'external']));
   const { toast } = useToast();
+
+  // Auto-rotation effect
+  useEffect(() => {
+    if (!autoRotate) return;
+    
+    const interval = setInterval(() => {
+      setRotation(prev => ({
+        x: prev.x,
+        y: prev.y + 1
+      }));
+    }, 50);
+    
+    return () => clearInterval(interval);
+  }, [autoRotate]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
@@ -389,7 +413,7 @@ export function Simple3DViewer({
     return [];
   };
   
-  const driveThruElements = getProjectElements();
+  const driveThruElements = elements || getProjectElements();
   
   // Filter elements by visible categories
   const visibleElements = driveThruElements.filter(el => visibleCategories.has(el.category || 'structural'));
@@ -656,6 +680,69 @@ export function Simple3DViewer({
   );
 
   if (!isOpen) return null;
+
+  // If onClose is not provided, render without dialog (embedded mode)
+  if (!onClose || showControls === false) {
+    return (
+      <div 
+        className={`relative ${containerHeight} bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg overflow-hidden`}
+        style={{ perspective: '1000px' }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+      >
+        {/* 3D Scene */}
+        <div 
+          className="absolute inset-0 flex items-center justify-center"
+          style={{ transformStyle: 'preserve-3d' }}
+        >
+          <div
+            style={{
+              transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) scale(${zoom * 0.3})`,
+              transformStyle: 'preserve-3d',
+              transition: isDragging ? 'none' : 'transform 0.3s ease'
+            }}
+          >
+            {/* Render simplified elements for embedded view */}
+            {driveThruElements.map(element => {
+              const el = element as any;
+              return (
+                <div 
+                  key={el.id} 
+                  className="absolute"
+                  style={{
+                    transform: `translate3d(${(el.position?.x || el.x || 0) * 0.5}px, ${-(el.position?.y || el.y || 0) * 0.5}px, ${(el.position?.z || el.z || 0) * 0.5}px)`,
+                    transformStyle: 'preserve-3d'
+                  }}
+                >
+                  <div 
+                    style={{
+                      width: `${(el.dimensions?.width || el.width || 50) * 0.5}px`,
+                      height: `${(el.dimensions?.height || el.height || 50) * 0.5}px`,
+                      transform: `translateZ(${(el.dimensions?.depth || el.depth || 50) * 0.25}px)`,
+                      backgroundColor: el.color || '#3b82f6',
+                      opacity: 0.9,
+                      border: '1px solid rgba(255,255,255,0.2)'
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        
+        {/* Optional cost overlay */}
+        {showCostOverlay && (
+          <div className="absolute bottom-2 left-2">
+            <Badge variant="secondary" className="bg-black/70 text-white">
+              Total: ${driveThruElements.reduce((sum, el: any) => sum + (el.cost || 0), 0).toLocaleString()}
+            </Badge>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
