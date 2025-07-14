@@ -471,72 +471,118 @@ export function Simple3DViewer({
                       }}
                     />
                     
-                    {/* Render visible elements */}
-                    {visibleElements.map(element => (
-                      <div
-                        key={element.id}
-                        className="absolute cursor-pointer group"
-                        style={{
-                          transform: `translate3d(${element.x - 100}px, ${-element.y}px, ${element.z - 60}px)`,
-                          transformStyle: 'preserve-3d'
-                        }}
-                      >
-                        {/* Box faces */}
-                        <div
-                          className="absolute opacity-90 group-hover:opacity-100 transition-opacity"
-                          style={{
-                            width: `${element.width}px`,
-                            height: `${element.height}px`,
-                            backgroundColor: element.color,
-                            transform: `translateZ(${element.depth/2}px)`,
-                            border: '1px solid rgba(255,255,255,0.2)'
-                          }}
-                        />
-                        <div
-                          className="absolute opacity-90"
-                          style={{
-                            width: `${element.width}px`,
-                            height: `${element.height}px`,
-                            backgroundColor: element.color,
-                            transform: `translateZ(-${element.depth/2}px)`,
-                            border: '1px solid rgba(255,255,255,0.2)'
-                          }}
-                        />
-                        <div
-                          className="absolute opacity-80"
-                          style={{
-                            width: `${element.width}px`,
-                            height: `${element.depth}px`,
-                            backgroundColor: element.color,
-                            transform: `rotateX(90deg) translateZ(${element.height/2}px)`,
-                            transformOrigin: 'bottom',
-                            border: '1px solid rgba(255,255,255,0.2)'
-                          }}
-                        />
-                        <div
-                          className="absolute opacity-70"
-                          style={{
-                            width: `${element.depth}px`,
-                            height: `${element.height}px`,
-                            backgroundColor: element.color,
-                            transform: `rotateY(90deg) translateZ(${element.width/2}px)`,
-                            transformOrigin: 'left',
-                            border: '1px solid rgba(255,255,255,0.2)'
-                          }}
-                        />
-                        
-                        {/* Label */}
-                        <div
-                          className="absolute text-white text-xs bg-black/80 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-                          style={{
-                            transform: `translateZ(${element.depth/2 + 20}px) translateX(-20px)`,
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          {element.name}: ${element.cost.toLocaleString()}
-                        </div>
-                      </div>
-                    ))}
+                    {/* Render realistic 3D elements */}
+                    {visibleElements.map(element => {
+                      const baseTransform = `translate3d(${element.x - 100}px, ${-element.y}px, ${element.z - 60}px)`;
+                      
+                      // Render different element types with realistic materials
+                      if (element.name.includes('Slab') || element.name.includes('Foundation')) {
+                        return (
+                          <div key={element.id} className="absolute cursor-pointer group" style={{ transform: baseTransform, transformStyle: 'preserve-3d' }}>
+                            {/* Concrete slab with texture */}
+                            <div className="absolute" style={{ width: `${element.width}px`, height: `${element.depth}px`, transform: `rotateX(90deg) translateZ(${element.height/2}px)`, transformOrigin: 'bottom', background: 'linear-gradient(135deg, #6b7280 0%, #4b5563 25%, #374151 50%, #4b5563 75%, #6b7280 100%)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 1px 2px rgba(255,255,255,0.1)', border: '1px solid #374151' }}>
+                              {/* Concrete texture pattern */}
+                              <div className="absolute inset-0" style={{ background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.05) 10px, rgba(0,0,0,0.05) 20px), repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255,255,255,0.03) 10px, rgba(255,255,255,0.03) 20px)' }} />
+                            </div>
+                            {/* Side edges */}
+                            <div className="absolute" style={{ width: `${element.width}px`, height: `${element.height}px`, transform: `translateZ(${element.depth/2}px)`, background: 'linear-gradient(180deg, #374151 0%, #1f2937 100%)', border: '1px solid #111827' }} />
+                            <div className="absolute text-white text-xs bg-black/90 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity" style={{ transform: `translateZ(${element.depth/2 + 30}px)`, whiteSpace: 'nowrap' }}>{element.name}: ${element.cost.toLocaleString()}</div>
+                          </div>
+                        );
+                      } else if (element.name.includes('Wall') || element.name.includes('Precast')) {
+                        return (
+                          <div key={element.id} className="absolute cursor-pointer group" style={{ transform: baseTransform, transformStyle: 'preserve-3d' }}>
+                            {/* Precast concrete panels with realistic texture */}
+                            <div className="absolute" style={{ width: `${element.width}px`, height: `${element.height}px`, transform: `translateZ(${element.depth/2}px)`, background: 'linear-gradient(180deg, #e5e7eb 0%, #d1d5db 40%, #9ca3af 100%)', boxShadow: '0 2px 4px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.5)', border: '1px solid #6b7280' }}>
+                              {/* Panel joints */}
+                              <div className="absolute inset-0" style={{ background: 'repeating-linear-gradient(0deg, rgba(0,0,0,0.2) 0px, transparent 2px, transparent 98px, rgba(0,0,0,0.2) 100px)' }} />
+                            </div>
+                            {/* Back face */}
+                            <div className="absolute" style={{ width: `${element.width}px`, height: `${element.height}px`, transform: `translateZ(-${element.depth/2}px)`, background: 'linear-gradient(180deg, #d1d5db 0%, #9ca3af 100%)', border: '1px solid #6b7280' }} />
+                            {/* Side faces with depth */}
+                            <div className="absolute" style={{ width: `${element.depth}px`, height: `${element.height}px`, transform: `rotateY(90deg) translateZ(${element.width/2}px)`, transformOrigin: 'left', background: '#9ca3af', border: '1px solid #6b7280' }} />
+                            <div className="absolute" style={{ width: `${element.depth}px`, height: `${element.height}px`, transform: `rotateY(-90deg) translateZ(${element.width/2}px)`, transformOrigin: 'right', background: '#9ca3af', border: '1px solid #6b7280' }} />
+                            <div className="absolute text-white text-xs bg-black/90 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity" style={{ transform: `translateZ(${element.depth/2 + 30}px)`, whiteSpace: 'nowrap' }}>{element.name}: ${element.cost.toLocaleString()}</div>
+                          </div>
+                        );
+                      } else if (element.name.includes('Roof') || element.name.includes('Canopy')) {
+                        return (
+                          <div key={element.id} className="absolute cursor-pointer group" style={{ transform: baseTransform, transformStyle: 'preserve-3d' }}>
+                            {/* Metal roof with realistic colorbond finish */}
+                            <div className="absolute" style={{ width: `${element.width}px`, height: `${element.depth}px`, transform: `rotateX(85deg) translateZ(${element.height/2}px)`, transformOrigin: 'bottom', background: 'linear-gradient(90deg, #94a3b8 0%, #cbd5e1 8%, #94a3b8 16%, #cbd5e1 24%, #94a3b8 32%)', boxShadow: '0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3)', border: '1px solid #64748b' }}>
+                              {/* Roof ridges */}
+                              <div className="absolute inset-0" style={{ background: 'repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, transparent 1px, transparent 19px, rgba(0,0,0,0.1) 20px)' }} />
+                            </div>
+                            {/* Fascia */}
+                            <div className="absolute" style={{ width: `${element.width}px`, height: '10px', transform: `translateZ(${element.depth/2}px) translateY(${element.height - 10}px)`, background: '#475569', border: '1px solid #334155' }} />
+                            <div className="absolute text-white text-xs bg-black/90 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity" style={{ transform: `translateZ(${element.depth/2 + 30}px)`, whiteSpace: 'nowrap' }}>{element.name}: ${element.cost.toLocaleString()}</div>
+                          </div>
+                        );
+                      } else if (element.name.includes('Glass') || element.name.includes('Glazing')) {
+                        return (
+                          <div key={element.id} className="absolute cursor-pointer group" style={{ transform: baseTransform, transformStyle: 'preserve-3d' }}>
+                            {/* Glass storefront with reflections */}
+                            <div className="absolute" style={{ width: `${element.width}px`, height: `${element.height}px`, transform: `translateZ(${element.depth/2}px)`, background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(147, 197, 253, 0.5) 30%, rgba(219, 234, 254, 0.3) 50%, rgba(147, 197, 253, 0.5) 70%, rgba(59, 130, 246, 0.3) 100%)', backdropFilter: 'blur(2px)', boxShadow: 'inset 0 0 20px rgba(255,255,255,0.3), 0 0 10px rgba(59, 130, 246, 0.2)', border: '2px solid #475569' }}>
+                              {/* Window mullions */}
+                              <div className="absolute inset-0" style={{ background: 'repeating-linear-gradient(0deg, #334155 0px, transparent 3px, transparent 97px, #334155 100px), repeating-linear-gradient(90deg, #334155 0px, transparent 3px, transparent 47px, #334155 50px)' }} />
+                            </div>
+                            <div className="absolute text-white text-xs bg-black/90 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity" style={{ transform: `translateZ(${element.depth/2 + 30}px)`, whiteSpace: 'nowrap' }}>{element.name}: ${element.cost.toLocaleString()}</div>
+                          </div>
+                        );
+                      } else if (element.name.includes('Kitchen')) {
+                        return (
+                          <div key={element.id} className="absolute cursor-pointer group" style={{ transform: baseTransform, transformStyle: 'preserve-3d' }}>
+                            {/* Stainless steel kitchen equipment */}
+                            <div className="absolute" style={{ width: `${element.width}px`, height: `${element.height}px`, transform: `translateZ(${element.depth/2}px)`, background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 25%, #d1d5db 50%, #e5e7eb 75%, #f3f4f6 100%)', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.2), 0 1px 2px rgba(255,255,255,0.9)', border: '1px solid #9ca3af' }}>
+                              {/* Equipment details */}
+                              <div className="absolute inset-2 grid grid-cols-3 gap-1">
+                                {[...Array(6)].map((_, i) => (
+                                  <div key={i} className="rounded" style={{ background: 'linear-gradient(180deg, #374151 0%, #1f2937 100%)', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.5)' }} />
+                                ))}
+                              </div>
+                            </div>
+                            <div className="absolute text-white text-xs bg-black/90 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity" style={{ transform: `translateZ(${element.depth/2 + 30}px)`, whiteSpace: 'nowrap' }}>{element.name}: ${element.cost.toLocaleString()}</div>
+                          </div>
+                        );
+                      } else if (element.name.includes('Drive') || element.name.includes('Lane')) {
+                        return (
+                          <div key={element.id} className="absolute cursor-pointer group" style={{ transform: baseTransform, transformStyle: 'preserve-3d' }}>
+                            {/* Asphalt drive-thru lane */}
+                            <div className="absolute" style={{ width: `${element.width}px`, height: `${element.depth}px`, transform: `rotateX(90deg) translateZ(0)`, transformOrigin: 'bottom', background: 'linear-gradient(180deg, #374151 0%, #1f2937 50%, #111827 100%)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)' }}>
+                              {/* Lane markings */}
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div style={{ width: '4px', height: '90%', background: 'repeating-linear-gradient(0deg, #fbbf24 0px, #fbbf24 20px, transparent 20px, transparent 40px)' }} />
+                              </div>
+                              {/* Asphalt texture */}
+                              <div className="absolute inset-0" style={{ background: 'repeating-conic-gradient(from 45deg, rgba(255,255,255,0.02) 0deg, transparent 90deg, rgba(255,255,255,0.02) 180deg)', opacity: 0.5 }} />
+                            </div>
+                            <div className="absolute text-white text-xs bg-black/90 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity" style={{ transform: `translateZ(30px)`, whiteSpace: 'nowrap' }}>{element.name}: ${element.cost.toLocaleString()}</div>
+                          </div>
+                        );
+                      } else if (element.name.includes('Landscape')) {
+                        return (
+                          <div key={element.id} className="absolute cursor-pointer group" style={{ transform: baseTransform, transformStyle: 'preserve-3d' }}>
+                            {/* Landscaping with grass texture */}
+                            <div className="absolute" style={{ width: `${element.width}px`, height: `${element.depth}px`, transform: `rotateX(90deg) translateZ(1px)`, transformOrigin: 'bottom', background: 'radial-gradient(ellipse at center, #22c55e 0%, #16a34a 40%, #15803d 100%)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)' }}>
+                              {/* Grass texture */}
+                              <div className="absolute inset-0" style={{ background: 'repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(34, 197, 94, 0.2) 2px, rgba(34, 197, 94, 0.2) 4px)', opacity: 0.5 }} />
+                            </div>
+                            <div className="absolute text-white text-xs bg-black/90 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity" style={{ transform: `translateZ(30px)`, whiteSpace: 'nowrap' }}>{element.name}: ${element.cost.toLocaleString()}</div>
+                          </div>
+                        );
+                      } else {
+                        // Default realistic box
+                        return (
+                          <div key={element.id} className="absolute cursor-pointer group" style={{ transform: baseTransform, transformStyle: 'preserve-3d' }}>
+                            <div className="absolute" style={{ width: `${element.width}px`, height: `${element.height}px`, transform: `translateZ(${element.depth/2}px)`, background: `linear-gradient(135deg, ${element.color} 0%, ${element.color}dd 50%, ${element.color}bb 100%)`, boxShadow: '0 2px 4px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.3)', border: '1px solid rgba(0,0,0,0.2)' }} />
+                            <div className="absolute" style={{ width: `${element.width}px`, height: `${element.height}px`, transform: `translateZ(-${element.depth/2}px)`, backgroundColor: element.color, opacity: 0.8, border: '1px solid rgba(0,0,0,0.2)' }} />
+                            <div className="absolute" style={{ width: `${element.width}px`, height: `${element.depth}px`, transform: `rotateX(90deg) translateZ(${element.height/2}px)`, transformOrigin: 'bottom', backgroundColor: element.color, opacity: 0.9, border: '1px solid rgba(0,0,0,0.2)' }} />
+                            <div className="absolute" style={{ width: `${element.depth}px`, height: `${element.height}px`, transform: `rotateY(90deg) translateZ(${element.width/2}px)`, transformOrigin: 'left', backgroundColor: element.color, opacity: 0.7, border: '1px solid rgba(0,0,0,0.2)' }} />
+                            <div className="absolute text-white text-xs bg-black/90 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity" style={{ transform: `translateZ(${element.depth/2 + 30}px)`, whiteSpace: 'nowrap' }}>{element.name}: ${element.cost.toLocaleString()}</div>
+                          </div>
+                        );
+                      }
+                    })}
                   </div>
                 </div>
                 
