@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Test</title>
+</head>
+<body>
+    <h1>EstiMate Upload Test</h1>
+    <input type="file" id="fileInput" multiple>
+    <button onclick="testUpload()">Test Upload</button>
+    <div id="results"></div>
+    
+    <script>
+    async function testUpload() {
+        const files = document.getElementById('fileInput').files;
+        const results = document.getElementById('results');
+        results.innerHTML = '<h3>Testing uploads...</h3>';
+        
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('type', 'design-library');
+            
+            const startTime = Date.now();
+            
+            try {
+                const response = await fetch('/api/admin/instant-upload', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                });
+                
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                const speed = (file.size / 1024 / 1024) / (duration / 1000);
+                
+                const data = await response.json();
+                
+                results.innerHTML += `
+                    <div style="margin: 10px; padding: 10px; border: 1px solid ${response.ok ? 'green' : 'red'}">
+                        <strong>${file.name}</strong><br>
+                        Size: ${(file.size / 1024 / 1024).toFixed(2)} MB<br>
+                        Status: ${response.status} ${response.statusText}<br>
+                        Response: ${JSON.stringify(data)}<br>
+                        Time: ${duration}ms<br>
+                        Speed: ${speed.toFixed(2)} MB/s
+                    </div>
+                `;
+            } catch (error) {
+                results.innerHTML += `
+                    <div style="margin: 10px; padding: 10px; border: 1px solid red">
+                        <strong>${file.name}</strong><br>
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        results.innerHTML += '<h3>Test Complete</h3>';
+    }
+    </script>
+</body>
+</html>

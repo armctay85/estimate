@@ -165,35 +165,45 @@ export default function AdminDashboard() {
         
         // Handle instant response
         xhr.onload = () => {
-          completedCount++;
-          bytesUploaded += file.size;
-          
-          // Calculate instant metrics
-          const uploadTime = 0.1; // Instant upload
-          const avgSpeed = file.size / 1024 / 1024 * 10; // Show as 10x file size for instant speed
-          
-          // Update stats
-          setUploadStats(prev => ({ 
-            processed: completedCount, 
-            total: filesToUpload.length, 
-            failed: prev.failed 
-          }));
-          setUploadProgress((completedCount / filesToUpload.length) * 100);
-          setCurrentUpload(`${file.name} complete`);
-          
-          // Add to list with instant metrics
-          setUploadedFiles(prev => [...prev, {
-            id: Date.now() + Math.random() + index,
-            name: file.name,
-            size: (file.size / 1024 / 1024).toFixed(2) + " MB",
-            type: file.name.split('.').pop()?.toUpperCase() || 'FILE',
-            uploadDate: new Date().toISOString(),
-            status: "processed",
-            uploadSpeed: `${avgSpeed.toFixed(0)} MB/s`,
-            processingTime: `${uploadTime}s`
-          }]);
-          
-          resolve({ success: true, file: file.name });
+          if (xhr.status === 200) {
+            completedCount++;
+            bytesUploaded += file.size;
+            
+            // Calculate instant metrics
+            const uploadTime = 0.1; // Instant upload
+            const avgSpeed = file.size / 1024 / 1024 * 10; // Show as 10x file size for instant speed
+            
+            // Update stats
+            setUploadStats(prev => ({ 
+              processed: completedCount, 
+              total: filesToUpload.length, 
+              failed: prev.failed 
+            }));
+            setUploadProgress((completedCount / filesToUpload.length) * 100);
+            setCurrentUpload(`${file.name} complete`);
+            
+            // Add to list with instant metrics
+            setUploadedFiles(prev => [...prev, {
+              id: Date.now() + Math.random() + index,
+              name: file.name,
+              size: (file.size / 1024 / 1024).toFixed(2) + " MB",
+              type: file.name.split('.').pop()?.toUpperCase() || 'FILE',
+              uploadDate: new Date().toISOString(),
+              status: "processed",
+              uploadSpeed: `${avgSpeed.toFixed(0)} MB/s`,
+              processingTime: `${uploadTime}s`
+            }]);
+            
+            resolve({ success: true, file: file.name });
+          } else {
+            // Handle failed upload
+            setUploadStats(prev => ({ 
+              processed: prev.processed, 
+              total: filesToUpload.length, 
+              failed: prev.failed + 1 
+            }));
+            resolve({ success: false, file: file.name, error: `HTTP ${xhr.status}` });
+          }
         };
         
         xhr.onerror = () => {
