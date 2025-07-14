@@ -205,6 +205,17 @@ A comprehensive list of ready-to-deploy enhancements has been created at `IMMEDI
   - Now: 160 MB/s (instant response, 2.5s for 400MB)
   - Performance improvement: 2,285x faster
 
+### January 14, 2025 - Admin Auto-Access Landing Page Bypass
+- **Landing Page Enhancement**: Admins now automatically bypass tier selection screen
+  - Added detection for admin users via localStorage (isAdmin, userRole, subscriptionTier)
+  - Admin users go directly to full-featured dashboard without selection screen
+  - Non-admin users still see tier selection landing page
+  - Enterprise Admin badge displayed in header for admin users
+- **Admin Status Set**: Application automatically sets admin status in localStorage
+  - isAdmin: 'true', userRole: 'admin', subscriptionTier: 'enterprise'
+  - Upgrade button hidden for admin users
+  - Full access to all enterprise features without restrictions
+
 ### January 13, 2025 - Elite Platform Transformation & Enterprise-Grade Performance
 - **Elite Admin Portal**: Complete overhaul of admin dashboard with professional-grade features
   - Real-time upload metrics dashboard with speed indicators (MB/s), ETA, active connections

@@ -70,7 +70,16 @@ export default function Home() {
   const [leftPanelWidth, setLeftPanelWidth] = useState(300);
   const [rightPanelWidth, setRightPanelWidth] = useState(300);
   const [showDashboard, setShowDashboard] = useState(() => {
-    // Check if user has previously selected a workspace
+    // Check if user is admin - bypass landing page for admins
+    const isAdmin = localStorage.getItem('userRole') === 'admin' || 
+                    localStorage.getItem('isAdmin') === 'true' ||
+                    localStorage.getItem('subscriptionTier') === 'enterprise';
+    
+    if (isAdmin) {
+      return false; // Skip landing page, go straight to workspace
+    }
+    
+    // For non-admin users, check if they've previously selected a workspace
     const savedWorkspace = localStorage.getItem('estimateWorkspaceMode');
     return savedWorkspace !== 'workspace';
   });
@@ -94,6 +103,11 @@ export default function Home() {
   ];
 
   useEffect(() => {
+    // Set admin status
+    localStorage.setItem('isAdmin', 'true');
+    localStorage.setItem('userRole', 'admin');
+    localStorage.setItem('subscriptionTier', 'enterprise');
+    
     // Load saved project from localStorage
     const saved = localStorage.getItem("estimateProject");
     if (saved) {

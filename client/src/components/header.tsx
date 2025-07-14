@@ -20,6 +20,20 @@ export function Header() {
   const [, setLocation] = useLocation();
 
   const getSubscriptionBadge = () => {
+    // Check localStorage for admin status
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    const userRole = localStorage.getItem('userRole');
+    const subscriptionTier = localStorage.getItem('subscriptionTier');
+    
+    if (isAdmin || userRole === 'admin' || subscriptionTier === 'enterprise') {
+      return (
+        <Badge className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-0">
+          <Crown className="w-3 h-3 mr-1" />
+          Enterprise Admin
+        </Badge>
+      );
+    }
+    
     if (!user) return null;
     
     const tierConfig = {
@@ -91,7 +105,9 @@ export function Header() {
           <div className="flex items-center space-x-4">
             {getSubscriptionBadge()}
             
-            {user.subscriptionTier === 'free' && (
+            {user.subscriptionTier === 'free' && 
+             localStorage.getItem('isAdmin') !== 'true' && 
+             localStorage.getItem('subscriptionTier') !== 'enterprise' && (
               <Button 
                 variant="default"
                 size="sm"
