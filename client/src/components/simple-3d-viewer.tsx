@@ -612,7 +612,7 @@ export function Simple3DViewer({
   if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto" aria-describedby="3d-viewer-description">
         <span id="3d-viewer-description" className="sr-only">
           3D model viewer showing building elements and costs
