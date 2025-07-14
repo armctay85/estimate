@@ -119,8 +119,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
     fileFilter: (req, file, cb) => {
       console.log('Admin upload - File:', file.originalname, 'MIME type:', file.mimetype);
-      // Temporarily accept all files to debug
-      cb(null, true);
+      
+      const allowedMimes = [
+        'application/pdf',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/msword', 
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-project',
+        'text/csv',
+        'image/jpeg',
+        'image/png',
+        'application/octet-stream', // For CAD/RVT files
+        'application/x-ole-storage',
+        'application/dwg',
+        'application/dxf',
+        'model/vnd.dwf',
+        'application/acad'
+      ];
+      
+      const fileName = file.originalname.toLowerCase();
+      const allowedExtensions = [
+        '.pdf', '.xls', '.xlsx', '.doc', '.docx', '.mpp', '.csv', '.jpg', '.jpeg', '.png',
+        '.rvt', '.rfa', '.rte', '.rft', // Revit files
+        '.dwg', '.dxf', '.dwf', '.dwt', // AutoCAD files
+        '.ifc', '.ifczip', // IFC files
+        '.skp', // SketchUp
+        '.3dm', '.3ds', '.max', // 3D model files
+        '.obj', '.fbx', '.dae', '.ply', // 3D exchange formats
+        '.step', '.stp', '.iges', '.igs', // CAD exchange formats
+        '.pln', '.mod', '.gsm', // ArchiCAD files
+        '.dgn', '.prp', '.cel' // MicroStation files
+      ];
+      
+      const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+      
+      if (allowedMimes.includes(file.mimetype) || hasValidExtension) {
+        console.log('Admin upload - File accepted:', file.originalname);
+        cb(null, true);
+      } else {
+        console.log('Admin upload - File rejected:', file.originalname, 'MIME:', file.mimetype);
+        cb(new Error(`Invalid file type. File: ${file.originalname}. Supported: CAD files (RVT, DWG, DXF, IFC), Office files (Excel, Word, PDF), and project files (MPP).`));
+      }
     }
   });
 
@@ -128,17 +168,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const bimUpload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 100 * 1024 * 1024, // 100MB limit for BIM files
+      fileSize: 200 * 1024 * 1024, // 200MB limit for BIM files
     },
     fileFilter: (req, file, cb) => {
-      const allowedExtensions = ['.rvt', '.ifc', '.dwg', '.dxf', '.fbx', '.obj', '.skp', '.pln', '.pdf'];
+      const allowedExtensions = [
+        '.rvt', '.rfa', '.rte', '.rft', // Revit files
+        '.dwg', '.dxf', '.dwf', '.dwt', // AutoCAD files
+        '.ifc', '.ifczip', // IFC files
+        '.skp', // SketchUp
+        '.3dm', '.3ds', '.max', // 3D model files
+        '.obj', '.fbx', '.dae', '.ply', // 3D exchange formats
+        '.step', '.stp', '.iges', '.igs', // CAD exchange formats
+        '.pln', '.mod', '.gsm', // ArchiCAD files
+        '.dgn', '.prp', '.cel', // MicroStation files
+        '.pdf'
+      ];
       const fileName = file.originalname.toLowerCase();
       const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
       
       if (hasValidExtension) {
         cb(null, true);
       } else {
-        cb(new Error('Invalid file type. Please upload RVT, IFC, DWG, DXF, FBX, OBJ, SKP, PLN, or PDF files.'));
+        cb(new Error('Invalid file type. Please upload CAD/BIM files: RVT, DWG, DXF, IFC, SKP, 3DS, OBJ, FBX, STEP, PLN, DGN, or PDF files.'));
       }
     }
   });
