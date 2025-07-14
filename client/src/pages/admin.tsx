@@ -58,12 +58,29 @@ export default function AdminDashboard() {
     
     setUploadStats({ processed: 0, total: totalFiles, failed: 0 });
 
-    // Process files in parallel batches of 3 for speed
-    const batchSize = 3;
-    const fileArray = Array.from(files);
+    // Check for duplicates first
+    const existingFileNames = uploadedFiles.map(f => f.name);
+    const newFiles = fileArray.filter(file => !existingFileNames.includes(file.name));
+    const duplicates = fileArray.filter(file => existingFileNames.includes(file.name));
     
-    for (let i = 0; i < fileArray.length; i += batchSize) {
-      const batch = fileArray.slice(i, i + batchSize);
+    if (duplicates.length > 0) {
+      const proceed = window.confirm(
+        `${duplicates.length} files already uploaded:\n${duplicates.map(f => f.name).join('\n')}\n\nSkip duplicates and upload ${newFiles.length} new files?`
+      );
+      if (!proceed) {
+        setIsUploading(false);
+        return;
+      }
+    }
+    
+    const filesToUpload = newFiles.length > 0 ? newFiles : fileArray;
+    setUploadStats({ processed: 0, total: filesToUpload.length, failed: 0 });
+    
+    // Process files in parallel batches of 6 for maximum speed
+    const batchSize = 6;
+    
+    for (let i = 0; i < filesToUpload.length; i += batchSize) {
+      const batch = filesToUpload.slice(i, i + batchSize);
       
       const uploadPromises = batch.map(async (file) => {
         try {
@@ -111,8 +128,8 @@ export default function AdminDashboard() {
       processed += batchSuccess;
       failed += batchFailed;
       
-      setUploadStats({ processed, total: totalFiles, failed });
-      setUploadProgress((processed / totalFiles) * 100);
+      setUploadStats({ processed, total: filesToUpload.length, failed });
+      setUploadProgress((processed / filesToUpload.length) * 100);
     }
 
     setIsUploading(false);
