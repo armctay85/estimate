@@ -1622,18 +1622,20 @@ export default function Home() {
 
       <IntelligentAssistant />
       
-      {/* 3D Wireframe Viewer */}
-      <Simple3DViewer
-        isOpen={show3DWireframe}
-        onClose={() => setShow3DWireframe(false)}
-        fileName="Current Project 3D Model"
-        projectData={{
-          name: "Current Project",
-          totalCost: totalCost,
-          rooms: rooms,
-          projectType: projectType
-        }}
-      />
+      {/* 3D Wireframe Viewer - Only show in workspace mode */}
+      {!showDashboard && (
+        <Simple3DViewer
+          isOpen={show3DWireframe}
+          onClose={() => setShow3DWireframe(false)}
+          fileName="Current Project 3D Model"
+          projectData={{
+            name: "Current Project",
+            totalCost: totalCost,
+            rooms: rooms,
+            projectType: projectType
+          }}
+        />
+      )}
       
       {/* Photo Renovation Tool */}
       <PhotoRenovationTool
