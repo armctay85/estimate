@@ -16,6 +16,7 @@ import { IntelligentAssistant } from "@/components/intelligent-assistant";
 import { Simple3DViewer } from "@/components/simple-3d-viewer";
 import { PhotoRenovationTool } from "@/components/photo-renovation-tool";
 import { ProjectScheduler } from "@/components/project-scheduler";
+import { ModelLibrary } from "@/components/model-library";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -78,6 +79,7 @@ export default function Home() {
   const [showScheduler, setShowScheduler] = useState(false);
   const [showCollaborators, setShowCollaborators] = useState(false);
   const [showBIMProcessor, setShowBIMProcessor] = useState(false);
+  const [showModelLibrary, setShowModelLibrary] = useState(false);
   const [selectedWorkspaceMode, setSelectedWorkspaceMode] = useState<string | null>(null);
   
   const canvasRef = useRef<{ uploadBackground: (file: File) => void } | null>(null);
@@ -899,6 +901,62 @@ export default function Home() {
               </Card>
             </motion.div>
 
+            {/* Model Library */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.75 }}
+            >
+              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group bg-gradient-to-br from-indigo-50 to-purple-50"
+                    onClick={() => setShowModelLibrary(true)}>
+                <CardContent className="p-8">
+                  <div className="mb-6">
+                    <div className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <Box className="w-8 h-8 text-indigo-600" />
+                    </div>
+                    <Badge className="bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-800 mb-2">Model Library</Badge>
+                    {/* Preview graphic */}
+                    <div className="mt-4 p-4 bg-white/50 rounded-lg">
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="aspect-square bg-gradient-to-br from-indigo-200 to-indigo-300 rounded flex items-center justify-center">
+                          <div className="text-xs font-bold text-white">RVT</div>
+                        </div>
+                        <div className="aspect-square bg-gradient-to-br from-purple-200 to-purple-300 rounded flex items-center justify-center">
+                          <div className="text-xs font-bold text-white">IFC</div>
+                        </div>
+                        <div className="aspect-square bg-gradient-to-br from-indigo-200 to-purple-300 rounded flex items-center justify-center">
+                          <div className="text-xs font-bold text-white">DWG</div>
+                        </div>
+                      </div>
+                      <div className="text-xs text-center mt-2 text-gray-600">Review uploaded models</div>
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3">Model Library</h3>
+                  <p className="text-gray-600 mb-6">
+                    Review and manage your uploaded BIM models with Forge 3D viewer.
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-indigo-600" />
+                      <span>View all uploaded models</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-indigo-600" />
+                      <span>3D visualization with Forge</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-indigo-600" />
+                      <span>Search and filter models</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-indigo-600" />
+                      <span>Cost and element data</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
             {/* Recent Projects */}
             <motion.div
               initial={{ y: 20, opacity: 0 }}
@@ -1619,6 +1677,21 @@ export default function Home() {
         isOpen={showBIMProcessor} 
         onOpenChange={setShowBIMProcessor}
       />
+
+      {/* Model Library Dialog */}
+      {showModelLibrary && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-auto p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">Model Library</h2>
+              <Button variant="ghost" onClick={() => setShowModelLibrary(false)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <ModelLibrary />
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }

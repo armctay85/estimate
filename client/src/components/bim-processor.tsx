@@ -207,7 +207,7 @@ export function BIMProcessor({ isOpen: controlledIsOpen, onOpenChange }: BIMProc
         const formData = new FormData();
         formData.append('file', file);
 
-        const uploadResponse = await fetch('/api/forge/upload-bim', {
+        const uploadResponse = await fetch('/api/forge/upload', {
           method: 'POST',
           body: formData
         });
