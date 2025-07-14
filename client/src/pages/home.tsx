@@ -70,17 +70,9 @@ export default function Home() {
   const [leftPanelWidth, setLeftPanelWidth] = useState(300);
   const [rightPanelWidth, setRightPanelWidth] = useState(300);
   const [showDashboard, setShowDashboard] = useState(() => {
-    // Check if user is admin - bypass landing page for admins
-    const isAdmin = localStorage.getItem('userRole') === 'admin' || 
-                    localStorage.getItem('isAdmin') === 'true' ||
-                    localStorage.getItem('subscriptionTier') === 'enterprise';
-    
-    if (isAdmin) {
-      return false; // Skip landing page, go straight to workspace
-    }
-    
-    // For non-admin users, check if they've previously selected a workspace
+    // Always show dashboard first for all users to see the 3D model preview
     const savedWorkspace = localStorage.getItem('estimateWorkspaceMode');
+    // Only go to workspace if explicitly saved
     return savedWorkspace !== 'workspace';
   });
   const [show3DWireframe, setShow3DWireframe] = useState(false);
@@ -113,6 +105,8 @@ export default function Home() {
     localStorage.setItem('isAdmin', 'true');
     localStorage.setItem('userRole', 'admin');
     localStorage.setItem('subscriptionTier', 'enterprise');
+    // Clear workspace mode to ensure dashboard shows first
+    localStorage.removeItem('estimateWorkspaceMode');
     
     // Load saved project from localStorage
     const saved = localStorage.getItem("estimateProject");
