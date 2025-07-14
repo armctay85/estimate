@@ -21,6 +21,8 @@ export default function AdminDashboard() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
+  const [currentUpload, setCurrentUpload] = useState<string>("");
+  const [uploadStats, setUploadStats] = useState({ processed: 0, total: 0, failed: 0 });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [adminCode, setAdminCode] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -52,9 +54,14 @@ export default function AdminDashboard() {
     setIsUploading(true);
     const totalFiles = files.length;
     let processed = 0;
+    let failed = 0;
+    
+    setUploadStats({ processed: 0, total: totalFiles, failed: 0 });
 
     for (const file of Array.from(files)) {
       try {
+        setCurrentUpload(file.name);
+        
         const formData = new FormData();
         formData.append("file", file);
         formData.append("type", "design-library");
@@ -75,12 +82,6 @@ export default function AdminDashboard() {
         
         const data = await response.json();
         
-        // Show individual file success
-        toast({
-          title: "File Uploaded",
-          description: `${file.name} uploaded successfully`,
-        });
-        
         setUploadedFiles(prev => [...prev, {
           id: Date.now() + Math.random(),
           name: file.name,
@@ -91,24 +92,33 @@ export default function AdminDashboard() {
         }]);
         
         processed++;
+        setUploadStats({ processed, total: totalFiles, failed });
         setUploadProgress((processed / totalFiles) * 100);
         
       } catch (error) {
         console.error("Upload failed:", error);
-        toast({
-          title: "Upload Failed",
-          description: `Failed to upload ${file.name}`,
-          variant: "destructive",
-        });
+        failed++;
+        setUploadStats({ processed, total: totalFiles, failed });
       }
     }
 
     setIsUploading(false);
     setUploadProgress(0);
-    toast({
-      title: "Upload Complete",
-      description: `Successfully uploaded ${processed} of ${totalFiles} files`,
-    });
+    setCurrentUpload("");
+    
+    // Show final results
+    if (failed === 0) {
+      toast({
+        title: "All Files Uploaded Successfully!",
+        description: `${processed} files processed successfully`,
+      });
+    } else {
+      toast({
+        title: "Upload Complete with Errors",
+        description: `${processed} successful, ${failed} failed`,
+        variant: failed > processed / 2 ? "destructive" : "default",
+      });
+    }
   };
 
   // Mock data for admin stats
@@ -269,9 +279,23 @@ export default function AdminDashboard() {
                   </Button>
                   
                   {isUploading && (
-                    <div className="mt-4">
-                      <Progress value={uploadProgress} className="mb-2" />
-                      <p className="text-sm text-gray-600">Uploading... {Math.round(uploadProgress)}%</p>
+                    <div className="mt-4 space-y-3">
+                      <div className="bg-blue-50 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-blue-900">Upload Progress</span>
+                          <span className="text-sm text-blue-700">{uploadStats.processed} of {uploadStats.total} files</span>
+                        </div>
+                        <Progress value={uploadProgress} className="mb-2" />
+                        <div className="flex justify-between text-xs text-blue-600">
+                          <span>Uploading: {currentUpload}</span>
+                          <span>{Math.round(uploadProgress)}% complete</span>
+                        </div>
+                        {uploadStats.failed > 0 && (
+                          <div className="mt-2 text-xs text-red-600">
+                            {uploadStats.failed} files failed
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
