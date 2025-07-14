@@ -13,6 +13,7 @@ import { insertUserSchema, insertProjectSchema, insertRoomSchema, MATERIALS } fr
 import { setupForgeRoutes } from "./forge-api";
 import { setupFastUpload } from "./fast-upload";
 import { setupDataProcessing } from "./data-processor";
+import { setupInstantUpload } from "./instant-upload";
 
 // Initialize Stripe only if the secret is available
 let stripe: Stripe | null = null;
@@ -665,6 +666,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Set up data processing routes
   setupDataProcessing(app);
+  
+  // Set up instant upload (immediate response)
+  setupInstantUpload(app);
 
   // BIM file upload route with Forge integration
   app.post('/api/forge/upload', bimUpload.single('file'), async (req, res) => {
