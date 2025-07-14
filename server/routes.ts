@@ -119,26 +119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       fieldSize: 500 * 1024 * 1024,
     },
     fileFilter: (req, file, cb) => {
-      console.log('Admin upload - File:', file.originalname, 'MIME type:', file.mimetype);
-      
-      const allowedMimes = [
-        'application/pdf',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'application/msword', 
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-project',
-        'text/csv',
-        'image/jpeg',
-        'image/png',
-        'application/octet-stream', // For CAD/RVT files
-        'application/x-ole-storage',
-        'application/dwg',
-        'application/dxf',
-        'model/vnd.dwf',
-        'application/acad'
-      ];
-      
+      // Fast file validation without logging for speed
       const fileName = file.originalname.toLowerCase();
       const allowedExtensions = [
         '.pdf', '.xls', '.xlsx', '.doc', '.docx', '.mpp', '.csv', '.jpg', '.jpeg', '.png',
@@ -155,12 +136,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
       
-      if (allowedMimes.includes(file.mimetype) || hasValidExtension) {
-        console.log('Admin upload - File accepted:', file.originalname);
+      if (hasValidExtension || file.mimetype === 'application/octet-stream') {
         cb(null, true);
       } else {
-        console.log('Admin upload - File rejected:', file.originalname, 'MIME:', file.mimetype);
-        cb(new Error(`Invalid file type. File: ${file.originalname}. Supported: CAD files (RVT, DWG, DXF, IFC), Office files (Excel, Word, PDF), and project files (MPP).`));
+        cb(new Error(`Invalid file type: ${file.originalname}`));
       }
     }
   });
@@ -726,35 +705,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin routes for design library uploads
+  // Admin routes for design library uploads - OPTIMIZED FOR SPEED
   app.post("/api/admin/upload-design", adminUpload.single('file'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
       }
       
-      // Fast response - minimal processing for speed
-      const fileInfo = {
-        name: req.file.originalname,
-        size: req.file.size,
-        type: req.file.mimetype,
-        uploadDate: new Date().toISOString(),
-        status: "processed"
-      };
-      
-      // Immediate response for speed
+      // Immediate response - no processing delay
       res.json({ 
         success: true, 
-        file: fileInfo,
-        message: "Design library uploaded successfully"
+        file: {
+          name: req.file.originalname,
+          size: req.file.size,
+          type: req.file.mimetype
+        }
       });
       
-      // Background processing (if needed) would happen here
-      // without blocking the response
+      // Any background processing would happen asynchronously
+      // without blocking the HTTP response
       
     } catch (error: any) {
-      console.error("Upload error:", error);
-      res.status(500).json({ message: "Failed to process design file" });
+      res.status(500).json({ message: "Upload failed" });
     }
   });
 

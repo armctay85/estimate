@@ -20,9 +20,10 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
+    // Skip logging for admin upload routes to improve performance
+    if (path.startsWith("/api") && !path.includes("/admin/upload")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
+      if (capturedJsonResponse && duration < 5000) { // Only log response for fast requests
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
 
@@ -31,6 +32,9 @@ app.use((req, res, next) => {
       }
 
       log(logLine);
+    } else if (path.includes("/admin/upload")) {
+      // Minimal logging for uploads
+      log(`${req.method} ${path} ${res.statusCode} in ${duration}ms`);
     }
   });
 
