@@ -75,6 +75,12 @@ export default function AdminDashboard() {
         
         const data = await response.json();
         
+        // Show individual file success
+        toast({
+          title: "File Uploaded",
+          description: `${file.name} uploaded successfully`,
+        });
+        
         setUploadedFiles(prev => [...prev, {
           id: Date.now() + Math.random(),
           name: file.name,
