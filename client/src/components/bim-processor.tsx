@@ -403,19 +403,26 @@ export function BIMProcessor({ isOpen: controlledIsOpen, onOpenChange }: BIMProc
               </Alert>
 
               <Card 
-                className={`border-dashed border-2 transition-colors ${
+                className={`border-dashed border-2 transition-all duration-300 ${
                   isDragging 
-                    ? 'border-emerald-500 bg-emerald-50' 
-                    : 'border-gray-300 hover:border-emerald-400'
+                    ? 'border-emerald-500 bg-emerald-50 scale-[1.02] shadow-lg' 
+                    : 'border-gray-300 hover:border-emerald-400 bg-gradient-to-br from-gray-50 to-white'
                 }`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
                 <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
-                  <Upload className="w-12 h-12 text-gray-400" />
+                  <div className="relative">
+                    <Upload className="w-16 h-16 text-gray-400" />
+                    <div className="absolute -top-2 -right-2 animate-pulse">
+                      <Badge className="bg-green-500 text-white">AI</Badge>
+                    </div>
+                  </div>
                   <div className="text-center">
-                    <h3 className="text-lg font-semibold mb-2">Upload BIM/CAD File</h3>
+                    <h3 className="text-xl font-bold mb-2 bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+                      Elite BIM Processing Engine
+                    </h3>
                     <p className="text-gray-600 mb-4">
                       Drag and drop your file here or click to browse
                     </p>

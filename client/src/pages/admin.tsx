@@ -14,6 +14,15 @@ import {
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { ElitePerformanceMonitor } from "@/components/elite-performance-monitor";
+
+interface UploadMetrics {
+  speed: number; // MB/s
+  eta: string;
+  bytesTransferred: number;
+  totalBytes: number;
+  activeConnections: number;
+}
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
@@ -25,6 +34,13 @@ export default function AdminDashboard() {
   const [uploadStats, setUploadStats] = useState({ processed: 0, total: 0, failed: 0 });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [adminCode, setAdminCode] = useState("");
+  const [uploadMetrics, setUploadMetrics] = useState<UploadMetrics>({
+    speed: 0,
+    eta: "Calculating...",
+    bytesTransferred: 0,
+    totalBytes: 0,
+    activeConnections: 0
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -78,82 +94,105 @@ export default function AdminDashboard() {
     const filesToUpload = newFiles.length > 0 ? newFiles : fileArray;
     setUploadStats({ processed: 0, total: filesToUpload.length, failed: 0 });
     
-    // Process files in parallel batches of 6 for maximum speed
-    const batchSize = 6;
+    // Calculate total size for metrics
+    const totalBytes = filesToUpload.reduce((sum, file) => sum + file.size, 0);
+    setUploadMetrics(prev => ({ ...prev, totalBytes, activeConnections: Math.min(filesToUpload.length, 10) }));
     
-    for (let i = 0; i < filesToUpload.length; i += batchSize) {
-      const batch = filesToUpload.slice(i, i + batchSize);
-      
-      const uploadPromises = batch.map(async (file, index) => {
-        try {
-          // Update current upload with batch info
-          setCurrentUpload(`${file.name} (${i + index + 1}/${filesToUpload.length})`);
-          
-          const formData = new FormData();
-          formData.append("file", file);
-          formData.append("type", "design-library");
-          
-          const response = await fetch("/api/admin/upload-design", {
-            method: "POST",
-            body: formData,
-            credentials: "include"
-          }).catch(fetchError => {
-            throw new Error(`Network error: ${fetchError.message}`);
-          });
-          
-          if (!response.ok) {
-            const errorText = await response.text().catch(() => 'Unknown error');
-            throw new Error(`Upload failed (${response.status}): ${errorText}`);
+    // Track upload performance
+    let completedCount = 0;
+    let bytesUploaded = 0;
+    const startTime = Date.now();
+    
+    // Create upload with progress tracking using XMLHttpRequest for real progress
+    const allUploadPromises = filesToUpload.map(async (file, index) => {
+      return new Promise<{success: boolean, file: string, error?: string}>((resolve) => {
+        const xhr = new XMLHttpRequest();
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("type", "design-library");
+        
+        // Track upload progress
+        xhr.upload.addEventListener("progress", (e) => {
+          if (e.lengthComputable) {
+            const fileProgress = (e.loaded / e.total) * 100;
+            
+            // Update real-time metrics
+            const elapsed = (Date.now() - startTime) / 1000;
+            const speed = bytesUploaded / elapsed / (1024 * 1024); // MB/s
+            const remainingBytes = totalBytes - bytesUploaded;
+            const eta = remainingBytes / (speed * 1024 * 1024);
+            
+            setUploadMetrics({
+              speed: Math.max(0.1, speed),
+              eta: eta > 0 ? `${Math.ceil(eta)}s remaining` : "Calculating...",
+              bytesTransferred: bytesUploaded,
+              totalBytes,
+              activeConnections: Math.min(filesToUpload.length - completedCount, 10)
+            });
           }
-          
-          const data = await response.json().catch(() => {
-            throw new Error('Invalid server response');
-          });
-          
-          // Update UI immediately upon success
-          setUploadedFiles(prev => [...prev, {
-            id: Date.now() + Math.random() + index,
-            name: file.name,
-            size: (file.size / 1024 / 1024).toFixed(2) + " MB",
-            type: file.name.split('.').pop()?.toUpperCase() || 'FILE',
-            uploadDate: new Date().toISOString(),
-            status: "processed"
-          }]);
-          
-          return { success: true, file: file.name };
-        } catch (error: any) {
-          console.error(`Upload failed for ${file.name}:`, error);
-          return { success: false, file: file.name, error: error.message };
-        }
+        });
+        
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            completedCount++;
+            bytesUploaded += file.size;
+            
+            // Update stats
+            setUploadStats(prev => ({ 
+              processed: completedCount, 
+              total: filesToUpload.length, 
+              failed: prev.failed 
+            }));
+            setUploadProgress((completedCount / filesToUpload.length) * 100);
+            setCurrentUpload(`${file.name} complete`);
+            
+            // Add to list with performance metrics
+            const uploadTime = (Date.now() - startTime) / 1000;
+            const avgSpeed = (file.size / uploadTime) / (1024 * 1024);
+            
+            setUploadedFiles(prev => [...prev, {
+              id: Date.now() + Math.random() + index,
+              name: file.name,
+              size: (file.size / 1024 / 1024).toFixed(2) + " MB",
+              type: file.name.split('.').pop()?.toUpperCase() || 'FILE',
+              uploadDate: new Date().toISOString(),
+              status: "processed",
+              uploadSpeed: `${avgSpeed.toFixed(1)} MB/s`,
+              processingTime: `${uploadTime.toFixed(1)}s`
+            }]);
+            
+            resolve({ success: true, file: file.name });
+          } else {
+            setUploadStats(prev => ({ 
+              processed: prev.processed, 
+              total: filesToUpload.length, 
+              failed: prev.failed + 1 
+            }));
+            resolve({ success: false, file: file.name, error: `HTTP ${xhr.status}` });
+          }
+        };
+        
+        xhr.onerror = () => {
+          setUploadStats(prev => ({ 
+            processed: prev.processed, 
+            total: filesToUpload.length, 
+            failed: prev.failed + 1 
+          }));
+          resolve({ success: false, file: file.name, error: "Network error" });
+        };
+        
+        xhr.open("POST", "/api/admin/upload-design");
+        xhr.withCredentials = true;
+        xhr.send(formData);
       });
-      
-      // Wait for batch to complete with error handling
-      const results = await Promise.allSettled(uploadPromises);
-      
-      // Process results safely
-      const batchSuccess = results.filter(r => 
-        r.status === 'fulfilled' && r.value.success
-      ).length;
-      const batchFailed = results.filter(r => 
-        r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)
-      ).length;
-      
-      processed += batchSuccess;
-      failed += batchFailed;
-      
-      // Update progress immediately
-      setUploadStats({ processed, total: filesToUpload.length, failed });
-      setUploadProgress((processed / filesToUpload.length) * 100);
-      
-      // Log any failures for debugging
-      results.forEach((result, index) => {
-        if (result.status === 'rejected') {
-          console.error(`Batch upload ${i + index + 1} rejected:`, result.reason);
-        } else if (!result.value.success) {
-          console.error(`File upload failed:`, result.value.error);
-        }
-      });
-    }
+    });
+    
+    // Execute all uploads simultaneously
+    const results = await Promise.allSettled(allUploadPromises);
+    
+    // Count final results
+    processed = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
+    failed = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)).length;
 
     setIsUploading(false);
     setUploadProgress(100);
@@ -314,6 +353,7 @@ export default function AdminDashboard() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
             <TabsTrigger value="data-library">Data Library</TabsTrigger>
+            <TabsTrigger value="stats">Platform Stats</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="projects">Projects</TabsTrigger>
             <TabsTrigger value="settings">System Settings</TabsTrigger>
@@ -354,20 +394,66 @@ export default function AdminDashboard() {
                   
                   {isUploading && (
                     <div className="mt-4 space-y-3">
-                      <div className="bg-blue-50 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-blue-900">Upload Progress</span>
-                          <span className="text-sm text-blue-700">{uploadStats.processed} of {uploadStats.total} files</span>
-                        </div>
-                        <Progress value={uploadProgress} className="mb-2" />
-                        <div className="flex justify-between text-xs text-blue-600">
-                          <span>Uploading: {currentUpload}</span>
-                          <span>{Math.round(uploadProgress)}% complete</span>
-                        </div>
-                        {uploadStats.failed > 0 && (
-                          <div className="mt-2 text-xs text-red-600">
-                            {uploadStats.failed} files failed
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                        {/* Elite Upload Metrics Dashboard */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                          <div className="bg-white rounded-lg p-3 shadow-sm">
+                            <p className="text-xs text-gray-600 mb-1">Upload Speed</p>
+                            <p className="text-xl font-bold text-blue-600">{uploadMetrics.speed.toFixed(1)} MB/s</p>
                           </div>
+                          <div className="bg-white rounded-lg p-3 shadow-sm">
+                            <p className="text-xs text-gray-600 mb-1">ETA</p>
+                            <p className="text-xl font-bold text-indigo-600">{uploadMetrics.eta}</p>
+                          </div>
+                          <div className="bg-white rounded-lg p-3 shadow-sm">
+                            <p className="text-xs text-gray-600 mb-1">Active Connections</p>
+                            <p className="text-xl font-bold text-green-600">{uploadMetrics.activeConnections}</p>
+                          </div>
+                          <div className="bg-white rounded-lg p-3 shadow-sm">
+                            <p className="text-xs text-gray-600 mb-1">Total Progress</p>
+                            <p className="text-xl font-bold text-purple-600">{uploadStats.processed}/{uploadStats.total}</p>
+                          </div>
+                        </div>
+                        
+                        {/* Enhanced Progress Bar */}
+                        <div className="mb-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-semibold text-gray-800">Overall Progress</span>
+                            <span className="text-sm font-medium text-gray-600">
+                              {((uploadMetrics.bytesTransferred / uploadMetrics.totalBytes) * 100).toFixed(1)}%
+                            </span>
+                          </div>
+                          <div className="relative">
+                            <Progress value={uploadProgress} className="h-3" />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-xs font-medium text-white drop-shadow">
+                                {Math.round(uploadProgress)}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Current File Status */}
+                        <div className="bg-white/50 rounded-lg p-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="animate-pulse w-2 h-2 bg-green-500 rounded-full"></div>
+                              <span className="text-sm font-medium text-gray-700">Current: {currentUpload}</span>
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {(uploadMetrics.bytesTransferred / (1024 * 1024)).toFixed(1)} MB / {(uploadMetrics.totalBytes / (1024 * 1024)).toFixed(1)} MB
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Failed Files Alert */}
+                        {uploadStats.failed > 0 && (
+                          <Alert className="mt-3" variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>
+                              {uploadStats.failed} file{uploadStats.failed > 1 ? 's' : ''} failed to upload
+                            </AlertDescription>
+                          </Alert>
                         )}
                       </div>
                     </div>
@@ -392,7 +478,10 @@ export default function AdminDashboard() {
                             <FileSpreadsheet className="w-5 h-5 text-gray-500" />
                             <div>
                               <p className="font-medium">{file.name}</p>
-                              <p className="text-sm text-gray-500">{file.size} • Uploaded {new Date(file.uploadDate).toLocaleDateString()}</p>
+                              <p className="text-sm text-gray-500">
+                                {file.size} • {file.uploadSpeed && `${file.uploadSpeed} • `}
+                                Uploaded {new Date(file.uploadDate).toLocaleDateString()}
+                              </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -465,6 +554,21 @@ export default function AdminDashboard() {
                     </Card>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Stats Tab */}
+          <TabsContent value="stats">
+            <Card>
+              <CardHeader>
+                <CardTitle>Elite Platform Performance</CardTitle>
+                <CardDescription>
+                  Real-time monitoring and analytics for EstiMate enterprise infrastructure
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ElitePerformanceMonitor />
               </CardContent>
             </Card>
           </TabsContent>

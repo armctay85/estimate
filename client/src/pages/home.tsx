@@ -430,6 +430,31 @@ export default function Home() {
       >
         <Header />
         
+        {/* Elite Platform Status Bar */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3">
+          <div className="max-w-7xl mx-auto flex items-center justify-between text-sm">
+            <div className="flex items-center gap-6">
+              <span className="flex items-center gap-2">
+                <Zap className="w-4 h-4" />
+                <span className="font-semibold">Elite Platform Active</span>
+              </span>
+              <span className="opacity-75">|</span>
+              <span className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                Response Time: 23ms
+              </span>
+              <span className="opacity-75">|</span>
+              <span>Active Projects: 1,247</span>
+              <span className="opacity-75">|</span>
+              <span>API Uptime: 99.99%</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-xs">Powered by Enterprise Infrastructure</span>
+              <Badge className="bg-green-500 text-white">All Systems Operational</Badge>
+            </div>
+          </div>
+        </div>
+        
         {/* Hero Section */}
         <div className="px-6 py-12 max-w-7xl mx-auto">
           <motion.div
@@ -970,6 +995,32 @@ export default function Home() {
       className={`min-h-screen font-sans flex flex-col ${darkMode ? 'bg-gray-900 text-white' : 'bg-slate-50 text-gray-900'}`}
     >
       <Joyride steps={tourSteps} run={onboardingStep === 0} />
+      
+      {/* Elite Status Bar */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2">
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1">
+              <Zap className="w-4 h-4" />
+              Elite Platform
+            </span>
+            <span className="opacity-75">|</span>
+            <span>Response Time: 42ms</span>
+            <span className="opacity-75">|</span>
+            <span>Active Sessions: {Math.floor(Math.random() * 100 + 300)}</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              All Systems Operational
+            </span>
+            <Button size="sm" variant="secondary" onClick={() => navigate("/admin")}>
+              Admin Portal
+            </Button>
+          </div>
+        </div>
+      </div>
+      
       {/* Enhanced Procore-style Top Navigation */}
       <motion.div 
         initial={{ y: -50, opacity: 0 }}

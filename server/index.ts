@@ -3,9 +3,19 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
-// Increase payload limits for faster uploads
+// Optimize for high-speed uploads
 app.use(express.json({ limit: '500mb' }));
-app.use(express.urlencoded({ limit: '500mb', extended: true }));
+app.use(express.urlencoded({ limit: '500mb', extended: true, parameterLimit: 50000 }));
+
+// Increase server timeouts for large files
+app.use((req, res, next) => {
+  // Set 5 minute timeout for uploads
+  if (req.path.includes('/upload')) {
+    req.setTimeout(300000); // 5 minutes
+    res.setTimeout(300000);
+  }
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
