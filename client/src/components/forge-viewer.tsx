@@ -3,18 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
-import { 
-  Upload, 
-  Loader2, 
-  Check, 
-  AlertCircle,
-  Eye,
-  Download,
-  Layers,
-  Box
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Loader2, AlertCircle, ZoomIn, ZoomOut, RotateCcw, Maximize2 } from 'lucide-react';
+
+interface ForgeViewerProps {
+  urn: string;
+  fileName?: string;
+  onClose?: () => void;
+}
 
 declare global {
   interface Window {
@@ -22,320 +17,202 @@ declare global {
   }
 }
 
-interface ForgeViewerProps {
-  onElementsExtracted?: (elements: any[]) => void;
-  clientId?: string;
-  clientSecret?: string;
-  urn?: string; // URN from uploaded file
-}
-
-export function ForgeViewer({ onElementsExtracted, clientId, clientSecret, urn }: ForgeViewerProps) {
-  const viewerRef = useRef<HTMLDivElement>(null);
+export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
+  const viewerContainer = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [viewer, setViewer] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadingStatus, setLoadingStatus] = useState('');
-  const [progress, setProgress] = useState(0);
-  const [documentId, setDocumentId] = useState<string | null>(null);
-  const [extractedElements, setExtractedElements] = useState<any[]>([]);
-  const { toast } = useToast();
+  const [viewerInitialized, setViewerInitialized] = useState(false);
 
-  // Load Autodesk Viewer SDK
   useEffect(() => {
-    if (!window.Autodesk) {
-      const script = document.createElement('script');
-      script.src = 'https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.min.js';
-      script.async = true;
-      document.head.appendChild(script);
+    if (!urn) return;
 
-      const style = document.createElement('link');
-      style.rel = 'stylesheet';
-      style.href = 'https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.min.css';
-      document.head.appendChild(style);
-    }
-  }, []);
+    // Load Forge Viewer script
+    const loadForgeViewer = async () => {
+      try {
+        // Get access token from backend
+        const tokenResponse = await fetch('/api/forge/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
 
-  // Auto-load model if URN is provided
-  useEffect(() => {
-    if (urn && window.Autodesk && !viewer) {
-      handleLoadModel(urn);
-    }
-  }, [urn, viewer]);
+        if (!tokenResponse.ok) {
+          throw new Error('Failed to get Forge access token');
+        }
 
-  const initializeViewer = async (token: string, urn: string) => {
-    return new Promise((resolve, reject) => {
+        const { access_token } = await tokenResponse.json();
+
+        // Load Forge Viewer script if not already loaded
+        if (!window.Autodesk) {
+          const script = document.createElement('script');
+          script.src = 'https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.min.js';
+          script.onload = () => initializeViewer(access_token);
+          script.onerror = () => setError('Failed to load Forge Viewer library');
+          document.head.appendChild(script);
+
+          const style = document.createElement('link');
+          style.rel = 'stylesheet';
+          style.href = 'https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.min.css';
+          document.head.appendChild(style);
+        } else {
+          initializeViewer(access_token);
+        }
+      } catch (err) {
+        console.error('Forge Viewer Error:', err);
+        setError(err instanceof Error ? err.message : 'Failed to initialize viewer');
+        setIsLoading(false);
+      }
+    };
+
+    const initializeViewer = (accessToken: string) => {
       const options = {
-        env: 'AutodeskProduction2',
-        api: 'streamingV2',
-        getAccessToken: (callback: (token: string, expire: number) => void) => {
-          callback(token, 3600);
+        env: 'AutodeskProduction',
+        getAccessToken: (callback: (token: string, expires: number) => void) => {
+          callback(accessToken, 3600);
         }
       };
 
-      window.Autodesk.Viewing.Initializer(options, () => {
-        const viewerDiv = viewerRef.current;
-        if (!viewerDiv) {
-          reject('Viewer container not found');
-          return;
+      window.Autodesk.Viewing.Initializer(options, async () => {
+        try {
+          const viewerDiv = viewerContainer.current;
+          if (!viewerDiv) return;
+
+          const viewer = new window.Autodesk.Viewing.GuiViewer3D(viewerDiv);
+          const startedCode = viewer.start();
+          
+          if (startedCode > 0) {
+            console.error('Failed to create a Viewer: WebGL not supported.');
+            setError('WebGL not supported in your browser');
+            return;
+          }
+
+          setViewer(viewer);
+
+          // Load the document
+          const documentId = `urn:${urn}`;
+          
+          window.Autodesk.Viewing.Document.load(
+            documentId,
+            (doc: any) => {
+              const viewables = doc.getRoot().getDefaultGeometry();
+              if (viewables) {
+                viewer.loadDocumentNode(doc, viewables).then(() => {
+                  setIsLoading(false);
+                  setViewerInitialized(true);
+                });
+              }
+            },
+            (errorCode: string, errorMsg: string) => {
+              console.error('Document load error:', errorCode, errorMsg);
+              setError(`Failed to load model: ${errorMsg}`);
+              setIsLoading(false);
+            }
+          );
+        } catch (err) {
+          console.error('Viewer initialization error:', err);
+          setError('Failed to initialize 3D viewer');
+          setIsLoading(false);
         }
-
-        const viewer = new window.Autodesk.Viewing.GuiViewer3D(viewerDiv);
-        viewer.start();
-
-        window.Autodesk.Viewing.Document.load(
-          `urn:${urn}`,
-          (doc: any) => {
-            const viewables = doc.getRoot().getDefaultGeometry();
-            viewer.loadDocumentNode(doc, viewables).then(() => {
-              setViewer(viewer);
-              extractModelData(viewer);
-              resolve(viewer);
-            });
-          },
-          (error: any) => {
-            reject(error);
-          }
-        );
       });
-    });
-  };
+    };
 
-  const extractModelData = (viewer: any) => {
-    const instanceTree = viewer.model.getInstanceTree();
-    const elements: any[] = [];
-    
-    instanceTree.enumNodeChildren(
-      instanceTree.getRootId(),
-      (dbId: number) => {
-        viewer.getProperties(dbId, (props: any) => {
-          const element = {
-            id: dbId,
-            name: props.name,
-            category: props.properties.find((p: any) => p.displayName === 'Category')?.displayValue || 'Unknown',
-            type: props.properties.find((p: any) => p.displayName === 'Type')?.displayValue || 'Unknown',
-            properties: props.properties,
-            bounds: viewer.model.getBoundingBox(dbId)
-          };
-          
-          // Calculate quantities based on bounding box
-          if (element.bounds) {
-            const size = element.bounds.getSize();
-            element.volume = size.x * size.y * size.z;
-            element.area = size.x * size.y;
-          }
-          
-          elements.push(element);
-        });
-      },
-      true
-    );
-    
-    setExtractedElements(elements);
-    if (onElementsExtracted) {
-      onElementsExtracted(elements);
-    }
-  };
+    loadForgeViewer();
 
-  const handleFileUpload = async (file: File) => {
-    if (!clientId || !clientSecret) {
-      toast({
-        title: "Configuration Required",
-        description: "Please provide Autodesk Forge API credentials",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    setProgress(0);
-    
-    try {
-      // Step 1: Get access token
-      setLoadingStatus('Authenticating with Autodesk Forge...');
-      setProgress(10);
-      const token = await getForgeToken(clientId, clientSecret);
-      
-      // Step 2: Upload file to Forge
-      setLoadingStatus('Uploading RVT file to cloud...');
-      setProgress(30);
-      const urn = await uploadToForge(file, token);
-      
-      // Step 3: Translate file
-      setLoadingStatus('Converting RVT to viewable format...');
-      setProgress(50);
-      await translateModel(urn, token);
-      
-      // Step 4: Wait for translation
-      setLoadingStatus('Processing model geometry...');
-      setProgress(70);
-      await waitForTranslation(urn, token);
-      
-      // Step 5: Initialize viewer
-      setLoadingStatus('Loading 3D viewer...');
-      setProgress(90);
-      await initializeViewer(token, urn);
-      
-      setProgress(100);
-      setLoadingStatus('Complete!');
-      
-      toast({
-        title: "Success",
-        description: "RVT file loaded successfully"
-      });
-      
-    } catch (error) {
-      console.error('Error loading RVT:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load RVT file. Please check your API credentials.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Forge API helper functions
-  const getForgeToken = async (clientId: string, clientSecret: string): Promise<string> => {
-    // In production, this should be done server-side
-    const response = await fetch('/api/forge/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ clientId, clientSecret })
-    });
-    const data = await response.json();
-    return data.access_token;
-  };
-
-  const uploadToForge = async (file: File, token: string): Promise<string> => {
-    // Implementation would include:
-    // 1. Create bucket
-    // 2. Upload file to bucket
-    // 3. Return URN
-    // For now, returning mock URN
-    return btoa(`urn:adsk.objects:os.object:${Date.now()}/${file.name}`);
-  };
-
-  const translateModel = async (urn: string, token: string): Promise<void> => {
-    // API call to start translation
-  };
-
-  const waitForTranslation = async (urn: string, token: string): Promise<void> => {
-    // Poll translation status
-  };
-
-  const handleLoadModel = async (modelUrn: string) => {
-    setIsLoading(true);
-    setLoadingStatus('Getting Forge access token...');
-    
-    try {
-      const tokenResponse = await fetch('/api/forge/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      
-      if (!tokenResponse.ok) {
-        throw new Error('Failed to get Forge token');
+    // Cleanup
+    return () => {
+      if (viewer) {
+        viewer.tearDown();
+        viewer.finish();
       }
-      
-      const tokenData = await tokenResponse.json();
-      setLoadingStatus('Initializing 3D viewer...');
-      
-      await initializeViewer(tokenData.access_token, modelUrn);
-      
-      toast({
-        title: "Success",
-        description: "Model loaded successfully with Autodesk Forge"
-      });
-      
-    } catch (error) {
-      console.error('Error loading model:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load model. Please check Forge API configuration.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
+    };
+  }, [urn]);
+
+  const handleZoomIn = () => {
+    if (viewer) {
+      const camera = viewer.navigation.getCamera();
+      viewer.navigation.setRequestTransition(true, camera, camera.fov - 10, true);
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (viewer) {
+      const camera = viewer.navigation.getCamera();
+      viewer.navigation.setRequestTransition(true, camera, camera.fov + 10, true);
+    }
+  };
+
+  const handleReset = () => {
+    if (viewer) {
+      viewer.navigation.setRequestHomeView();
+    }
+  };
+
+  const handleFullscreen = () => {
+    if (viewerContainer.current) {
+      if (viewerContainer.current.requestFullscreen) {
+        viewerContainer.current.requestFullscreen();
+      }
     }
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Box className="w-5 h-5" />
-          Autodesk Forge RVT Viewer
-          <Badge variant="outline">Professional</Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {!clientId || !clientSecret ? (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Autodesk Forge API credentials required. Please add FORGE_CLIENT_ID and FORGE_CLIENT_SECRET to your environment.
-            </AlertDescription>
-          </Alert>
-        ) : (
-          <>
-            <div className="mb-4">
-              <input
-                type="file"
-                accept=".rvt,.rfa"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleFileUpload(file);
-                }}
-                className="hidden"
-                id="rvt-upload"
-              />
-              <label htmlFor="rvt-upload">
-                <Button variant="outline" className="cursor-pointer" disabled={isLoading}>
-                  <Upload className="w-4 h-4 mr-2" />
-                  Upload RVT File
+    <div className="w-full h-full">
+      <Card className="h-full">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg">
+            3D Model Viewer
+            {fileName && <span className="text-sm text-gray-500 ml-2">({fileName})</span>}
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            {viewerInitialized && (
+              <>
+                <Button variant="outline" size="icon" onClick={handleZoomIn} title="Zoom In">
+                  <ZoomIn className="h-4 w-4" />
                 </Button>
-              </label>
+                <Button variant="outline" size="icon" onClick={handleZoomOut} title="Zoom Out">
+                  <ZoomOut className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" onClick={handleReset} title="Reset View">
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" onClick={handleFullscreen} title="Fullscreen">
+                  <Maximize2 className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+            {onClose && (
+              <Button variant="outline" size="sm" onClick={onClose}>
+                Close
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="p-0 h-[calc(100%-80px)]">
+          {error ? (
+            <Alert variant="destructive" className="m-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : (
+            <div className="relative w-full h-full">
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
+                  <div className="text-center">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                    <p className="text-sm text-muted-foreground">Loading 3D model...</p>
+                    <p className="text-xs text-muted-foreground mt-2">This may take a few moments</p>
+                  </div>
+                </div>
+              )}
+              <div 
+                ref={viewerContainer} 
+                className="w-full h-full"
+                style={{ position: 'relative' }}
+              />
             </div>
-
-            {isLoading && (
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center gap-2 text-sm">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  {loadingStatus}
-                </div>
-                <Progress value={progress} />
-              </div>
-            )}
-
-            <div 
-              ref={viewerRef} 
-              className="w-full h-[600px] bg-gray-100 rounded-lg"
-              style={{ position: 'relative' }}
-            />
-
-            {extractedElements.length > 0 && (
-              <div className="mt-4">
-                <h3 className="text-sm font-semibold mb-2">
-                  Extracted Elements: {extractedElements.length}
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  {Object.entries(
-                    extractedElements.reduce((acc, el) => {
-                      acc[el.category] = (acc[el.category] || 0) + 1;
-                      return acc;
-                    }, {} as Record<string, number>)
-                  ).map(([category, count]) => (
-                    <div key={category} className="text-sm p-2 bg-gray-50 rounded">
-                      <div className="font-medium">{category}</div>
-                      <div className="text-gray-600">{count} items</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

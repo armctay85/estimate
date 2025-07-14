@@ -1362,9 +1362,8 @@ export function BIMProcessor({ isOpen: controlledIsOpen, onOpenChange }: BIMProc
             <div className="relative h-[70vh]">
               <ForgeViewer 
                 urn={currentFileUrn}
-                onElementsExtracted={(elements) => {
-                  console.log('Extracted elements from Forge:', elements);
-                }}
+                fileName={currentFileName}
+                onClose={() => setShowWireframe(false)}
               />
               <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" />
