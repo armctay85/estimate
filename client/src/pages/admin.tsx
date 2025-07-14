@@ -25,7 +25,7 @@ interface UploadMetrics {
 }
 
 export default function AdminDashboard() {
-  const [, setLocation] = useLocation();
+  const navigate = useLocation()[1];
   const [activeTab, setActiveTab] = useState("data-library");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
@@ -43,6 +43,64 @@ export default function AdminDashboard() {
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Type for uploaded files
+  interface UploadedFile {
+    id: number;
+    name: string;
+    size: string;
+    type: string;
+    uploadDate: string;
+    status: string;
+    uploadSpeed?: string;
+    processingTime?: string;
+  }
+
+  // Click handlers for buttons
+  const handleViewFile = (file: UploadedFile) => {
+    toast({
+      title: "Viewing File",
+      description: `Opening ${file.name} for preview...`
+    });
+  };
+
+  const handleDownloadFile = (file: UploadedFile) => {
+    toast({
+      title: "Download Started",
+      description: `Downloading ${file.name}...`
+    });
+  };
+
+  const handleDeleteFile = (fileId: number) => {
+    if (window.confirm("Are you sure you want to delete this file?")) {
+      setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
+      toast({
+        title: "File Deleted",
+        description: "The file has been removed from the library."
+      });
+    }
+  };
+
+  const handleViewLibrary = (libraryName: string) => {
+    toast({
+      title: "Opening Library",
+      description: `Loading ${libraryName}...`
+    });
+  };
+
+  const handleExportLibrary = (libraryName: string) => {
+    toast({
+      title: "Export Started",
+      description: `Exporting ${libraryName} to CSV...`
+    });
+  };
+
+  const handleSystemSettings = (setting: string) => {
+    toast({
+      title: "Settings",
+      description: `Opening ${setting}...`
+    });
+  };
 
   // Simple admin authentication
   const handleAdminLogin = () => {
@@ -535,13 +593,13 @@ export default function AdminDashboard() {
                               <CheckCircle className="w-3 h-3 mr-1" />
                               Processed
                             </Badge>
-                            <Button size="sm" variant="ghost">
+                            <Button size="sm" variant="ghost" onClick={() => handleViewFile(file)}>
                               <Eye className="w-4 h-4" />
                             </Button>
-                            <Button size="sm" variant="ghost">
+                            <Button size="sm" variant="ghost" onClick={() => handleDownloadFile(file)}>
                               <Download className="w-4 h-4" />
                             </Button>
-                            <Button size="sm" variant="ghost" className="text-red-600">
+                            <Button size="sm" variant="ghost" className="text-red-600" onClick={() => handleDeleteFile(file.id)}>
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
@@ -560,8 +618,8 @@ export default function AdminDashboard() {
                         <h4 className="font-semibold mb-2">Starbucks Drive-Through Templates</h4>
                         <p className="text-sm text-gray-600 mb-3">15 design variations • QSR specific</p>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">View</Button>
-                          <Button size="sm" variant="outline">Export</Button>
+                          <Button size="sm" variant="outline" onClick={() => handleViewLibrary("Starbucks Drive-Through Templates")}>View</Button>
+                          <Button size="sm" variant="outline" onClick={() => handleExportLibrary("Starbucks Drive-Through Templates")}>Export</Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -571,8 +629,8 @@ export default function AdminDashboard() {
                         <h4 className="font-semibold mb-2">Kmart Retail Fitout Standards</h4>
                         <p className="text-sm text-gray-600 mb-3">8 store layouts • 2024 standards</p>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">View</Button>
-                          <Button size="sm" variant="outline">Export</Button>
+                          <Button size="sm" variant="outline" onClick={() => handleViewLibrary("Kmart Retail Fitout Standards")}>View</Button>
+                          <Button size="sm" variant="outline" onClick={() => handleExportLibrary("Kmart Retail Fitout Standards")}>Export</Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -582,8 +640,8 @@ export default function AdminDashboard() {
                         <h4 className="font-semibold mb-2">Residential Construction Library</h4>
                         <p className="text-sm text-gray-600 mb-3">250+ house designs • All sizes</p>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">View</Button>
-                          <Button size="sm" variant="outline">Export</Button>
+                          <Button size="sm" variant="outline" onClick={() => handleViewLibrary("Residential Construction Library")}>View</Button>
+                          <Button size="sm" variant="outline" onClick={() => handleExportLibrary("Residential Construction Library")}>Export</Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -593,8 +651,8 @@ export default function AdminDashboard() {
                         <h4 className="font-semibold mb-2">Commercial Building Standards</h4>
                         <p className="text-sm text-gray-600 mb-3">120 office layouts • MEP included</p>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">View</Button>
-                          <Button size="sm" variant="outline">Export</Button>
+                          <Button size="sm" variant="outline" onClick={() => handleViewLibrary("Commercial Building Standards")}>View</Button>
+                          <Button size="sm" variant="outline" onClick={() => handleExportLibrary("Commercial Building Standards")}>Export</Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -684,15 +742,15 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button variant="outline" className="w-full justify-start" onClick={() => handleSystemSettings("Database Configuration")}>
                     <Database className="w-4 h-4 mr-2" />
                     Database Configuration
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button variant="outline" className="w-full justify-start" onClick={() => handleSystemSettings("API Keys Management")}>
                     <Key className="w-4 h-4 mr-2" />
                     API Keys Management
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button variant="outline" className="w-full justify-start" onClick={() => handleSystemSettings("Platform Settings")}>
                     <Settings className="w-4 h-4 mr-2" />
                     Platform Settings
                   </Button>
@@ -704,7 +762,7 @@ export default function AdminDashboard() {
 
         {/* Back Button */}
         <div className="mt-8">
-          <Button variant="outline" onClick={() => setLocation("/")}>
+          <Button variant="outline" onClick={() => navigate("/")}>
             Back to Dashboard
           </Button>
         </div>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Page Function Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    .test-item {
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .pass { background-color: #d4edda; }
+    .fail { background-color: #f8d7da; }
+    .pending { background-color: #fff3cd; }
+    h2 { color: #333; }
+    .test-result {
+      font-weight: bold;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Admin Page Functionality Test Suite</h1>
+  
+  <h2>Upload Functions</h2>
+  <div class="test-item pending" id="test-upload">
+    1. File Upload Button - Click "Select Files from Computer"
+    <span class="test-result">PENDING</span>
+  </div>
+  
+  <div class="test-item pending" id="test-progress">
+    2. Upload Progress Display - Shows speed, ETA, progress bar
+    <span class="test-result">PENDING</span>
+  </div>
+  
+  <h2>File Management</h2>
+  <div class="test-item pending" id="test-view">
+    3. View File Button - Shows toast notification
+    <span class="test-result">PENDING</span>
+  </div>
+  
+  <div class="test-item pending" id="test-download">
+    4. Download File Button - Shows download toast
+    <span class="test-result">PENDING</span>
+  </div>
+  
+  <div class="test-item pending" id="test-delete">
+    5. Delete File Button - Confirms and removes file
+    <span class="test-result">PENDING</span>
+  </div>
+  
+  <h2>Library Management</h2>
+  <div class="test-item pending" id="test-view-library">
+    6. View Library Button - Shows library loading toast
+    <span class="test-result">PENDING</span>
+  </div>
+  
+  <div class="test-item pending" id="test-export-library">
+    7. Export Library Button - Shows export toast
+    <span class="test-result">PENDING</span>
+  </div>
+  
+  <h2>Tab Navigation</h2>
+  <div class="test-item pending" id="test-tabs">
+    8. Tab Switching - All tabs load correctly
+    <span class="test-result">PENDING</span>
+  </div>
+  
+  <h2>System Settings</h2>
+  <div class="test-item pending" id="test-settings">
+    9. Settings Buttons - All show appropriate toasts
+    <span class="test-result">PENDING</span>
+  </div>
+  
+  <h2>Navigation</h2>
+  <div class="test-item pending" id="test-back">
+    10. Back to Dashboard - Returns to home page
+    <span class="test-result">PENDING</span>
+  </div>
+  
+  <h2>Performance</h2>
+  <div class="test-item pending" id="test-performance">
+    11. Elite Performance Monitor - Loads in Stats tab
+    <span class="test-result">PENDING</span>
+  </div>
+  
+  <h2>Authentication</h2>
+  <div class="test-item pending" id="test-auth">
+    12. Admin Login - Code: ESTIMATE-ADMIN-2025
+    <span class="test-result">PENDING</span>
+  </div>
+
+  <script>
+    // Auto-test results would be filled by actual testing
+    console.log("Admin Test Suite Loaded - Please test each function manually");
+    console.log("Access admin at: /admin");
+    console.log("Use code: ESTIMATE-ADMIN-2025");
+  </script>
+</body>
+</html>
