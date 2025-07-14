@@ -78,6 +78,7 @@ export default function Home() {
   const [showScheduler, setShowScheduler] = useState(false);
   const [showCollaborators, setShowCollaborators] = useState(false);
   const [showBIMProcessor, setShowBIMProcessor] = useState(false);
+  const [selectedWorkspaceMode, setSelectedWorkspaceMode] = useState<string | null>(null);
   
   const canvasRef = useRef<{ uploadBackground: (file: File) => void } | null>(null);
   const isMobile = useIsMobile();
@@ -986,7 +987,123 @@ export default function Home() {
     );
   }
 
-  // Enhanced Desktop Layout: Procore-inspired with orange accents, animations, and resizable panels
+  // Enhanced Desktop Layout: Show 3D model demo instead of canvas as default
+  if (!selectedWorkspaceMode) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }} 
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className={`min-h-screen font-sans flex flex-col ${darkMode ? 'bg-gray-900 text-white' : 'bg-slate-50 text-gray-900'}`}
+      >
+        {/* Elite Status Bar */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1">
+                <Zap className="w-4 h-4" />
+                Elite Platform
+              </span>
+              <span className="opacity-75">|</span>
+              <span>Response Time: 42ms</span>
+              <span className="opacity-75">|</span>
+              <span>Active Sessions: {Math.floor(Math.random() * 100 + 300)}</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                All Systems Operational
+              </span>
+              <Button size="sm" variant="secondary" onClick={() => navigate("/admin")}>
+                Admin Portal
+              </Button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Header */}
+        <Header darkMode={darkMode} setDarkMode={setDarkMode} />
+        
+        {/* Main Content - 3D Model Demo */}
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="max-w-6xl w-full">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Welcome to EstiMate Elite Platform
+              </h1>
+              <p className="text-xl text-gray-600 mb-8">
+                Select an action below to start your construction cost estimation journey
+              </p>
+            </div>
+            
+            {/* 3D Model Demo */}
+            <Card className="mb-8 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                <CardTitle className="flex items-center gap-2">
+                  <Box className="w-6 h-6" />
+                  Interactive 3D Building Model Demo
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="h-[500px] bg-gray-100">
+                  <Simple3DViewer
+                    isOpen={true}
+                    onOpenChange={() => {}}
+                    projectType="commercial"
+                    projectName="Demo Building"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Action Buttons */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="hover:shadow-xl transition-shadow cursor-pointer"
+                    onClick={() => {
+                      setSelectedWorkspaceMode('sketch');
+                      setShowDashboard(false);
+                    }}>
+                <CardContent className="p-6 text-center">
+                  <Pencil className="w-12 h-12 mx-auto mb-4 text-green-600" />
+                  <h3 className="text-xl font-bold mb-2">Quick Sketch</h3>
+                  <p className="text-gray-600">Draw floor plans and get instant estimates</p>
+                  <Badge className="mt-4 bg-green-100 text-green-800">Free Tier</Badge>
+                </CardContent>
+              </Card>
+              
+              <Card className="hover:shadow-xl transition-shadow cursor-pointer"
+                    onClick={() => setShowBIMProcessor(true)}>
+                <CardContent className="p-6 text-center">
+                  <Upload className="w-12 h-12 mx-auto mb-4 text-purple-600" />
+                  <h3 className="text-xl font-bold mb-2">BIM Auto-Takeoff</h3>
+                  <p className="text-gray-600">Upload CAD/BIM files for AI analysis</p>
+                  <Badge className="mt-4 bg-purple-100 text-purple-800">Enterprise</Badge>
+                </CardContent>
+              </Card>
+              
+              <Card className="hover:shadow-xl transition-shadow cursor-pointer"
+                    onClick={() => navigate('/projects')}>
+                <CardContent className="p-6 text-center">
+                  <FileBarChart className="w-12 h-12 mx-auto mb-4 text-blue-600" />
+                  <h3 className="text-xl font-bold mb-2">My Projects</h3>
+                  <p className="text-gray-600">View and manage your saved projects</p>
+                  <Badge className="mt-4 bg-blue-100 text-blue-800">All Tiers</Badge>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+        
+        {/* BIM Processor Dialog */}
+        <BIMProcessor 
+          isOpen={showBIMProcessor} 
+          onOpenChange={setShowBIMProcessor} 
+        />
+      </motion.div>
+    );
+  }
+
+  // Workspace mode - show canvas and tools
   return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }} 
@@ -1112,41 +1229,38 @@ export default function Home() {
 
           {/* Scrollable Accordion Content */}
           <div className="flex-1 overflow-y-auto p-3">
-            <Accordion type="multiple" defaultValue={["project-info", "materials", "ai-tools", "quick-actions"]} className="space-y-2">
-              {/* Materials Section */}
-              <AccordionItem value="materials" className={`${darkMode ? 'border-gray-700' : 'border-gray-200'} border rounded-lg shadow-sm`}>
+            <Accordion type="multiple" defaultValue={["project-info", "drawing-tools", "ai-tools", "quick-actions"]} className="space-y-2">
+              {/* Drawing Tools Section - Group materials and shapes together */}
+              <AccordionItem value="drawing-tools" className={`${darkMode ? 'border-gray-700' : 'border-gray-200'} border rounded-lg shadow-sm`}>
                 <AccordionTrigger className={`px-4 py-3 hover:no-underline ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} text-left`}>
                   <span className="flex items-center gap-2">
-                    <Palette className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-semibold uppercase tracking-wide">Materials</span>
+                    <Pencil className="w-4 h-4 text-green-600" />
+                    <span className="text-sm font-semibold uppercase tracking-wide">Drawing Tools</span>
                   </span>
                 </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  <MaterialSelector 
-                    selectedMaterial={selectedMaterial}
-                    onMaterialSelect={setSelectedMaterial}
-                  />
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Drawing Tools Section */}
-              <AccordionItem value="shapes" className={`${darkMode ? 'border-gray-700' : 'border-gray-200'} border rounded-lg shadow-sm`}>
-                <AccordionTrigger className={`px-4 py-3 hover:no-underline ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} text-left`}>
-                  <span className="flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-semibold uppercase tracking-wide">Shapes</span>
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  <ShapeSelector
-                    selectedShape={selectedShape}
-                    onShapeSelect={setSelectedShape}
-                    onBackgroundUpload={handleBackgroundUpload}
-                    onBackgroundRemove={handleBackgroundRemove}
-                    onBackgroundOpacity={handleBackgroundOpacity}
-                    hasBackground={hasBackground}
-                    backgroundOpacity={backgroundOpacity}
-                  />
+                <AccordionContent className="px-4 pb-4 space-y-4">
+                  {/* Materials Sub-section */}
+                  <div>
+                    <h4 className="text-xs font-semibold uppercase text-gray-500 mb-2">Select Material</h4>
+                    <MaterialSelector 
+                      selectedMaterial={selectedMaterial}
+                      onMaterialSelect={setSelectedMaterial}
+                    />
+                  </div>
+                  
+                  {/* Shapes Sub-section */}
+                  <div>
+                    <h4 className="text-xs font-semibold uppercase text-gray-500 mb-2">Drawing Shapes</h4>
+                    <ShapeSelector
+                      selectedShape={selectedShape}
+                      onShapeSelect={setSelectedShape}
+                      onBackgroundUpload={handleBackgroundUpload}
+                      onBackgroundRemove={handleBackgroundRemove}
+                      onBackgroundOpacity={handleBackgroundOpacity}
+                      hasBackground={hasBackground}
+                      backgroundOpacity={backgroundOpacity}
+                    />
+                  </div>
                 </AccordionContent>
               </AccordionItem>
 
@@ -1372,7 +1486,7 @@ export default function Home() {
               <Button 
                 size="sm" 
                 className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
-                onClick={() => {}}
+                onClick={() => setShowBIMProcessor(true)}
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Upload BIM Files
