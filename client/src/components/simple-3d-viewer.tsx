@@ -578,12 +578,12 @@ export function Simple3DViewer({
                   <div key={element.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
                     <div className="flex items-center gap-2">
                       <div 
-                        className="w-4 h-4 rounded" 
+                        className="w-4 h-4 rounded border border-gray-300" 
                         style={{ backgroundColor: element.color }}
                       />
-                      <span className="text-sm">{element.name}</span>
+                      <span className="text-sm text-gray-800">{element.name}</span>
                     </div>
-                    <span className="text-sm font-mono">${element.cost.toLocaleString()}</span>
+                    <span className="text-sm font-mono text-gray-800">${element.cost.toLocaleString()}</span>
                   </div>
                 ))}
               </div>
