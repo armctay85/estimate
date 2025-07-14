@@ -541,6 +541,7 @@ export default function Home() {
               <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group border-2 border-blue-200"
                     onClick={() => {
                       setProjectType('commercial');
+                      setSelectedWorkspaceMode('pro');
                       setShowDashboard(false);
                     }}>
                 <CardContent className="p-8">
