@@ -8,6 +8,7 @@ BuildCost Sketch is a web-based mini take-off tool for property and construction
 
 Preferred communication style: Simple, everyday language.
 UI/UX Preferences: User prefers cleaner, more professional interface design and typography. Requested complete app code export and strategy summary for external review.
+Performance Requirements: CRITICAL - Upload speeds must be near-instant (2-5 seconds maximum). User has stated "unless you can fix for close to instant upload speed - then not worth it". This is a make-or-break feature.
 
 ## System Architecture
 

@@ -212,7 +212,8 @@ export default function AdminDashboard() {
           resolve({ success: false, file: file.name, error: "Network error" });
         };
         
-          xhr.open("POST", "/api/admin/upload-design");
+          // Use fast upload endpoint for instant speed
+          xhr.open("POST", "/api/admin/fast-upload");
           xhr.withCredentials = true;
           xhr.send(formData);
         }).then(result => {

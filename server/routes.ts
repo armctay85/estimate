@@ -11,6 +11,7 @@ import OpenAI from "openai";
 import { storage } from "./storage";
 import { insertUserSchema, insertProjectSchema, insertRoomSchema, MATERIALS } from "@shared/schema";
 import { setupForgeRoutes } from "./forge-api";
+import { setupFastUpload } from "./fast-upload";
 
 // Initialize Stripe only if the secret is available
 let stripe: Stripe | null = null;
@@ -657,6 +658,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Set up Forge API routes for RVT processing
   setupForgeRoutes(app);
+  
+  // Set up fast upload routes for instant uploads
+  setupFastUpload(app);
 
   // BIM file upload route with Forge integration
   app.post('/api/forge/upload', bimUpload.single('file'), async (req, res) => {
