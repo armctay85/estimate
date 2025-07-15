@@ -1166,15 +1166,17 @@ export default function Home() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="h-[500px] bg-gray-100">
-                  <Realistic3DViewer
-                    isOpen={true}
-                    onClose={() => {}}
-                    fileName="Commercial Building Demo"
-                    showControls={true}
-                    autoRotate={true}
-                    showCostOverlay={true}
-                    containerHeight="h-[500px]"
-                  />
+                  <div className="relative h-[500px] bg-gray-100 rounded-lg overflow-hidden">
+                    <Realistic3DViewer
+                      isOpen={true}
+                      onClose={() => {}}
+                      fileName="Commercial Building Demo"
+                      showControls={false}
+                      autoRotate={true}
+                      showCostOverlay={false}
+                      containerHeight="h-[500px]"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -675,11 +675,46 @@ export function Realistic3DViewer({
 
   if (!isOpen) return null;
 
-  return (
-    <Dialog open={isOpen} onOpenChange={() => onClose && onClose()}>
-      <DialogContent className="max-w-7xl max-h-[95vh] overflow-auto">
+  // Check if this is embedded mode (no onClose function or specific container height)
+  const isEmbedded = !onClose || containerHeight !== "h-[600px]";
+
+  if (isEmbedded) {
+    // Embedded mode - just return the content directly
+    return (
+      <div className={`w-full ${containerHeight}`}>
         {content}
-      </DialogContent>
-    </Dialog>
+      </div>
+    );
+  }
+
+  // Modal mode
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg max-w-7xl w-full max-h-[95vh] overflow-y-auto relative">
+        {/* Close Button */}
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 bg-white/80 hover:bg-white shadow-md"
+        >
+          <X className="w-4 h-4" />
+        </Button>
+        
+        {/* Header */}
+        <div className="p-6 border-b">
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <Box className="w-6 h-6" />
+            Realistic 3D Architectural Viewer
+          </h2>
+          <p className="text-gray-600 mt-1">Professional photorealistic building visualization</p>
+        </div>
+        
+        {/* Content */}
+        <div className="p-6">
+          {content}
+        </div>
+      </div>
+    </div>
   );
 }
