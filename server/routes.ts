@@ -14,6 +14,7 @@ import { setupForgeRoutes } from "./forge-api";
 import { setupFastUpload } from "./fast-upload";
 import { setupDataProcessing } from "./data-processor";
 import { setupInstantUpload } from "./instant-upload";
+import { predictConstructionCost, analyzeBIMFile, generateQSReport } from "./xai-service";
 
 // Initialize Stripe only if the secret is available
 let stripe: Stripe | null = null;
@@ -652,40 +653,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI cost prediction endpoint
+  // AI cost prediction endpoint - Enhanced with X AI
   app.post('/api/ai/predict-costs', async (req, res) => {
     try {
-      if (!xai) {
-        return res.status(503).json({ error: 'AI service not available' });
-      }
-
       const { projectType, area, location, complexity, timeline } = req.body;
       
-      const prompt = `Provide detailed cost prediction for Australian construction project:
-      Type: ${projectType}
-      Area: ${area}m²
-      Location: ${location}
-      Complexity: ${complexity}
-      Timeline: ${timeline}
-      
-      Return accurate cost range in AUD with breakdown factors.`;
-
-      const completion = await xai.chat.completions.create({
-        model: "grok-beta",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 400
+      // Use the new X AI service for more accurate predictions
+      const result = await predictConstructionCost({
+        type: projectType,
+        area: area,
+        location: location,
+        complexity: complexity,
+        timeline: timeline
       });
 
-      const prediction = completion.choices[0]?.message?.content || "Unable to predict";
-      
-      res.json({ 
-        prediction,
-        confidence: "93%",
-        aiPowered: true
+      if (!result.success) {
+        return res.status(500).json({ error: result.error || 'Failed to predict costs' });
+      }
+
+      res.json({
+        predictedCost: result.data.predictedCost,
+        minCost: result.data.minCost,
+        maxCost: result.data.maxCost,
+        confidence: result.data.confidence,
+        breakdown: result.data.breakdown,
+        factors: result.data.factors,
+        risks: result.data.risks,
+        aiPowered: true,
+        model: "X AI Grok-2"
       });
     } catch (error) {
       console.error('Cost Prediction Error:', error);
       res.status(500).json({ error: 'Failed to predict costs' });
+    }
+  });
+
+  // X AI Report Generation endpoint
+  app.post('/api/ai/generate-report', async (req, res) => {
+    try {
+      const { projectData } = req.body;
+      
+      if (!projectData) {
+        return res.status(400).json({ error: 'Project data required' });
+      }
+
+      // Generate professional QS report content using X AI
+      const reportContent = await generateQSReport(projectData);
+      
+      res.json({
+        success: true,
+        content: reportContent,
+        generatedBy: "X AI Grok-2",
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Report Generation Error:', error);
+      res.status(500).json({ error: 'Failed to generate report' });
     }
   });
 

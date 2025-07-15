@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Brain, Calculator, TrendingUp, Award, Building2, MapPin, Clock, Sparkles, Zap } from "lucide-react";
 import { motion } from "framer-motion";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProjectData {
   type: string;
@@ -90,6 +92,7 @@ function predictProjectCost(projectData: ProjectData): CostPrediction {
 }
 
 export function AICostPredictor() {
+  const { toast } = useToast();
   const [projectData, setProjectData] = useState<ProjectData>({
     type: 'residential',
     area: 100,
@@ -104,19 +107,62 @@ export function AICostPredictor() {
 
   const handleGenerate = async () => {
     setIsAnalyzing(true);
-    const result = predictProjectCost(projectData);
-    setPrediction(result);
     
-    // Simulate AI insights generation
-    setTimeout(() => {
-      setAiInsights([
+    try {
+      // Show X AI toast notification
+      toast({
+        title: "X AI Analysis",
+        description: "Using Grok-2 model for intelligent cost prediction...",
+      });
+      
+      // Call X AI backend for intelligent cost prediction
+      const response = await apiRequest('POST', '/api/ai/predict-costs', {
+        projectType: projectData.type,
+        area: projectData.area,
+        location: projectData.location,
+        complexity: projectData.complexity,
+        timeline: projectData.timeline
+      });
+
+      // Set prediction with X AI results
+      setPrediction({
+        predictedCost: response.predictedCost,
+        minCost: response.minCost,
+        maxCost: response.maxCost,
+        confidence: response.confidence,
+        factors: response.factors
+      });
+
+      // Extract AI insights from risks and breakdown
+      const insights = response.risks || [
         "Consider split-system HVAC for cost efficiency",
         "Engineered timber offers 15% savings over hardwood",
         "Bulk material procurement can reduce costs by 8%",
         "Local contractors may offer better rates than imported"
+      ];
+      setAiInsights(insights);
+      
+      toast({
+        title: "Analysis Complete",
+        description: "X AI has generated your cost prediction with Australian market insights",
+      });
+    } catch (error) {
+      // Fallback to local calculation if X AI is unavailable
+      const result = predictProjectCost(projectData);
+      setPrediction(result);
+      setAiInsights([
+        "AI service temporarily unavailable - using local estimates",
+        "Consider enabling X AI for more accurate predictions"
       ]);
-      setIsAnalyzing(false);
-    }, 2000);
+      
+      toast({
+        title: "Using Local Estimates",
+        description: "X AI unavailable - calculations based on built-in data",
+        variant: "destructive"
+      });
+    }
+    
+    setIsAnalyzing(false);
   };
 
   const updateProjectData = (field: keyof ProjectData, value: string | number) => {
@@ -251,13 +297,34 @@ export function AICostPredictor() {
             </div>
           </div>
 
-          <Button 
-            onClick={handleGenerate} 
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-          >
-            <Brain className="w-4 h-4 mr-2" />
-            Generate AI Prediction
-          </Button>
+          <div className="space-y-2">
+            <Button 
+              onClick={handleGenerate} 
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              disabled={isAnalyzing}
+            >
+              {isAnalyzing ? (
+                <>
+                  <motion.div 
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="mr-2"
+                  >
+                    <Zap className="w-4 h-4" />
+                  </motion.div>
+                  Analyzing with X AI...
+                </>
+              ) : (
+                <>
+                  <Brain className="w-4 h-4 mr-2" />
+                  Generate AI Prediction
+                </>
+              )}
+            </Button>
+            <p className="text-xs text-center text-gray-500">
+              Powered by X AI (Grok-2) • Australian Construction Intelligence
+            </p>
+          </div>
 
           {prediction && (
             <div className="space-y-4">

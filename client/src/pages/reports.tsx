@@ -228,13 +228,16 @@ export default function Reports() {
               </Button>
               <div className="h-8 w-px bg-gray-300" />
               <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
+              <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-none">
+                Powered by X AI
+              </Badge>
             </div>
             <Button
               onClick={() => navigate('/reports/new')}
-              className="gap-2"
+              className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
               <FileText className="w-4 h-4" />
-              Generate Report
+              Generate AI Report
             </Button>
           </div>
         </div>
