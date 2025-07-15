@@ -16,6 +16,7 @@ import { BIMProcessor } from "@/components/bim-processor";
 import { IntelligentAssistant } from "@/components/intelligent-assistant";
 import { Simple3DViewer } from "@/components/simple-3d-viewer";
 import { Enhanced3DViewer } from "@/components/enhanced-3d-viewer";
+import { Realistic3DViewer } from "@/components/realistic-3d-viewer";
 import { PhotoRenovationTool } from "@/components/photo-renovation-tool";
 import { ProjectScheduler } from "@/components/project-scheduler";
 import { ModelLibrary } from "@/components/model-library";
@@ -1165,11 +1166,14 @@ export default function Home() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="h-[500px] bg-gray-100">
-                  <Simple3DViewer
+                  <Realistic3DViewer
                     isOpen={true}
-                    onOpenChange={() => {}}
-                    projectType="commercial"
-                    projectName="Demo Building"
+                    onClose={() => {}}
+                    fileName="Commercial Building Demo"
+                    showControls={true}
+                    autoRotate={true}
+                    showCostOverlay={true}
+                    containerHeight="h-[500px]"
                   />
                 </div>
               </CardContent>
@@ -1938,62 +1942,16 @@ export default function Home() {
         urn={localStorage.getItem('currentModelUrn') || undefined}
       />
 
-      {/* Professional 3D Demo Dialog - Fixed styling */}
+      {/* Professional 3D Realistic Viewer */}
       {showProfessional3D && (
-        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center" style={{zIndex: 9999}}>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-[95vw] h-[95vh] flex flex-col max-w-6xl">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Professional 3D BIM Visualization</h2>
-                <p className="text-gray-600 dark:text-gray-300">Interactive 3D viewer for your uploaded RVT files</p>
-              </div>
-              <button 
-                onClick={() => setShowProfessional3D(false)}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg text-gray-700 dark:text-gray-300 transition-colors"
-              >
-                Close
-              </button>
-            </div>
-            <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
-              <div className="text-center space-y-6">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Professional Forge 3D Viewer</h3>
-                <p className="text-gray-600 dark:text-gray-300">Access your uploaded BIM models with professional-grade visualization</p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Your Uploaded Models</h4>
-                    <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                      <div>• 90646-001 Rowville DT AUS_Final DD.rvt (348MB)</div>
-                      <div>• 93136-001 Burleigh Junction DT AUS_Final DD Set.rvt (413MB)</div>
-                    </div>
-                    <button 
-                      onClick={() => {
-                        // Use demo mode to show viewer interface immediately
-                        localStorage.setItem('currentModelFileName', 'Demo BIM Model.rvt');
-                        localStorage.setItem('currentModelUrn', 'demo-mode');
-                        setShowForgeViewer(true);
-                        setShowProfessional3D(false);
-                      }}
-                      className="mt-4 w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-                    >
-                      View Demo 3D Model
-                    </button>
-                  </div>
-                  
-                  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Viewer Features</h4>
-                    <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                      <div>• High-quality 3D rendering</div>
-                      <div>• Element selection and properties</div>
-                      <div>• Cost overlay integration</div>
-                      <div>• Professional navigation tools</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Realistic3DViewer
+          isOpen={showProfessional3D}
+          onClose={() => setShowProfessional3D(false)}
+          fileName="Enterprise BIM Model"
+          showControls={true}
+          autoRotate={false}
+          showCostOverlay={true}
+        />
       )}
     </motion.div>
   );
