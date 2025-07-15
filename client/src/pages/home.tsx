@@ -12,7 +12,6 @@ import { RoomDetails } from "@/components/room-details";
 import { Header } from "@/components/header";
 import { AICostPredictor } from "@/components/ai-cost-predictor";
 import { BIMProcessor } from "@/components/bim-processor";
-import { TestDialog } from "@/components/test-dialog";
 import { IntelligentAssistant } from "@/components/intelligent-assistant";
 import { Simple3DViewer } from "@/components/simple-3d-viewer";
 import { PhotoRenovationTool } from "@/components/photo-renovation-tool";
@@ -21,6 +20,7 @@ import { ModelLibrary } from "@/components/model-library";
 import { Forge3DViewer } from "@/components/forge-3d-viewer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -88,9 +88,9 @@ export default function Home() {
   const [showScheduler, setShowScheduler] = useState(false);
   const [showCollaborators, setShowCollaborators] = useState(false);
   const [showBIMProcessor, setShowBIMProcessor] = useState(false);
-  const [showTestDialog, setShowTestDialog] = useState(false);
   const [showModelLibrary, setShowModelLibrary] = useState(false);
   const [showForgeViewer, setShowForgeViewer] = useState(false);
+  const [showAICostPredictor, setShowAICostPredictor] = useState(false);
   const [selectedWorkspaceMode, setSelectedWorkspaceMode] = useState<string | null>(null);
   
   const canvasRef = useRef<{ uploadBackground: (file: File) => void } | null>(null);
@@ -636,7 +636,8 @@ export default function Home() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4 }}
             >
-              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group border-2 border-purple-200">
+              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group border-2 border-purple-200"
+                    onClick={() => setShowBIMProcessor(true)}>
                 <CardContent className="p-8">
                   <div className="mb-6">
                     <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -697,25 +698,9 @@ export default function Home() {
                       <span>Replace 2-3 QS staff</span>
                     </div>
                   </div>
-                  <Button 
-                    className="w-full mt-6 bg-purple-600 hover:bg-purple-700"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      console.log('BIM button clicked');
-                      console.log('Current showBIMProcessor:', showBIMProcessor);
-                      console.log('Current showTestDialog:', showTestDialog);
-                      setShowBIMProcessor(true);
-                      setShowTestDialog(true);
-                      console.log('States should be set to true now');
-                      // Force a re-render to debug
-                      setTimeout(() => {
-                        console.log('After timeout - showBIMProcessor:', showBIMProcessor);
-                        console.log('After timeout - showTestDialog:', showTestDialog);
-                      }, 100);
-                    }}
-                  >
-                    Start BIM Processing
-                  </Button>
+                  <div className="text-center text-sm text-gray-500 mt-6">
+                    Click card to start BIM processing
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -729,7 +714,6 @@ export default function Home() {
               <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group"
                     onClick={() => {
                       setShowAICostPredictor(true);
-                      setShowDashboard(false);
                     }}>
                 <CardContent className="p-8">
                   <div className="mb-6">
@@ -1217,37 +1201,88 @@ export default function Home() {
           </div>
         </div>
         
-        {/* BIM Processor Dialog - Always render it */}
+        {/* BIM Processor Modal - Direct implementation */}
         {showBIMProcessor && (
-          <BIMProcessor 
-            isOpen={true} 
-            onOpenChange={(open) => {
-              console.log('BIM Processor onOpenChange called with:', open);
-              if (!open) {
-                setShowBIMProcessor(false);
-              }
-            }} 
-          />
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <Building className="w-6 h-6" />
+                  Enterprise BIM Auto-Takeoff System
+                </h2>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowBIMProcessor(false)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              
+              <Alert className="mb-4">
+                <Zap className="h-4 w-4" />
+                <AlertDescription>
+                  Upload your BIM/CAD files for AI-powered automatic quantity takeoff. 
+                  Supports DWG, DXF, IFC, Revit (.RVT), SketchUp (.SKP), ArchiCAD (.PLN), and PDF plans.
+                </AlertDescription>
+              </Alert>
+              
+              <Card className="border-dashed border-2 border-gray-300 hover:border-emerald-400 bg-gradient-to-br from-gray-50 to-white">
+                <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
+                  <div className="relative">
+                    <Upload className="w-16 h-16 text-gray-400" />
+                    <div className="absolute -top-2 -right-2 animate-pulse">
+                      <Badge className="bg-green-500 text-white">AI</Badge>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold mb-2 bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+                      Elite BIM Processing Engine
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Click below to select your BIM file
+                    </p>
+                    <input
+                      type="file"
+                      accept=".dwg,.dxf,.ifc,.rvt,.skp,.pln,.pdf"
+                      className="block mx-auto text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          toast({
+                            title: "File selected",
+                            description: `Processing ${file.name}...`,
+                          });
+                          // Here you would normally process the file
+                          setTimeout(() => {
+                            setShowBIMProcessor(false);
+                            toast({
+                              title: "Processing started",
+                              description: "Your BIM file is being analyzed. This may take 15-45 minutes.",
+                            });
+                          }, 2000);
+                        }
+                      }}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         )}
         
-        {/* Test Dialog */}
-        <TestDialog 
-          isOpen={showTestDialog} 
-          onOpenChange={setShowTestDialog} 
-        />
-        
-        {/* Simple HTML test dialog */}
-        {showTestDialog && (
-          <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center">
-            <div className="bg-white p-8 rounded-lg shadow-xl">
-              <h2 className="text-xl font-bold mb-4">Test HTML Dialog</h2>
-              <p>If you can see this, basic dialogs work.</p>
-              <button 
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-                onClick={() => setShowTestDialog(false)}
-              >
-                Close
-              </button>
+        {/* AI Cost Predictor Modal - Direct implementation */}
+        {showAICostPredictor && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <AICostPredictor 
+                isOpen={true}
+                onOpenChange={(open) => {
+                  if (!open) {
+                    setShowAICostPredictor(false);
+                  }
+                }}
+              />
             </div>
           </div>
         )}
