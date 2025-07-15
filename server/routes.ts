@@ -243,7 +243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/payments/billing-portal', isAuthenticated, createBillingPortalSession);
 
   // Setup external service integrations
-  setupForgeRoutes(app);
+  await setupForgeRoutes(app);
   setupFastUpload(app);
   setupDataProcessing(app);
   setupInstantUpload(app);

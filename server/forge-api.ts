@@ -367,17 +367,8 @@ function estimateCostForElement(elementName: string, category: string): number {
   return Math.round(categoryData.base * categoryData.multiplier * complexity);
 }
 
-// Express route handlers
-export function setupForgeRoutes(app: any) {
-  // Import multer dynamically to avoid ES6/CommonJS conflicts
-  const multerModule = import('multer');
-  
-  // Create upload handler without multer for now - we'll use existing upload from routes.ts
-  const processUpload = async (req: any, res: any, next: any) => {
-    // This will be handled by the multer middleware in routes.ts
-    next();
-  };
-
+// Express route handlers - use proper multer import
+export async function setupForgeRoutes(app: any) {
   // Check if Forge credentials are available
   if (!process.env.FORGE_CLIENT_ID || !process.env.FORGE_CLIENT_SECRET) {
     console.warn('Forge credentials not configured - BIM processing will use simulation mode');
@@ -402,15 +393,15 @@ export function setupForgeRoutes(app: any) {
     }
   });
 
+  // Use dynamic import for multer in ES6 module
+  const multer = await import('multer');
+  const bimUpload = multer.default({
+    storage: multer.default.memoryStorage(),
+    limits: { fileSize: 500 * 1024 * 1024 } // 500MB limit
+  });
+
   // Upload and process BIM files (RVT, IFC, DWG, etc.) with real polling
-  app.post('/api/forge/upload-bim', (req: any, res: any, next: any) => {
-    const multer = require('multer');
-    const upload = multer({ 
-      storage: multer.memoryStorage(),
-      limits: { fileSize: 500 * 1024 * 1024 } // 500MB limit for BIM files
-    });
-    upload.single('file')(req, res, next);
-  }, async (req: Request, res: Response) => {
+  app.post('/api/forge/upload-bim', bimUpload.single('file'), async (req: Request, res: Response) => {
     try {
       const file = req.file;
       if (!file) {
