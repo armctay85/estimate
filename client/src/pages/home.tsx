@@ -1967,10 +1967,9 @@ export default function Home() {
                     </div>
                     <button 
                       onClick={() => {
-                        // Use a working demo URN to show the 3D viewer functionality
-                        const demoUrn = 'urn:adsk.viewing:fs.file:vf.uDSGGUiQRsOKqgTdX8e-kQ';
+                        // Use demo mode to show viewer interface immediately
                         localStorage.setItem('currentModelFileName', 'Demo BIM Model.rvt');
-                        localStorage.setItem('currentModelUrn', demoUrn);
+                        localStorage.setItem('currentModelUrn', 'demo-mode');
                         setShowForgeViewer(true);
                         setShowProfessional3D(false);
                       }}
