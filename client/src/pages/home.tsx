@@ -19,6 +19,7 @@ import { PhotoRenovationTool } from "@/components/photo-renovation-tool";
 import { ProjectScheduler } from "@/components/project-scheduler";
 import { ModelLibrary } from "@/components/model-library";
 import { Forge3DViewer } from "@/components/forge-3d-viewer";
+import { Professional3DDemo } from "@/components/professional-3d-demo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -93,6 +94,7 @@ export default function Home() {
   const [showForgeViewer, setShowForgeViewer] = useState(false);
   const [showAICostPredictor, setShowAICostPredictor] = useState(false);
   const [showUploadPlans, setShowUploadPlans] = useState(false);
+  const [showProfessional3D, setShowProfessional3D] = useState(false);
   const [selectedWorkspaceMode, setSelectedWorkspaceMode] = useState<string | null>(null);
   
   const canvasRef = useRef<{ uploadBackground: (file: File) => void } | null>(null);
@@ -644,7 +646,7 @@ export default function Home() {
               transition={{ delay: 0.4 }}
             >
               <Card className="h-full hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 border-purple-300 hover:border-purple-400"
-                    onClick={() => setShowBIMProcessor(true)}>
+                    onClick={() => setShowProfessional3D(true)}>
                 <CardContent className="p-8">
                   <div className="mb-6">
                     <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md">
@@ -679,9 +681,9 @@ export default function Home() {
                       <div className="text-xs text-center mt-2 text-black dark:text-white font-bold">Live 3D Model Preview</div>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-3 text-black dark:text-white">BIM Auto-Takeoff</h3>
+                  <h3 className="text-2xl font-bold mb-3 text-black dark:text-white">Professional 3D Viewer</h3>
                   <p className="text-gray-800 dark:text-gray-100 mb-6 font-bold">
-                    AI-powered BIM processing to replace your entire QS department.
+                    View professional 3D BIM models with real-time element selection and cost analysis.
                   </p>
                   <div className="space-y-2 text-sm text-gray-900 dark:text-gray-100">
                     <div className="flex items-center gap-2">
@@ -1923,6 +1925,12 @@ export default function Home() {
         onClose={() => setShowForgeViewer(false)}
         fileName={localStorage.getItem('currentModelFileName') || "BIM Model"}
         urn={localStorage.getItem('currentModelUrn') || undefined}
+      />
+
+      {/* Professional 3D Demo Dialog */}
+      <Professional3DDemo
+        isOpen={showProfessional3D}
+        onClose={() => setShowProfessional3D(false)}
       />
     </motion.div>
   );
