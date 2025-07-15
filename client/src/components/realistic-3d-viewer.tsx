@@ -689,29 +689,29 @@ export function Realistic3DViewer({
 
   // Modal mode
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-7xl w-full max-h-[95vh] overflow-y-auto relative">
+    <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg max-w-7xl w-full max-h-[95vh] overflow-y-auto relative shadow-2xl">
         {/* Close Button */}
         <Button 
           variant="ghost" 
           size="sm"
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 bg-white/80 hover:bg-white shadow-md"
+          className="absolute top-4 right-4 z-[10000] bg-red-500 hover:bg-red-600 text-white shadow-lg rounded-full p-2"
         >
-          <X className="w-4 h-4" />
+          <X className="w-5 h-5" />
         </Button>
         
         {/* Header */}
-        <div className="p-6 border-b">
+        <div className="p-6 border-b bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-t-lg">
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Box className="w-6 h-6" />
-            Realistic 3D Architectural Viewer
+            Enterprise Realistic 3D Architectural Viewer
           </h2>
-          <p className="text-gray-600 mt-1">Professional photorealistic building visualization</p>
+          <p className="text-purple-100 mt-1">Professional photorealistic building visualization with advanced controls</p>
         </div>
         
         {/* Content */}
-        <div className="p-6">
+        <div className="p-6 max-h-[75vh] overflow-y-auto">
           {content}
         </div>
       </div>

@@ -225,10 +225,71 @@ export function Enhanced3DViewer({
           x: buildingWidth + 30, y: 80, z: 20,
           width: 60, height: 15, depth: 80,
           color: '#00704A', cost: 3500, category: 'external'
+        },
+        // MEP Equipment
+        {
+          id: 'hvac-unit',
+          name: 'HVAC System',
+          x: buildingWidth/2 - 20, y: buildingHeight + 10, z: buildingDepth/2 - 15,
+          width: 40, height: 20, depth: 30,
+          color: '#708090', cost: 45000, category: 'mep'
+        },
+        // Interior partitions
+        {
+          id: 'interior-walls',
+          name: 'Internal Partitions',
+          x: 40, y: 0, z: 40,
+          width: 80, height: buildingHeight - 20, depth: 5,
+          color: '#F5F5DC', cost: 12000, category: 'architectural'
         }
       ];
     }
-    return elements || [];
+    
+    // Default demo building elements for other projects
+    return elements || [
+      {
+        id: 'main-building',
+        name: 'Main Building Structure',
+        x: 0, y: 0, z: 0,
+        width: 200, height: 120, depth: 150,
+        color: '#B8B8B8', cost: 485000, category: 'structural'
+      },
+      {
+        id: 'roof-system',
+        name: 'Roof Structure',
+        x: -10, y: 115, z: -10,
+        width: 220, height: 12, depth: 170,
+        color: '#2F4F4F', cost: 53500, category: 'architectural'
+      },
+      {
+        id: 'foundation',
+        name: 'Foundation System',
+        x: -5, y: -15, z: -5,
+        width: 210, height: 15, depth: 160,
+        color: '#696969', cost: 95000, category: 'structural'
+      },
+      {
+        id: 'mep-systems',
+        name: 'MEP Infrastructure',
+        x: 80, y: 125, z: 60,
+        width: 40, height: 25, depth: 30,
+        color: '#4682B4', cost: 125000, category: 'mep'
+      },
+      {
+        id: 'external-works',
+        name: 'External Landscaping',
+        x: -50, y: -5, z: -50,
+        width: 300, height: 5, depth: 250,
+        color: '#228B22', cost: 38000, category: 'external'
+      },
+      {
+        id: 'entrance-canopy',
+        name: 'Entrance Canopy',
+        x: 200, y: 90, z: 50,
+        width: 40, height: 15, depth: 50,
+        color: '#DAA520', cost: 15000, category: 'architectural'
+      }
+    ];
   };
 
   const driveThruElements = getProjectElements();
@@ -413,7 +474,7 @@ export function Enhanced3DViewer({
                       />
                     )}
                     
-                    {/* Render 3D Elements */}
+                    {/* Render Professional 3D Building Elements */}
                     {visibleElements.map((element, index) => {
                       const baseTransform = `translate3d(${element.x - 100}px, ${-element.y}px, ${element.z - 60}px)`;
                       const isSelected = selectedElement === element.id;
@@ -422,58 +483,110 @@ export function Enhanced3DViewer({
                       return (
                         <div 
                           key={element.id} 
-                          className={`absolute cursor-pointer group transition-all duration-200 ${isSelected ? 'ring-2 ring-blue-400' : ''}`}
+                          className={`absolute cursor-pointer group transition-all duration-200 ${isSelected ? 'ring-4 ring-blue-400 ring-opacity-50' : ''}`}
                           style={{ 
                             transform: baseTransform, 
                             transformStyle: 'preserve-3d'
                           }}
                           onClick={() => setSelectedElement(isSelected ? null : element.id)}
                         >
-                          {/* Main element body */}
+                          {/* Front face */}
                           <div 
-                            className="absolute"
+                            className="absolute border border-gray-800/30 shadow-xl"
                             style={{
                               width: `${element.width}px`,
                               height: `${element.height}px`,
                               transform: `translateZ(${element.depth/2}px)`,
-                              ...style
+                              background: `linear-gradient(135deg, ${element.color} 0%, ${adjustBrightness(element.color || '#666', 20)} 100%)`,
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
+                              borderRadius: '2px'
                             }}
                           />
                           
-                          {/* Element depth (back face) */}
+                          {/* Back face */}
                           <div 
-                            className="absolute opacity-80"
+                            className="absolute border border-gray-800/30 shadow-lg"
                             style={{
                               width: `${element.width}px`,
                               height: `${element.height}px`,
                               transform: `translateZ(-${element.depth/2}px)`,
-                              background: style.background,
-                              border: style.border
+                              background: `linear-gradient(135deg, ${adjustBrightness(element.color || '#666', -20)} 0%, ${adjustBrightness(element.color || '#666', -10)} 100%)`,
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                              borderRadius: '2px'
                             }}
                           />
                           
-                          {/* Side faces for depth */}
+                          {/* Right side face */}
                           <div 
-                            className="absolute opacity-70"
+                            className="absolute border border-gray-800/30 shadow-lg"
                             style={{
                               width: `${element.depth}px`,
                               height: `${element.height}px`,
                               transform: `rotateY(90deg) translateZ(${element.width/2}px)`,
                               transformOrigin: 'left',
-                              background: adjustBrightness(element.color || '#666', -30),
-                              border: '1px solid rgba(0,0,0,0.2)'
+                              background: `linear-gradient(135deg, ${adjustBrightness(element.color || '#666', -30)} 0%, ${adjustBrightness(element.color || '#666', -10)} 100%)`,
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                              borderRadius: '2px'
                             }}
                           />
                           
-                          {/* Cost tooltip */}
-                          <div className={`absolute text-white text-xs bg-black/90 px-2 py-1 rounded transition-opacity z-10 ${
-                            isSelected || !showCostOverlay ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                          {/* Left side face */}
+                          <div 
+                            className="absolute border border-gray-800/30 shadow-lg"
+                            style={{
+                              width: `${element.depth}px`,
+                              height: `${element.height}px`,
+                              transform: `rotateY(-90deg) translateZ(${element.width/2}px)`,
+                              transformOrigin: 'right',
+                              background: `linear-gradient(135deg, ${adjustBrightness(element.color || '#666', -40)} 0%, ${adjustBrightness(element.color || '#666', -20)} 100%)`,
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                              borderRadius: '2px'
+                            }}
+                          />
+                          
+                          {/* Top face */}
+                          <div 
+                            className="absolute border border-gray-800/20 shadow-lg"
+                            style={{
+                              width: `${element.width}px`,
+                              height: `${element.depth}px`,
+                              transform: `rotateX(90deg) translateZ(${element.height/2}px)`,
+                              transformOrigin: 'top',
+                              background: `linear-gradient(135deg, ${adjustBrightness(element.color || '#666', 40)} 0%, ${adjustBrightness(element.color || '#666', 20)} 100%)`,
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                              borderRadius: '2px'
+                            }}
+                          />
+                          
+                          {/* Bottom face */}
+                          <div 
+                            className="absolute border border-gray-800/20 shadow-lg"
+                            style={{
+                              width: `${element.width}px`,
+                              height: `${element.depth}px`,
+                              transform: `rotateX(-90deg) translateZ(${element.height/2}px)`,
+                              transformOrigin: 'bottom',
+                              background: `linear-gradient(135deg, ${adjustBrightness(element.color || '#666', -50)} 0%, ${adjustBrightness(element.color || '#666', -30)} 100%)`,
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                              borderRadius: '2px'
+                            }}
+                          />
+                          
+                          {/* Professional cost tooltip */}
+                          <div className={`absolute text-white text-xs bg-black/90 px-3 py-2 rounded-lg transition-all duration-200 z-20 pointer-events-none ${
+                            isSelected || !showCostOverlay ? 'opacity-100 scale-100' : 'opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100'
                           }`} 
                           style={{ 
-                            transform: `translateZ(${element.depth/2 + 30}px)`, 
-                            whiteSpace: 'nowrap' 
+                            transform: `translateZ(${element.depth/2 + 40}px) translateX(-50%)`, 
+                            whiteSpace: 'nowrap',
+                            left: '50%',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.4)'
                           }}>
-                            {element.name}: ${element.cost.toLocaleString()}
+                            <div className="font-semibold">{element.name}</div>
+                            <div className="text-yellow-400">${element.cost.toLocaleString()}</div>
+                            <div className="text-xs text-gray-300 mt-1">
+                              {element.width}×{element.height}×{element.depth}
+                            </div>
                           </div>
                         </div>
                       );
