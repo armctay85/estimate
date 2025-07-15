@@ -130,17 +130,25 @@ export function PhotoRenovationTool({ isOpen, onClose }: PhotoRenovationToolProp
 
       const analysisResult = await response.json();
       
-      // Convert AI analysis to renovation areas
-      const detectedAreas: RenovationArea[] = analysisResult.areas?.map((area: any, index: number) => ({
-        id: `area-${index + 1}`,
-        type: area.roomType || 'bathroom',
-        x: area.x || 50 + (index * 120),
-        y: area.y || 50 + (index * 80),
-        width: area.width || 180,
-        height: area.height || 120,
-        label: area.label || `${area.roomType || 'Room'} Area ${index + 1}`,
-        selected: false
-      })) || [
+      // Convert AI analysis to renovation areas with percentage-based coordinates
+      const detectedAreas: RenovationArea[] = analysisResult.areas?.map((area: any, index: number) => {
+        // AI provides coordinates as percentages (0-100), use them directly
+        const x = Math.max(0, Math.min(area.x || 10, 85)); // Ensure within bounds
+        const y = Math.max(0, Math.min(area.y || 10, 85)); // Ensure within bounds
+        const width = Math.max(5, Math.min(area.width || 25, 40)); // Reasonable size limits
+        const height = Math.max(5, Math.min(area.height || 20, 40)); // Reasonable size limits
+        
+        return {
+          id: `area-${index + 1}`,
+          type: area.roomType || 'bathroom',
+          x: x, // Already in percentage
+          y: y, // Already in percentage
+          width: width, // Already in percentage
+          height: height, // Already in percentage
+          label: area.label || `${area.roomType || 'Room'} Area ${index + 1}`,
+          selected: false
+        };
+      }) || [
         // Fallback areas if AI analysis fails
         {
           id: 'area-1',
@@ -470,47 +478,37 @@ export function PhotoRenovationTool({ isOpen, onClose }: PhotoRenovationToolProp
                       className="w-full rounded-lg"
                     />
                     
-                    {/* Overlay detected areas */}
-                    <svg 
-                      className="absolute inset-0 w-full h-full pointer-events-none"
-                      style={{ width: '100%', height: '100%' }}
-                    >
+                    {/* Overlay detected areas with absolute positioning */}
+                    <div className="absolute inset-0 w-full h-full pointer-events-none">
                       {detectedAreas.map(area => (
-                        <g key={area.id}>
-                          <rect
-                            x={`${(area.x / 460) * 100}%`}
-                            y={`${(area.y / 320) * 100}%`}
-                            width={`${(area.width / 460) * 100}%`}
-                            height={`${(area.height / 320) * 100}%`}
-                            fill={area.selected ? "rgba(59, 130, 246, 0.3)" : "rgba(0, 0, 0, 0)"}
-                            stroke={area.selected ? "#3b82f6" : "#ffffff"}
-                            strokeWidth="2"
-                            className="cursor-pointer pointer-events-auto transition-all hover:fill-blue-500/30"
-                            onClick={() => handleAreaClick(area.id)}
-                          />
-                          <text
-                            x={`${((area.x + area.width / 2) / 460) * 100}%`}
-                            y={`${((area.y + area.height / 2) / 320) * 100}%`}
-                            textAnchor="middle"
-                            className="fill-white text-sm font-medium pointer-events-none"
-                            style={{ textShadow: '0 0 4px rgba(0,0,0,0.8)' }}
-                          >
+                        <div
+                          key={area.id}
+                          className={`absolute border-2 rounded-lg cursor-pointer transition-all duration-200 pointer-events-auto ${
+                            area.selected 
+                              ? 'border-blue-500 bg-blue-500/20 shadow-lg' 
+                              : 'border-yellow-400 bg-yellow-400/15 hover:bg-yellow-400/25 hover:border-yellow-500'
+                          }`}
+                          style={{
+                            left: `${area.x}%`,
+                            top: `${area.y}%`,
+                            width: `${area.width}%`,
+                            height: `${area.height}%`,
+                            minWidth: '60px',
+                            minHeight: '45px'
+                          }}
+                          onClick={() => handleAreaClick(area.id)}
+                        >
+                          <div className="absolute -top-8 left-0 bg-gray-900 text-white px-2 py-1 rounded text-xs whitespace-nowrap z-10 shadow-md">
                             {area.label}
-                          </text>
+                          </div>
                           {area.selected && (
-                            <circle
-                              cx={`${((area.x + area.width) / 460) * 100}%`}
-                              cy={`${(area.y / 320) * 100}%`}
-                              r="12"
-                              fill="#3b82f6"
-                              className="pointer-events-none"
-                            >
-                              <Check className="w-4 h-4 text-white" />
-                            </circle>
+                            <div className="absolute -top-2 -right-2 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs border-2 border-white">
+                              ✓
+                            </div>
                           )}
-                        </g>
+                        </div>
                       ))}
-                    </svg>
+                    </div>
                   </div>
                 )}
                 

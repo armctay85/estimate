@@ -822,13 +822,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ error: 'X AI service not configured' });
       }
 
-      const prompt = `Analyze this image for renovation opportunities. Identify specific areas that could be renovated (bathroom vanity, shower area, kitchen cabinets, flooring, etc.). For each area, provide:
-1. Room type (bathroom, kitchen, living, etc.)
-2. Specific area label (e.g., "Vanity Area", "Shower Space", "Kitchen Cabinets")
-3. Approximate position coordinates (x, y, width, height) as percentages of image dimensions
-4. Renovation potential (high, medium, low)
+      const prompt = `You are an expert renovation specialist. Analyze this image with precision to identify renovation opportunities.
 
-Return JSON format: { "areas": [{ "roomType": string, "label": string, "x": number, "y": number, "width": number, "height": number, "potential": string }] }`;
+CRITICAL INSTRUCTIONS:
+1. Study the image carefully and identify ALL visible renovation areas
+2. For coordinates, use percentages (0-100) of the image dimensions
+3. Be precise with positioning - examine where each element actually appears
+4. Consider realistic renovation boundaries and scale
+
+For each renovatable area, provide:
+- roomType: bathroom, kitchen, living, bedroom, etc.
+- label: Specific descriptive name (e.g., "Vanity & Mirror", "Shower Enclosure", "Kitchen Island")
+- x: Left edge position as percentage (0-100)
+- y: Top edge position as percentage (0-100) 
+- width: Width as percentage (5-40 typical)
+- height: Height as percentage (5-40 typical)
+- potential: high/medium/low based on visual condition and renovation value
+- estimatedCost: AUD cost range (e.g., "$3,000-8,000")
+
+ACCURACY REQUIREMENTS:
+- Ensure coordinates match actual visual positions
+- Make renovation areas appropriately sized (not too small/large)
+- Consider perspective and depth in positioning
+- Account for typical renovation boundaries
+
+Return JSON: { "areas": [{ "roomType": string, "label": string, "x": number, "y": number, "width": number, "height": number, "potential": string, "estimatedCost": string }] }`;
 
       const response = await xai.chat.completions.create({
         model: "grok-4", // Latest Grok-4 model with vision capabilities
