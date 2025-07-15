@@ -5,13 +5,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Upload, FileText, Building, Zap, CheckCircle, Clock, Target, Eye, Layers, Palette, TreePine, RotateCcw, ZoomIn, ZoomOut, Calendar, Move3d } from "lucide-react";
+import { Upload, FileText, Building, Zap, CheckCircle, Clock, Target, Eye, Layers, Palette, TreePine, RotateCcw, ZoomIn, ZoomOut, Calendar, Move3d, Sparkles, Maximize2, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PARAMETRIC_ASSEMBLIES, AUSTRALIAN_RATES } from "@shared/schema";
 import { ProjectScheduler } from "./project-scheduler";
 import { Simple3DViewer } from "./simple-3d-viewer";
 import { ForgeViewer } from "./forge-viewer";
 import { AIQSCompliancePanel } from "./aiqs-compliance-panel";
+import { InteractiveBIMViewer } from './interactive-bim-viewer';
+import { EnhancedAnalyticsDashboard } from './enhanced-analytics-dashboard';
+import { MobileBIMDashboard } from './mobile-bim-dashboard';
 
 interface BIMElement {
   id: string;
@@ -588,62 +591,71 @@ export function BIMProcessor({ isOpen: controlledIsOpen, onOpenChange }: BIMProc
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* 3D Wireframe Viewer */}
+                    {/* Interactive 3D Viewer */}
                     <div className="space-y-4">
-                      <div className="bg-gray-900 rounded-lg p-4 min-h-[400px] relative">
-                        <div className="absolute top-2 left-2 text-white text-xs bg-black/50 px-2 py-1 rounded">
-                          90646-001 Rowville DT AUS_Final DD.0001.rvt
+                      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl p-4 min-h-[500px] relative border border-gray-700 shadow-2xl">
+                        <div className="absolute top-3 left-3 text-white text-xs bg-black/70 px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/20">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                            Live BIM Processing: {result.accuracy}
+                          </div>
                         </div>
                         
-                        {/* Simulated 3D Wireframe */}
-                        <svg className="w-full h-full" viewBox="0 0 400 300">
-                          {/* Foundation/Slab */}
-                          <rect x="50" y="200" width="300" height="80" fill="#ff4444" fillOpacity="0.3" stroke="#ff4444" strokeWidth="2" />
-                          <text x="55" y="215" fill="#fff" fontSize="10">Concrete Slab: 240m² @ $165/m² = $39,600</text>
-                          
-                          {/* Walls */}
-                          <rect x="50" y="120" width="300" height="80" fill="#4444ff" fillOpacity="0.3" stroke="#4444ff" strokeWidth="2" />
-                          <text x="55" y="135" fill="#fff" fontSize="10">Masonry Walls: 180m² @ $180/m² = $32,400</text>
-                          
-                          {/* Roof */}
-                          <polygon points="50,120 200,60 350,120" fill="#ffff44" fillOpacity="0.3" stroke="#ffff44" strokeWidth="2" />
-                          <text x="55" y="105" fill="#fff" fontSize="10">Colorbond Roof: 280m² @ $80/m² = $22,400</text>
-                          
-                          {/* MEP Systems */}
-                          <circle cx="100" cy="160" r="15" fill="#ff8800" fillOpacity="0.5" stroke="#ff8800" strokeWidth="2" />
-                          <text x="70" y="185" fill="#fff" fontSize="8">HVAC: $85/m²</text>
-                          
-                          <circle cx="300" cy="160" r="15" fill="#8800ff" fillOpacity="0.5" stroke="#8800ff" strokeWidth="2" />
-                          <text x="270" y="185" fill="#fff" fontSize="8">Electrical: $75/m²</text>
-                          
-                          {/* Grid lines */}
-                          <defs>
-                            <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#444" strokeWidth="0.5"/>
-                            </pattern>
-                          </defs>
-                          <rect width="100%" height="100%" fill="url(#grid)" />
-                        </svg>
+                        {/* Enhanced Interactive 3D Viewer */}
+                        <div className="w-full h-full">
+                          <InteractiveBIMViewer 
+                            elements={result}
+                            fileName="90646-001 Rowville DT AUS_Final DD.0001.rvt"
+                            onElementSelect={(element) => {
+                              toast({
+                                title: "Element Selected",
+                                description: `${element.type}: ${element.quantity} ${element.unit} - $${element.cost.toLocaleString()}`,
+                              });
+                            }}
+                          />
+                        </div>
                         
-                        {/* Controls */}
-                        <div className="absolute bottom-2 right-2 flex gap-2">
+                        {/* Enhanced Controls with AI Features */}
+                        <div className="absolute bottom-3 right-3 flex gap-2">
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            className="text-white border-white hover:bg-white/20"
-                            onClick={() => setShowWireframe(true)}
+                            className="text-white border-white/50 hover:bg-white/20 backdrop-blur-sm"
+                            onClick={() => toast({ title: "AI Analysis", description: "Grok-2 analyzing cost optimization opportunities..." })}
                           >
-                            <Move3d className="w-3 h-3" />
+                            <Sparkles className="w-3 h-3 mr-1" />
+                            AI Optimize
                           </Button>
-                          <Button size="sm" variant="outline" className="text-white border-white hover:bg-white/20">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-white border-white/50 hover:bg-white/20 backdrop-blur-sm"
+                          >
+                            <Maximize2 className="w-3 h-3" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-white border-white/50 hover:bg-white/20 backdrop-blur-sm"
+                          >
                             <RotateCcw className="w-3 h-3" />
                           </Button>
-                          <Button size="sm" variant="outline" className="text-white border-white hover:bg-white/20">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-white border-white/50 hover:bg-white/20 backdrop-blur-sm"
+                          >
                             <ZoomIn className="w-3 h-3" />
                           </Button>
-                          <Button size="sm" variant="outline" className="text-white border-white hover:bg-white/20">
-                            <ZoomOut className="w-3 h-3" />
-                          </Button>
+                        </div>
+                        
+                        {/* Cost Heatmap Legend */}
+                        <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm rounded-lg p-2 text-white text-xs">
+                          <div className="text-white/80 mb-1">Cost Density</div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-red-600 rounded"></div>
+                            <span>Low → High</span>
+                          </div>
                         </div>
                       </div>
                       
@@ -1336,6 +1348,34 @@ export function BIMProcessor({ isOpen: controlledIsOpen, onOpenChange }: BIMProc
                   );
                 })}
               </div>
+
+              {/* Enhanced Analytics Dashboard */}
+              <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-blue-600" />
+                    Advanced Analytics Dashboard
+                    <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800">AI-Powered Insights</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {/* Desktop Analytics Dashboard */}
+                  <div className="hidden md:block">
+                    <EnhancedAnalyticsDashboard 
+                      result={result} 
+                      fileName={currentFileName || "90646-001 Rowville DT AUS_Final DD.0001.rvt"}
+                    />
+                  </div>
+                  
+                  {/* Mobile Analytics Dashboard */}
+                  <div className="md:hidden">
+                    <MobileBIMDashboard 
+                      result={result} 
+                      fileName={currentFileName || "90646-001 Rowville DT AUS_Final DD.0001.rvt"}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
 
               <Alert className="bg-blue-50 border-blue-200">
                 <Building className="h-4 w-4" />
