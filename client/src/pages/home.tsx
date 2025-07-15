@@ -14,7 +14,7 @@ import { AICostPredictor } from "@/components/ai-cost-predictor";
 import { ServiceStatusDashboard } from "@/components/service-status-dashboard";
 import { BIMProcessor } from "@/components/bim-processor";
 import { IntelligentAssistant } from "@/components/intelligent-assistant";
-import { Simple3DViewer } from "@/components/simple-3d-viewer";
+import { Working3DViewer } from "@/components/working-3d-viewer";
 import { PhotoRenovationTool } from "@/components/photo-renovation-tool";
 import { ProjectScheduler } from "@/components/project-scheduler";
 import { ModelLibrary } from "@/components/model-library";
@@ -667,21 +667,21 @@ export default function Home() {
                     {/* Preview graphic - Live 3D Model */}
                     <div className="mt-4 rounded-lg overflow-hidden">
                       <div className="h-48 relative rounded-lg bg-gray-900">
-                        <Simple3DViewer 
+                        <Working3DViewer 
                           isOpen={true}
                           elements={[
                             { id: '1', name: 'Structural Frame', category: 'structural', color: '#ef4444', cost: 125000, 
-                              position: { x: 0, y: -30, z: 0 }, dimensions: { width: 100, height: 150, depth: 80 } },
+                              x: 0, y: -30, z: 0, width: 100, height: 150, depth: 80 },
                             { id: '2', name: 'Floor Slab', category: 'structural', color: '#6b7280', cost: 85000,
-                              position: { x: 0, y: -90, z: 0 }, dimensions: { width: 120, height: 10, depth: 100 } },
+                              x: 0, y: -90, z: 0, width: 120, height: 10, depth: 100 },
                             { id: '3', name: 'Walls', category: 'architectural', color: '#f59e0b', cost: 65000,
-                              position: { x: 0, y: 20, z: 0 }, dimensions: { width: 110, height: 60, depth: 90 } },
+                              x: 0, y: 20, z: 0, width: 110, height: 60, depth: 90 },
                             { id: '4', name: 'Roof', category: 'architectural', color: '#10b981', cost: 95000,
-                              position: { x: 0, y: 80, z: 0 }, dimensions: { width: 130, height: 20, depth: 110 } },
+                              x: 0, y: 80, z: 0, width: 130, height: 20, depth: 110 },
                             { id: '5', name: 'MEP Services', category: 'mep', color: '#3b82f6', cost: 120000,
-                              position: { x: 0, y: 0, z: 0 }, dimensions: { width: 80, height: 100, depth: 5 } },
+                              x: 0, y: 0, z: 0, width: 80, height: 100, depth: 5 },
                             { id: '6', name: 'External Works', category: 'external', color: '#8b5cf6', cost: 48500,
-                              position: { x: 60, y: -90, z: 0 }, dimensions: { width: 40, height: 5, depth: 100 } }
+                              x: 60, y: -90, z: 0, width: 40, height: 5, depth: 100 }
                           ]}
                           showControls={false}
                           autoRotate={true}
@@ -1165,11 +1165,12 @@ export default function Home() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="h-[500px] bg-gray-100">
-                  <Simple3DViewer
+                  <Working3DViewer
                     isOpen={true}
-                    onOpenChange={() => {}}
-                    projectType="commercial"
-                    projectName="Demo Building"
+                    onClose={() => {}}
+                    fileName="Demo Building"
+                    showControls={true}
+                    autoRotate={false}
                   />
                 </div>
               </CardContent>
@@ -1831,7 +1832,7 @@ export default function Home() {
       
       {/* 3D Wireframe Viewer - Only show in workspace mode */}
       {!showDashboard && (
-        <Simple3DViewer
+        <Working3DViewer
           isOpen={show3DWireframe}
           onClose={() => setShow3DWireframe(false)}
           fileName="Current Project 3D Model"

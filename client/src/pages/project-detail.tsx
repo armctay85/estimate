@@ -11,7 +11,7 @@ import {
   Building, Layers, TrendingUp, Clock, AlertCircle, CheckCircle,
   BarChart3, FileSpreadsheet, Hammer, Box, Eye
 } from "lucide-react";
-import { Simple3DViewer } from "@/components/simple-3d-viewer";
+import { Working3DViewer } from "@/components/working-3d-viewer";
 
 // Mock project data with comprehensive details
 const getProjectData = (id: string) => {
@@ -543,7 +543,7 @@ export default function ProjectDetail() {
       </div>
       
       {/* 3D Wireframe Viewer */}
-      <Simple3DViewer
+      <Working3DViewer
         isOpen={show3DView}
         onClose={() => setShow3DView(false)}
         fileName={`${project.name} - 3D Model`}

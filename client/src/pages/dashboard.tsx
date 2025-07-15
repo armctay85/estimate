@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { Working3DViewer } from "@/components/working-3d-viewer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,11 +18,13 @@ import {
   ArrowRight,
   DollarSign,
   Clock,
-  CheckCircle
+  CheckCircle,
+  Box
 } from "lucide-react";
 
 export default function Dashboard() {
   const [, navigate] = useLocation();
+  const [show3DViewer, setShow3DViewer] = useState(false);
   const [stats, setStats] = useState({
     totalProjects: 12,
     totalValue: 4850000,
@@ -53,6 +56,14 @@ export default function Dashboard() {
       icon: Upload,
       color: 'bg-green-600 hover:bg-green-700',
       action: () => navigate('/workspace?mode=bim')
+    },
+    {
+      id: '3d-viewer',
+      title: '3D Model Viewer',
+      description: 'Interactive 3D visualization of construction projects',
+      icon: Box,
+      color: 'bg-purple-600 hover:bg-purple-700',
+      action: () => setShow3DViewer(true)
     },
     {
       id: 'projects',
@@ -245,6 +256,16 @@ export default function Dashboard() {
           </Card>
         </div>
       </div>
+      
+      {/* 3D Viewer Modal */}
+      {show3DViewer && (
+        <Working3DViewer
+          isOpen={show3DViewer}
+          onClose={() => setShow3DViewer(false)}
+          fileName="Starbucks Werribee Drive-Through"
+          projectData={{ name: 'Starbucks Werribee' }}
+        />
+      )}
     </div>
   );
 }
