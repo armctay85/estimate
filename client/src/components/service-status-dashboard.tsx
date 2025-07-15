@@ -75,12 +75,12 @@ export function ServiceStatusDashboard() {
   }
 
   return (
-    <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+    <Card className="bg-white dark:bg-gray-800 border-2 border-blue-200 dark:border-blue-700 shadow-lg">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Crown className="w-5 h-5 text-purple-600" />
+        <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
+          <Crown className="w-5 h-5 text-purple-600 dark:text-purple-400" />
           Enterprise Services Status
-          <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+          <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium shadow-md">
             {getServiceCount()}/3 Active
           </Badge>
         </CardTitle>
@@ -88,25 +88,25 @@ export function ServiceStatusDashboard() {
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {services.map(service => (
-            <div key={service.key} className="bg-white rounded-lg p-4 border">
+            <div key={service.key} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  {service.icon}
-                  <span className="font-medium text-sm">{service.name}</span>
+                  <div className="text-blue-600 dark:text-blue-400">{service.icon}</div>
+                  <span className="font-semibold text-sm text-gray-900 dark:text-white">{service.name}</span>
                 </div>
                 {serviceStatus[service.key] ? (
-                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
                 ) : (
-                  <XCircle className="w-4 h-4 text-gray-400" />
+                  <XCircle className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                 )}
               </div>
-              <p className="text-xs text-gray-600 mb-2">{service.description}</p>
+              <p className="text-xs text-gray-700 dark:text-gray-300 mb-2 font-medium">{service.description}</p>
               <div className="flex flex-wrap gap-1">
                 {service.features.map(feature => (
                   <Badge 
                     key={feature} 
                     variant="secondary" 
-                    className={`text-xs ${serviceStatus[service.key] ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
+                    className={`text-xs font-medium ${serviceStatus[service.key] ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-500'}`}
                   >
                     {feature}
                   </Badge>
@@ -117,12 +117,12 @@ export function ServiceStatusDashboard() {
         </div>
         
         {getServiceCount() === 3 && (
-          <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center gap-2 text-green-700">
+          <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-700 rounded-lg">
+            <div className="flex items-center gap-2 text-green-800 dark:text-green-300">
               <CheckCircle className="w-4 h-4" />
-              <span className="text-sm font-medium">All Enterprise Services Active</span>
+              <span className="text-sm font-semibold">All Enterprise Services Active</span>
             </div>
-            <p className="text-xs text-green-600 mt-1">
+            <p className="text-xs text-green-700 dark:text-green-400 mt-1 font-medium">
               Platform operating at maximum capability with full AI and BIM processing
             </p>
           </div>

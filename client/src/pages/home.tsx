@@ -462,26 +462,26 @@ export default function Home() {
         <Header />
         
         {/* Elite Platform Status Bar */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3">
+        <div className="bg-gradient-to-r from-blue-700 to-purple-700 text-white px-6 py-3 shadow-lg">
           <div className="max-w-7xl mx-auto flex items-center justify-between text-sm">
             <div className="flex items-center gap-6">
               <span className="flex items-center gap-2">
                 <Zap className="w-4 h-4" />
-                <span className="font-semibold">Elite Platform Active</span>
+                <span className="font-bold">Elite Platform Active</span>
               </span>
-              <span className="opacity-75">|</span>
+              <span className="opacity-90">|</span>
               <span className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                Response Time: 23ms
+                <div className="w-2 h-2 bg-green-300 rounded-full animate-pulse"></div>
+                <span className="font-medium">Response Time: 23ms</span>
               </span>
-              <span className="opacity-75">|</span>
-              <span>Active Projects: 1,247</span>
-              <span className="opacity-75">|</span>
-              <span>API Uptime: 99.99%</span>
+              <span className="opacity-90">|</span>
+              <span className="font-medium">Active Projects: 1,247</span>
+              <span className="opacity-90">|</span>
+              <span className="font-medium">API Uptime: 99.99%</span>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-xs">Powered by Enterprise Infrastructure</span>
-              <Badge className="bg-green-500 text-white">All Systems Operational</Badge>
+              <span className="text-xs font-medium">Powered by Enterprise Infrastructure</span>
+              <Badge className="bg-green-600 text-white font-medium shadow-md">All Systems Operational</Badge>
             </div>
           </div>
         </div>
@@ -497,7 +497,7 @@ export default function Home() {
             <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
               Welcome to EstiMate
             </h1>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-700 dark:text-gray-200 max-w-3xl mx-auto font-medium">
               Choose how you want to estimate your construction project. From quick sketches to enterprise BIM processing.
             </p>
           </motion.div>
@@ -515,17 +515,17 @@ export default function Home() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group" 
+              <Card className="h-full hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 hover:border-green-300" 
                     onClick={() => {
                       localStorage.setItem('estimateWorkspaceMode', 'workspace');
                       setShowDashboard(false);
                     }}>
                 <CardContent className="p-8">
                   <div className="mb-6">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <Layers className="w-8 h-8 text-green-600" />
+                    <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md">
+                      <Layers className="w-8 h-8 text-green-700 dark:text-green-300" />
                     </div>
-                    <Badge className="bg-green-100 text-green-800 mb-2">Free</Badge>
+                    <Badge className="bg-green-200 dark:bg-green-800 text-green-900 dark:text-green-100 mb-2 font-bold border border-green-300 dark:border-green-600">Free</Badge>
                     {/* Preview graphic */}
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                       <div className="grid grid-cols-3 gap-1">
@@ -538,29 +538,29 @@ export default function Home() {
                       <div className="text-xs text-center mt-2 text-gray-500">Simple floor plan sketch</div>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-3">Quick Floor Plan Sketch</h3>
-                  <p className="text-gray-600 mb-6">
+                  <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">Quick Floor Plan Sketch</h3>
+                  <p className="text-gray-700 dark:text-gray-200 mb-6 font-medium">
                     Draw simple floor plans and get instant cost estimates with 5 basic materials.
                   </p>
-                  <div className="space-y-2 text-sm text-gray-600">
+                  <div className="space-y-2 text-sm text-gray-700 dark:text-gray-200">
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span>Basic drawing tools</span>
+                      <CheckCircle className="w-4 h-4 text-green-700 dark:text-green-400" />
+                      <span className="font-medium">Basic drawing tools</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span>5 material options</span>
+                      <CheckCircle className="w-4 h-4 text-green-700 dark:text-green-400" />
+                      <span className="font-medium">5 material options</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span>Instant cost calculation</span>
+                      <CheckCircle className="w-4 h-4 text-green-700 dark:text-green-400" />
+                      <span className="font-medium">Instant cost calculation</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span>3 projects per month</span>
+                      <CheckCircle className="w-4 h-4 text-green-700 dark:text-green-400" />
+                      <span className="font-medium">3 projects per month</span>
                     </div>
                   </div>
-                  <Button className="w-full mt-6 bg-green-600 hover:bg-green-700">
+                  <Button className="w-full mt-6 bg-green-700 hover:bg-green-800 text-white font-bold shadow-lg">
                     Start Sketching
                   </Button>
                 </CardContent>

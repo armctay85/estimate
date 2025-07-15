@@ -58,7 +58,7 @@ export function Header() {
 
   if (!user) {
     return (
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white dark:bg-gray-900 shadow-lg border-b-2 border-blue-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
@@ -68,14 +68,15 @@ export function Header() {
                 className="h-12 w-auto object-contain"
               />
               <div>
-                <h1 className="text-xl font-bold text-gray-900">EstiMate</h1>
-                <p className="text-xs text-gray-500">Australian Construction Estimator</p>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">EstiMate</h1>
+                <p className="text-xs text-gray-600 dark:text-gray-300 font-medium">Australian Construction Estimator</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <Button 
                 variant="outline" 
                 onClick={() => navigate("/auth")}
+                className="border-2 border-blue-600 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900 font-medium"
               >
                 Sign In
               </Button>
@@ -87,7 +88,7 @@ export function Header() {
   }
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+    <header className="bg-white dark:bg-gray-900 shadow-lg border-b-2 border-blue-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-3">
@@ -97,8 +98,8 @@ export function Header() {
               className="h-12 w-auto object-contain"
             />
             <div>
-              <h1 className="text-xl font-bold text-gray-900">EstiMate</h1>
-              <p className="text-xs text-gray-500">Australian Construction Estimator</p>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">EstiMate</h1>
+              <p className="text-xs text-gray-600 dark:text-gray-300 font-medium">Australian Construction Estimator</p>
             </div>
           </div>
           
