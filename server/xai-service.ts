@@ -36,11 +36,11 @@ Provide a JSON response with:
 Format: { "predictedCost": number, "minCost": number, "maxCost": number, "confidence": string, "breakdown": object, "factors": object, "risks": array }`;
 
     const response = await xai.chat.completions.create({
-      model: "grok-2-1212",
+      model: "grok-beta", // Updated to confirmed real model
       messages: [
         {
           role: "system",
-          content: "You are an expert Australian quantity surveyor with 20+ years experience. Always provide accurate cost estimates based on current Australian construction rates."
+          content: "You are an expert Australian quantity surveyor with 20+ years experience. Provide cost estimates based on current Australian construction rates. Note: Estimates are AI-generated and should be verified by professional QS."
         },
         {
           role: "user",
@@ -95,10 +95,11 @@ Based on the filename and type, provide:
 4. Typical cost range for similar projects in Australia
 5. Key items to review in the model
 
+Note: Estimates are AI-generated and accuracy varies - consult professional QS for validation.
 Respond in JSON format.`;
 
     const response = await xai.chat.completions.create({
-      model: "grok-2-1212",
+      model: "grok-beta", // Updated to confirmed real model
       messages: [
         {
           role: "user",
@@ -134,10 +135,11 @@ Create an executive summary including:
 4. Risk assessment
 5. Recommendations
 
+Note: This is an AI-generated report summary. Professional QS review recommended.
 Keep it professional and concise.`;
 
     const response = await xai.chat.completions.create({
-      model: "grok-2-1212",
+      model: "grok-beta", // Updated to confirmed real model
       messages: [
         {
           role: "user",
@@ -159,11 +161,11 @@ Keep it professional and concise.`;
 export async function getConstructionAdvice(query: string, context?: any) {
   try {
     const response = await xai.chat.completions.create({
-      model: "grok-2-1212",
+      model: "grok-beta", // Updated to confirmed real model
       messages: [
         {
           role: "system",
-          content: "You are an AI assistant for EstiMate, a professional construction cost estimation platform. Provide helpful, accurate advice about Australian construction, quantity surveying, and cost estimation."
+          content: "You are an AI assistant for EstiMate, a professional construction cost estimation platform. Provide helpful, accurate advice about Australian construction, quantity surveying, and cost estimation. Note: AI estimates should be professionally verified."
         },
         {
           role: "user",

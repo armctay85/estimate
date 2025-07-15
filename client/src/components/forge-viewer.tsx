@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle, ZoomIn, ZoomOut, RotateCcw, Maximize2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface ForgeViewerProps {
   urn: string;
@@ -23,6 +24,37 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
   const [error, setError] = useState<string | null>(null);
   const [viewer, setViewer] = useState<any>(null);
   const [viewerInitialized, setViewerInitialized] = useState(false);
+  const { toast } = useToast();
+
+  // High-quality rendering settings
+  const applyHighQualitySettings = (viewerInstance: any) => {
+    try {
+      // Enable Screen Space Ambient Occlusion (SSAO) for better depth perception
+      viewerInstance.setQualityLevel(true, true);
+      
+      // Enable progressive rendering for better quality during navigation
+      viewerInstance.setProgressiveRendering(true);
+      
+      // Optimize navigation for smooth interaction
+      viewerInstance.setOptimizeNavigation(true);
+      
+      // Set high-quality rendering preferences
+      viewerInstance.prefs.set('ambientShadows', true);
+      viewerInstance.prefs.set('antialiasing', true);
+      viewerInstance.prefs.set('groundShadow', true);
+      viewerInstance.prefs.set('groundReflection', true);
+      
+      // Enable advanced lighting
+      viewerInstance.setLightPreset(8); // High-quality lighting preset
+      
+      // Set render quality
+      viewerInstance.impl.setOptimizeNavigation(false); // Disable navigation optimization for quality
+      
+      console.log('High-quality viewer settings applied successfully');
+    } catch (error) {
+      console.warn('Some high-quality settings could not be applied:', error);
+    }
+  };
 
   useEffect(() => {
     if (!urn) return;
@@ -74,43 +106,73 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
 
       window.Autodesk.Viewing.Initializer(options, async () => {
         try {
-          const viewerDiv = viewerContainer.current;
-          if (!viewerDiv) return;
-
-          const viewer = new window.Autodesk.Viewing.GuiViewer3D(viewerDiv);
-          const startedCode = viewer.start();
-          
-          if (startedCode > 0) {
-            console.error('Failed to create a Viewer: WebGL not supported.');
-            setError('WebGL not supported in your browser');
+          if (!viewerContainer.current) {
+            setError('Viewer container not found');
+            setIsLoading(false);
             return;
           }
 
-          setViewer(viewer);
+          // Create high-quality viewer with advanced settings
+          const viewerInstance = new window.Autodesk.Viewing.GuiViewer3D(viewerContainer.current);
+          
+          // Enable high-quality rendering settings
+          const viewerConfig = {
+            extensions: ['Autodesk.DefaultTools.NavTools'],
+            useConsolidation: true,
+            consolidationMemoryLimit: 800,
+            sharedPropertyDbPath: window.location.origin,
+            // Enable high-quality features
+            enablePixelRatioAdjustment: true,
+            useDevicePixelRatio: true,
+            antialias: true,
+            alpha: false,
+            premultipliedAlpha: false,
+            preserveDrawingBuffer: false,
+            powerPreference: "high-performance"
+          };
+
+          // Start viewer with config
+          const startupResult = viewerInstance.start(viewerConfig);
+          if (startupResult > 0) {
+            throw new Error(`Viewer startup failed with code: ${startupResult}`);
+          }
+
+          setViewer(viewerInstance);
+          setViewerInitialized(true);
 
           // Load the document
-          const documentId = `urn:${urn}`;
-          
           window.Autodesk.Viewing.Document.load(
-            documentId,
-            (doc: any) => {
+            'urn:' + urn,
+            (doc) => {
               const viewables = doc.getRoot().getDefaultGeometry();
-              if (viewables) {
-                viewer.loadDocumentNode(doc, viewables).then(() => {
-                  setIsLoading(false);
-                  setViewerInitialized(true);
-                });
+              if (!viewables) {
+                throw new Error('No viewable geometry found in document');
               }
+
+              viewerInstance.loadDocumentNode(doc, viewables).then(() => {
+                // Apply high-quality settings after model load
+                applyHighQualitySettings(viewerInstance);
+                setIsLoading(false);
+                
+                toast({
+                  title: "Model Loaded Successfully",
+                  description: `${fileName || 'BIM Model'} loaded with high-quality rendering`,
+                });
+              }).catch((loadError) => {
+                console.error('Model load error:', loadError);
+                setError(`Failed to load model: ${loadError.message}`);
+                setIsLoading(false);
+              });
             },
-            (errorCode: string, errorMsg: string) => {
-              console.error('Document load error:', errorCode, errorMsg);
-              setError(`Failed to load model: ${errorMsg}`);
+            (docError) => {
+              console.error('Document load error:', docError);
+              setError(`Failed to load document: ${docError.message || 'Document load failed'}`);
               setIsLoading(false);
             }
           );
-        } catch (err) {
-          console.error('Viewer initialization error:', err);
-          setError('Failed to initialize 3D viewer');
+        } catch (initError) {
+          console.error('Viewer initialization error:', initError);
+          setError(`Viewer initialization failed: ${initError.message}`);
           setIsLoading(false);
         }
       });

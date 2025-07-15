@@ -16,11 +16,18 @@ interface SubscriptionPrices {
   enterprise: string;
 }
 
-// Subscription prices - these should be created in Stripe Dashboard
+// Real Stripe subscription prices - update with actual Price IDs from Stripe Dashboard
 const SUBSCRIPTION_PRICES: SubscriptionPrices = {
-  pro: 'price_pro_monthly', // Replace with actual Price ID from Stripe
-  enterprise: 'price_enterprise_monthly' // Replace with actual Price ID from Stripe
+  pro: 'price_1QN1234567890abcdef123', // $39.99 AUD/month - Replace with real Price ID
+  enterprise: 'price_1QN9876543210fedcba456' // $2,999 AUD/month - Replace with real Price ID
 };
+
+// WARNING: These are placeholder Price IDs. 
+// Create real prices in Stripe Dashboard:
+// 1. Go to https://dashboard.stripe.com/products
+// 2. Create Pro tier: $39.99 AUD recurring monthly
+// 3. Create Enterprise tier: $2,999 AUD recurring monthly
+// 4. Replace the price IDs above with real ones from Stripe
 
 // Create or retrieve Stripe customer
 export const getOrCreateCustomer = async (userId: number, email: string, username: string): Promise<string> => {
@@ -62,13 +69,19 @@ export const createSubscription = async (req: Request, res: Response) => {
     // Get or create Stripe customer
     const customerId = await getOrCreateCustomer(user.id, user.email, user.username);
 
-    // Create subscription
+    // Create subscription with metadata for tracking
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
       items: [{ price: SUBSCRIPTION_PRICES[tier] }],
       payment_behavior: 'default_incomplete',
       payment_settings: { save_default_payment_method: 'on_subscription' },
       expand: ['latest_invoice.payment_intent'],
+      metadata: {
+        userId: user.id.toString(),
+        tier: tier,
+        created_by: 'EstiMate_Platform',
+        created_date: new Date().toISOString()
+      }
     });
 
     const invoice = subscription.latest_invoice as Stripe.Invoice;

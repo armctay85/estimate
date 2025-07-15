@@ -1,0 +1,55 @@
+Final Rectification Instruction: Resolve Audit Issues for 100% Production Readiness and Live Deployment Fixes
+
+Based on Grok 4's audit of "COMPLETE_SOURCE_CODE_EXPORT.tsx", execute these fixes to match app intent: Real high-quality Forge viewing (no simulations), accurate AI, live payments, full security/testing, complete frontend. Address live site issues (e.g., viewer quality, token no-usage, payments fail, navigation errors). No shortcuts – implement robustly, test, deploy updates. Add frontend code (React components, viewer init). Tech: React 18/TS/Vite, Express/TS, etc.
+
+Step 1: Backup and Prep
+
+Backup full codebase/export new full source (include frontend: App.tsx, components/pages for dashboard/viewer, hooks/lib).
+Fix date to July 15, 2025 in all docs/headers.
+Update env: Ensure FORGE/STRIPE/XAI keys set in Replit secrets; Add STRIPE_WEBHOOK_SECRET, SESSION_SECRET (strong random).
+Add deps if needed: three.js/ifc.js (open-source BIM parsing); @autodesk/forge-client (already implied).
+Step 2: Fix Critical Issues
+
+Forge Viewer/Quality (ID 1): Add frontend viewer component (e.g., BimViewer.tsx).
+Init: const viewer = new Autodesk.Viewing.GuiViewer3D(container); viewer.start(); viewer.loadDocumentNode(doc, viewable);
+Quality: viewer.setQualityLevel(true, true); // SAO/FXAA and viewer.setProgressiveRendering(true); viewer.setOptimizeNavigation(true); (enables high-res anti-aliasing/occlusion per docs).
+Handle: Poll status every 5s until 'success'; Error UI (retry on fail). Test: Upload real RVT, confirm crisp zoom/shadows; Check Forge dashboard for usage (calls to OSS/Derivative).
+Why: Root fixes low-quality; Ensures token usage shows.
+BIM Extraction (ID 2): Replace simulation in /api/forge/extract.
+Real: Use getModelMetadata/getObjectProperties to extract elements/properties; Compute quantities (e.g., area/volume via metadata); Integrate AI (call analyzeBIMFile for classification).
+Add: Geometric analysis (ifc.js for IFC parsing if needed). Remove hardcoded; Base costs on AUS rates from DB/prompts.
+Stripe (ID 3): Replace placeholders.
+Create real Prices in Stripe dashboard (Pro: $39.99/month AUD recurring; Enterprise: $2,999/month); Get IDs (e.g., price_1ABC...).
+Update SUBSCRIPTION_PRICES with real; Add idempotencyKey: uuid.v4() in createSubscription.
+Test: Simulate subscription; Confirm webhooks update DB.
+Step 3: Fix High/Medium Issues
+
+Security (ID 4): In routes.ts.
+Enable: contentSecurityPolicy: { directives: { defaultSrc: ["'self'"], scriptSrc: ["'self'", 'aps.autodesk.com'] } }, crossOriginEmbedderPolicy: { policy: 'require-corp' }.
+Sessions: cookie: { secure: true, httpOnly: true, sameSite: 'strict' }; Enforce HTTPS: Middleware redirect if !req.secure.
+AI (ID 5): In xai-service.ts.
+Model: Change to "grok-beta" (confirmed real); Add fallback: If XAI fails, use OpenAI (impl multi-AI with env check).
+Claims: Remove unsubstantiated (±2%, 85-95%); Add disclaimer: "Estimates based on Grok-2; accuracy varies – consult QS".
+Edges: Add retries (exponential backoff on 429/500).
+Frontend/Navigation (ID 6): Export/add full frontend code.
+Viewer: Integrate in BimProcessor page; Fix navigation: Use Wouter consistently; Add loading/spinners for buttons.
+Test: Ensure buttons (e.g., upload) complete (no partial); Fix any links.
+Testing (ID 7): Expand.
+Jest: Add BIM extract (mock properties), payments (stripe-mock), errors (invalid URN).
+Playwright: Viewer load (screenshot for quality), full flows (auth -> subscribe -> BIM view).
+Coverage: Run jest --coverage; Aim 90%+; Include load (e.g., 10 concurrent uploads).
+Config/Deployment (ID 8): Enable OpenAI fallback; Add Drizzle migrations (generate/scripts for prod).
+Performance (ID 9): Add caching (Redis if Replit allows, or in-memory for queries); Test large files (throttle network).
+Step 4: Comprehensive Testing and Deployment Validation
+
+Test: Full flows (register -> subscribe -> upload BIM -> view high-quality -> predict -> report). Edges: Invalid files (error msg), limits (free tier block), mobile nav.
+Security: Scan (manual OWASP: No exposed keys, rate limits work).
+Performance: Confirm 300MB upload <5min; Viewer renders <2s.
+Deployment: Update .replit (https=true if possible); Run npm build/start; Fix live issues (e.g., if token no-usage: Log calls, ensure success).
+Validate Intent: No simulations; High-quality models; Token usage; Navigation/buttons 100%.
+Step 5: Final Output
+
+Export updated full source (include frontend).
+Confirm: "All issues fixed; Live site deployment-ready with high-quality features."
+Report: Changes (before/after), test coverage %.
+Execute sequentially; Report per step. Goal: Flawless live app matching intent.

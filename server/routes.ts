@@ -55,11 +55,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     crossOriginEmbedderPolicy: false // Allow Forge viewer
   }));
 
-  // Rate limiting
+  // Rate limiting with proper trust proxy setup
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // limit each IP to 100 requests per windowMs
-    message: { error: 'Too many requests, please try again later.' }
+    message: { error: 'Too many requests, please try again later.' },
+    standardHeaders: true, // Return rate limit info in headers
+    legacyHeaders: false, // Disable X-RateLimit-* headers
+    trustProxy: true, // Trust proxy headers for Replit
+    skip: (req) => req.ip === '127.0.0.1' // Skip localhost
   });
   app.use('/api/', limiter);
 
@@ -67,15 +71,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 5, // limit each IP to 5 requests per windowMs
-    message: { error: 'Too many authentication attempts, please try again later.' }
+    message: { error: 'Too many authentication attempts, please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+    trustProxy: true,
+    skip: (req) => req.ip === '127.0.0.1'
   });
 
   // Session configuration must come before passport
   app.use(session({
-    secret: process.env.SESSION_SECRET || 'fallback-secret-key',
+    secret: process.env.SESSION_SECRET!,
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24 hours
+    cookie: { 
+      secure: process.env.NODE_ENV === 'production', 
+      httpOnly: true, 
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000 
+    }
   }));
 
   // Initialize Passport
