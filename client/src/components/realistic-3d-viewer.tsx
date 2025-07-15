@@ -675,8 +675,8 @@ export function Realistic3DViewer({
 
   if (!isOpen) return null;
 
-  // Check if this is embedded mode (no onClose function or specific container height)
-  const isEmbedded = !onClose || containerHeight !== "h-[600px]";
+  // Check if this is embedded mode (no onClose function AND specific container height)
+  const isEmbedded = !onClose && containerHeight !== "h-[600px]";
 
   if (isEmbedded) {
     // Embedded mode - just return the content directly

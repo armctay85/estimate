@@ -736,6 +736,7 @@ export default function Home() {
             >
               <Card className="h-full hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 border-orange-300 hover:border-orange-400"
                     onClick={() => {
+                      console.log('AI Cost Predictor card clicked');
                       setShowAICostPredictor(true);
                     }}>
                 <CardContent className="p-8">
@@ -794,7 +795,10 @@ export default function Home() {
               transition={{ delay: 0.6 }}
             >
               <Card className="h-full hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 border-indigo-300 hover:border-indigo-400"
-                    onClick={() => setShowUploadPlans(true)}>
+                    onClick={() => {
+                      console.log('Upload Plans card clicked');
+                      setShowUploadPlans(true);
+                    }}>
                 <CardContent className="p-8">
                   <div className="mb-6">
                     <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md">
@@ -850,6 +854,7 @@ export default function Home() {
             >
               <Card className="h-full hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 border-indigo-300 hover:border-indigo-400"
                     onClick={() => {
+                      console.log('3D Wireframe Processor card clicked');
                       setShow3DWireframe(true);
                       setShowDashboard(false);
                     }}>
@@ -1187,6 +1192,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card className="hover:shadow-xl transition-shadow cursor-pointer"
                     onClick={() => {
+                      console.log('Quick Sketch card clicked');
                       setSelectedWorkspaceMode('sketch');
                       setShowDashboard(false);
                     }}>
@@ -1199,7 +1205,10 @@ export default function Home() {
               </Card>
               
               <Card className="hover:shadow-xl transition-shadow cursor-pointer"
-                    onClick={() => setShowBIMProcessor(true)}>
+                    onClick={() => {
+                      console.log('BIM Auto-Takeoff (dashboard bottom) card clicked');
+                      setShowBIMProcessor(true);
+                    }}>
                 <CardContent className="p-6 text-center">
                   <Upload className="w-12 h-12 mx-auto mb-4 text-purple-600" />
                   <h3 className="text-xl font-bold mb-2">BIM Auto-Takeoff</h3>
@@ -1209,7 +1218,10 @@ export default function Home() {
               </Card>
               
               <Card className="hover:shadow-xl transition-shadow cursor-pointer"
-                    onClick={() => navigate('/projects')}>
+                    onClick={() => {
+                      console.log('My Projects card clicked, navigating to /projects');
+                      navigate('/projects');
+                    }}>
                 <CardContent className="p-6 text-center">
                   <FileBarChart className="w-12 h-12 mx-auto mb-4 text-blue-600" />
                   <h3 className="text-xl font-bold mb-2">My Projects</h3>
