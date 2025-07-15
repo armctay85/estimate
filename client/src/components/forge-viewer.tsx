@@ -181,7 +181,12 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
               </>
             )}
             {onClose && (
-              <Button variant="outline" size="sm" onClick={onClose}>
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={onClose}
+                className="bg-gray-900 hover:bg-gray-800 text-white"
+              >
                 Close
               </Button>
             )}

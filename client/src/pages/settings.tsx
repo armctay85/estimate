@@ -77,10 +77,10 @@ export default function Settings() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center gap-4">
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={() => navigate('/')}
-              className="gap-2"
+              className="gap-2 bg-white hover:bg-gray-50 text-gray-900 border-gray-300"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Dashboard

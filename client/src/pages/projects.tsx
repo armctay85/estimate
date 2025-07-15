@@ -173,10 +173,10 @@ export default function Projects() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={() => navigate('/')}
-                className="gap-2"
+                className="gap-2 bg-white hover:bg-gray-50 text-gray-900 border-gray-300"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Dashboard
