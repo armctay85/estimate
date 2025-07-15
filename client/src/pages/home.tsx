@@ -651,7 +651,9 @@ export default function Home() {
               transition={{ delay: 0.4 }}
             >
               <Card className="h-full hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 border-purple-300 hover:border-purple-400"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
                       console.log('Enterprise card clicked, setting showProfessional3D to true');
                       setShowProfessional3D(true);
                     }}>
@@ -1935,26 +1937,55 @@ export default function Home() {
         urn={localStorage.getItem('currentModelUrn') || undefined}
       />
 
-      {/* Professional 3D Demo Dialog */}
+      {/* Professional 3D Demo Dialog - Fixed styling */}
       {showProfessional3D && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-background rounded-lg shadow-lg w-[95vw] h-[95vh] flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b">
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center" style={{zIndex: 9999}}>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-[95vw] h-[95vh] flex flex-col max-w-6xl">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
               <div>
-                <h2 className="text-2xl font-bold">Professional 3D BIM Visualization</h2>
-                <p className="text-muted-foreground">Test 3D viewer with your uploaded RVT files</p>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Professional 3D BIM Visualization</h2>
+                <p className="text-gray-600 dark:text-gray-300">Interactive 3D viewer for your uploaded RVT files</p>
               </div>
-              <Button variant="outline" onClick={() => setShowProfessional3D(false)}>
+              <button 
+                onClick={() => setShowProfessional3D(false)}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg text-gray-700 dark:text-gray-300 transition-colors"
+              >
                 Close
-              </Button>
+              </button>
             </div>
-            <div className="flex-1 p-4">
-              <div className="text-center">
-                <h3 className="text-xl mb-4">3D Viewer Test</h3>
-                <p className="mb-4">This is a test interface for the professional 3D viewer.</p>
-                <Button onClick={() => setShowForgeViewer(true)}>
-                  Open Forge Viewer
-                </Button>
+            <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
+              <div className="text-center space-y-6">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Professional Forge 3D Viewer</h3>
+                <p className="text-gray-600 dark:text-gray-300">Access your uploaded BIM models with professional-grade visualization</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Your Uploaded Models</h4>
+                    <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                      <div>• 90646-001 Rowville DT AUS_Final DD.rvt (348MB)</div>
+                      <div>• 93136-001 Burleigh Junction DT AUS_Final DD Set.rvt (413MB)</div>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        setShowForgeViewer(true);
+                        setShowProfessional3D(false);
+                      }}
+                      className="mt-4 w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                    >
+                      Open Forge Viewer
+                    </button>
+                  </div>
+                  
+                  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Viewer Features</h4>
+                    <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                      <div>• High-quality 3D rendering</div>
+                      <div>• Element selection and properties</div>
+                      <div>• Cost overlay integration</div>
+                      <div>• Professional navigation tools</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
