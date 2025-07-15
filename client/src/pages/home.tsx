@@ -29,7 +29,8 @@ import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { TrendingUp, FileBarChart, Users, Award, BarChart3, Upload, Sparkles, Zap, Brain, Share2, Moon, Sun, Settings, Layers, Palette, CheckCircle, Camera, Box, Clock, Star, ChevronDown, Calculator, Download, X, Plus, Grid3x3, Pencil } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { TrendingUp, FileBarChart, Users, Award, BarChart3, Upload, Sparkles, Zap, Brain, Share2, Moon, Sun, Settings, Layers, Palette, CheckCircle, Camera, Box, Clock, Star, ChevronDown, Calculator, Download, X, Plus, Grid3x3, Pencil, Building, AlertCircle } from "lucide-react";
 import { PARAMETRIC_ASSEMBLIES, type MaterialType } from "@shared/schema";
 import type { ShapeType, RoomData } from "@/lib/fabric-enhanced";
 
@@ -106,6 +107,7 @@ export default function Home() {
   
   const canvasRef = useRef<{ uploadBackground: (file: File) => void } | null>(null);
   const isMobile = useIsMobile();
+  const { toast } = useToast();
 
   // Onboarding tour steps
   const tourSteps = [
