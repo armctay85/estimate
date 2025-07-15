@@ -715,7 +715,10 @@ export default function Home() {
               transition={{ delay: 0.5 }}
             >
               <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group"
-                    onClick={() => setShowDashboard(false)}>
+                    onClick={() => {
+                      setShowAICostPredictor(true);
+                      setShowDashboard(false);
+                    }}>
                 <CardContent className="p-8">
                   <div className="mb-6">
                     <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -772,7 +775,15 @@ export default function Home() {
               transition={{ delay: 0.6 }}
             >
               <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group"
-                    onClick={() => setShowDashboard(false)}>
+                    onClick={() => {
+                      // Go to workspace and trigger file upload
+                      setShowDashboard(false);
+                      // We'll open the upload dialog after workspace loads
+                      setTimeout(() => {
+                        const uploadButton = document.querySelector('.upload-plans-button') as HTMLElement;
+                        if (uploadButton) uploadButton.click();
+                      }, 500);
+                    }}>
                 <CardContent className="p-8">
                   <div className="mb-6">
                     <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -827,7 +838,10 @@ export default function Home() {
               transition={{ delay: 0.7 }}
             >
               <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group border-2 border-indigo-200"
-                    onClick={() => navigate('/3d-processor')}>
+                    onClick={() => {
+                      setShow3DWireframe(true);
+                      setShowDashboard(false);
+                    }}>
                 <CardContent className="p-8">
                   <div className="mb-6">
                     <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
