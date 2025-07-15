@@ -36,7 +36,7 @@ Provide a JSON response with:
 Format: { "predictedCost": number, "minCost": number, "maxCost": number, "confidence": string, "breakdown": object, "factors": object, "risks": array }`;
 
     const response = await xai.chat.completions.create({
-      model: "grok-beta", // Updated to confirmed real model
+      model: "grok-2-1212", // Latest Grok model with 131k context
       messages: [
         {
           role: "system",
@@ -99,7 +99,7 @@ Note: Estimates are AI-generated and accuracy varies - consult professional QS f
 Respond in JSON format.`;
 
     const response = await xai.chat.completions.create({
-      model: "grok-beta", // Updated to confirmed real model
+      model: "grok-2-1212", // Latest Grok model with 131k context
       messages: [
         {
           role: "user",
@@ -139,7 +139,7 @@ Note: This is an AI-generated report summary. Professional QS review recommended
 Keep it professional and concise.`;
 
     const response = await xai.chat.completions.create({
-      model: "grok-beta", // Updated to confirmed real model
+      model: "grok-2-1212", // Latest Grok model with 131k context
       messages: [
         {
           role: "user",
@@ -161,7 +161,7 @@ Keep it professional and concise.`;
 export async function getConstructionAdvice(query: string, context?: any) {
   try {
     const response = await xai.chat.completions.create({
-      model: "grok-beta", // Updated to confirmed real model
+      model: "grok-2-1212", // Latest Grok model with 131k context
       messages: [
         {
           role: "system",

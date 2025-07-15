@@ -62,31 +62,55 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
     // Load Forge Viewer script
     const loadForgeViewer = async () => {
       try {
-        // Get access token from backend
+        // Get access token from backend with enhanced error handling
+        console.log('Fetching Forge access token...');
         const tokenResponse = await fetch('/api/forge/token', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 10000
         });
 
         if (!tokenResponse.ok) {
-          throw new Error('Failed to get Forge access token');
+          const errorData = await tokenResponse.text();
+          console.error('Token response error:', tokenResponse.status, errorData);
+          throw new Error(`Failed to get Forge access token: ${tokenResponse.status} ${errorData}`);
         }
 
-        const { access_token } = await tokenResponse.json();
+        const tokenData = await tokenResponse.json();
+        console.log('Token received successfully');
+        
+        if (!tokenData.access_token) {
+          throw new Error('Invalid token response - no access_token found');
+        }
+        
+        const { access_token } = tokenData;
 
         // Load Forge Viewer script if not already loaded
         if (!window.Autodesk) {
-          const script = document.createElement('script');
-          script.src = 'https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.min.js';
-          script.onload = () => initializeViewer(access_token);
-          script.onerror = () => setError('Failed to load Forge Viewer library');
-          document.head.appendChild(script);
-
+          console.log('Loading Forge Viewer library...');
+          
+          // Load CSS first
           const style = document.createElement('link');
           style.rel = 'stylesheet';
           style.href = 'https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.min.css';
           document.head.appendChild(style);
+          
+          // Load JavaScript
+          const script = document.createElement('script');
+          script.src = 'https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.min.js';
+          script.async = false; // Ensure synchronous loading
+          script.onload = () => {
+            console.log('Forge Viewer library loaded successfully');
+            // Small delay to ensure library is fully initialized
+            setTimeout(() => initializeViewer(access_token), 100);
+          };
+          script.onerror = (error) => {
+            console.error('Failed to load Forge Viewer library:', error);
+            setError('Failed to load Forge Viewer library. Check internet connection.');
+          };
+          document.head.appendChild(script);
         } else {
+          console.log('Forge Viewer library already loaded');
           initializeViewer(access_token);
         }
       } catch (err) {
@@ -99,25 +123,48 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
     const initializeViewer = (accessToken: string) => {
       const options = {
         env: 'AutodeskProduction',
+        api: 'derivativeV2',
         getAccessToken: (callback: (token: string, expires: number) => void) => {
+          console.log('Providing access token to Forge viewer');
+          callback(accessToken, 3600);
+        },
+        refreshToken: (callback: (token: string, expires: number) => void) => {
+          console.log('Refreshing token for Forge viewer');
           callback(accessToken, 3600);
         }
       };
 
       window.Autodesk.Viewing.Initializer(options, async () => {
         try {
+          console.log('Forge Viewer initialized successfully');
+          
           if (!viewerContainer.current) {
             setError('Viewer container not found');
             setIsLoading(false);
             return;
           }
 
+          // Ensure container has proper dimensions
+          const container = viewerContainer.current;
+          if (container.offsetWidth === 0 || container.offsetHeight === 0) {
+            console.warn('Container has zero dimensions, setting minimum size');
+            container.style.width = '100%';
+            container.style.height = '500px';
+            container.style.minHeight = '500px';
+          }
+
+          console.log('Creating GuiViewer3D instance...');
+          
           // Create high-quality viewer with advanced settings
-          const viewerInstance = new window.Autodesk.Viewing.GuiViewer3D(viewerContainer.current);
+          const viewerInstance = new window.Autodesk.Viewing.GuiViewer3D(container);
           
           // Enable high-quality rendering settings
           const viewerConfig = {
-            extensions: ['Autodesk.DefaultTools.NavTools'],
+            extensions: [
+              'Autodesk.DefaultTools.NavTools',
+              'Autodesk.ModelStructure',
+              'Autodesk.Properties'
+            ],
             useConsolidation: true,
             consolidationMemoryLimit: 800,
             sharedPropertyDbPath: window.location.origin,
@@ -128,45 +175,106 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
             alpha: false,
             premultipliedAlpha: false,
             preserveDrawingBuffer: false,
-            powerPreference: "high-performance"
+            powerPreference: "high-performance",
+            // Force WebGL context
+            forceWebGL: true,
+            webGLHelpersExtension: true
           };
 
+          console.log('Starting viewer with config:', viewerConfig);
+          
           // Start viewer with config
           const startupResult = viewerInstance.start(viewerConfig);
+          console.log('Viewer startup result:', startupResult);
+          
           if (startupResult > 0) {
             throw new Error(`Viewer startup failed with code: ${startupResult}`);
           }
 
+          console.log('Viewer started successfully');
           setViewer(viewerInstance);
           setViewerInitialized(true);
 
-          // Load the document
+          // Load the document with enhanced error handling and fallback geometry selection
+          const documentUrn = urn.startsWith('urn:') ? urn : 'urn:' + urn;
+          console.log('Loading document with URN:', documentUrn);
+          
           window.Autodesk.Viewing.Document.load(
-            'urn:' + urn,
+            documentUrn,
             (doc) => {
-              const viewables = doc.getRoot().getDefaultGeometry();
+              console.log('Document loaded successfully:', doc);
+              
+              // Enhanced geometry selection with multiple fallbacks
+              let viewables = doc.getRoot().getDefaultGeometry();
+              
               if (!viewables) {
-                throw new Error('No viewable geometry found in document');
+                // Fallback 1: Get first 3D viewable
+                viewables = doc.getRoot().search({ 'type': 'geometry', 'role': '3d' })[0];
+              }
+              
+              if (!viewables) {
+                // Fallback 2: Get any viewable geometry
+                const geometries = doc.getRoot().search({ 'type': 'geometry' });
+                if (geometries && geometries.length > 0) {
+                  viewables = geometries[0];
+                }
+              }
+              
+              if (!viewables) {
+                // Fallback 3: Get first bubble child
+                const bubble = doc.getRoot();
+                if (bubble && bubble.children && bubble.children.length > 0) {
+                  viewables = bubble.children[0];
+                }
               }
 
-              viewerInstance.loadDocumentNode(doc, viewables).then(() => {
+              if (!viewables) {
+                throw new Error('No viewable geometry found in document. The file may not have been translated properly or may be corrupted.');
+              }
+
+              console.log('Selected viewable:', viewables);
+
+              // Load with enhanced configuration
+              const loadOptions = {
+                keepCurrentModels: false,
+                applyRefPoint: true,
+                applyScaling: true,
+                preserveView: false,
+                useConsolidation: true,
+                consolidationMemoryLimit: 800,
+                // Force high-quality rendering
+                antialiasing: true,
+                antialiasingMode: 'FXAA'
+              };
+
+              viewerInstance.loadDocumentNode(doc, viewables, loadOptions).then((model) => {
+                console.log('Model loaded successfully:', model);
+                
                 // Apply high-quality settings after model load
                 applyHighQualitySettings(viewerInstance);
+                
+                // Auto-fit to view
+                viewerInstance.fitToView();
+                
+                // Enable model tree panel for debugging
+                viewerInstance.showModelStructurePanel(true);
+                
                 setIsLoading(false);
                 
                 toast({
-                  title: "Model Loaded Successfully",
-                  description: `${fileName || 'BIM Model'} loaded with high-quality rendering`,
+                  title: "BIM Model Loaded",
+                  description: `${fileName || 'BIM Model'} loaded successfully with ${model?.getData()?.instanceTree?.nodeCount || 'unknown'} elements`,
                 });
               }).catch((loadError) => {
                 console.error('Model load error:', loadError);
-                setError(`Failed to load model: ${loadError.message}`);
+                setError(`Model loading failed: ${loadError.message || 'Unknown model load error'}. The file may be corrupted or incompatible.`);
                 setIsLoading(false);
               });
             },
             (docError) => {
               console.error('Document load error:', docError);
-              setError(`Failed to load document: ${docError.message || 'Document load failed'}`);
+              const errorMsg = docError?.message || docError?.errorMessage || 'Document load failed';
+              setError(`Document loading failed: ${errorMsg}. Check if the file was translated successfully.`);
               setIsLoading(false);
             }
           );
@@ -221,7 +329,8 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
     <div className="w-full h-full">
       <Card className="h-full">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <div className={`w-3 h-3 rounded-full ${isLoading ? 'bg-yellow-500 animate-pulse' : error ? 'bg-red-500' : 'bg-green-500'}`}></div>
             3D Model Viewer
             {fileName && <span className="text-sm text-gray-500 ml-2">({fileName})</span>}
           </CardTitle>
