@@ -95,6 +95,11 @@ export default function Home() {
   const [showAICostPredictor, setShowAICostPredictor] = useState(false);
   const [showUploadPlans, setShowUploadPlans] = useState(false);
   const [showProfessional3D, setShowProfessional3D] = useState(false);
+  
+  // Debug logging for showProfessional3D
+  useEffect(() => {
+    console.log('showProfessional3D state changed:', showProfessional3D);
+  }, [showProfessional3D]);
   const [selectedWorkspaceMode, setSelectedWorkspaceMode] = useState<string | null>(null);
   
   const canvasRef = useRef<{ uploadBackground: (file: File) => void } | null>(null);
@@ -646,7 +651,10 @@ export default function Home() {
               transition={{ delay: 0.4 }}
             >
               <Card className="h-full hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 border-purple-300 hover:border-purple-400"
-                    onClick={() => setShowProfessional3D(true)}>
+                    onClick={() => {
+                      console.log('Enterprise card clicked, setting showProfessional3D to true');
+                      setShowProfessional3D(true);
+                    }}>
                 <CardContent className="p-8">
                   <div className="mb-6">
                     <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md">
@@ -1928,10 +1936,30 @@ export default function Home() {
       />
 
       {/* Professional 3D Demo Dialog */}
-      <Professional3DDemo
-        isOpen={showProfessional3D}
-        onClose={() => setShowProfessional3D(false)}
-      />
+      {showProfessional3D && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-background rounded-lg shadow-lg w-[95vw] h-[95vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <div>
+                <h2 className="text-2xl font-bold">Professional 3D BIM Visualization</h2>
+                <p className="text-muted-foreground">Test 3D viewer with your uploaded RVT files</p>
+              </div>
+              <Button variant="outline" onClick={() => setShowProfessional3D(false)}>
+                Close
+              </Button>
+            </div>
+            <div className="flex-1 p-4">
+              <div className="text-center">
+                <h3 className="text-xl mb-4">3D Viewer Test</h3>
+                <p className="mb-4">This is a test interface for the professional 3D viewer.</p>
+                <Button onClick={() => setShowForgeViewer(true)}>
+                  Open Forge Viewer
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }
