@@ -1,0 +1,53 @@
+Rectification Instruction: Audit-Based Fixes for 100% App Completion and Deployment Readiness
+
+Based on an external Grok 4 audit of the handover documentation, execute this full rectification plan to resolve all issues, complete unfinished features, and prepare the app for production deployment. Do not take shortcuts, simulate, or assume "good enough"—implement real, robust solutions with root cause fixes, edge case handling, security, performance optimizations, and comprehensive testing. Use production best practices (e.g., from Autodesk docs: server-side tokens, OSS uploads, Model Derivative translation). Tech stack: React 18/TS/Vite frontend, Express/TS backend, PostgreSQL/Drizzle, etc. If needed, add dependencies (e.g., @autodesk/forge-client for Forge, but check compatibility).
+
+Step 1: Full Codebase Update and Backup
+
+Backup current codebase: Output a ZIP-like structure of all files before changes.
+Update package.json: Add missing deps if needed (e.g., @forge/oss, @forge/model-derivative for real Forge; jest for testing). Run npm install.
+Confirm env vars: Ensure FORGE_CLIENT_ID/SECRET are set; add STRIPE_SECRET_KEY if missing.
+Step 2: Fix Critical Issues (Audit IDs 1-3)
+
+Forge Integration (ID 1): Make real, not simulated.
+Implement /api/forge/token endpoint (Express): Server-side POST to https://developer.api.autodesk.com/authentication/v1/authenticate (grant_type=client_credentials, scope=viewables:read). Use axios; return access_token only. Handle refresh (expire in 1h, regenerate on 401). Why server-side: Security (no client exposure).
+Add upload endpoint: Use Forge OSS API to create buckets, upload files (RVT/DWG/IFC), get object key.
+Translation: POST to Model Derivative /derivativeservice/v2/derivatives (job with input URN from OSS). Poll GET /manifest until status=success (retry on inprogress/failed).
+Viewer in React: Import Autodesk.Viewing; init GuiViewer3D with token from endpoint. Load via loadDocumentNode(urn). Add quality: viewer.setProgressiveRendering(true); viewer.setQualityLevel(true, true); viewer.setOptimizeNavigation(true). Handle errors (GEOMETRY_LOADED_EVENT, ERROR_EVENT with logs/UI messages).
+Test: Upload real sample RVT; confirm high-quality load (zoom/shadows crisp). Check Forge dashboard for token usage after calls.
+Authentication (ID 2): Activate fully.
+Implement Passport.js routes: /login, /register (POST with email/pass hash via bcrypt), /logout.
+UI: Add Login/Register pages with React Hook Form/Zod validation; use sessions for auth.
+Connect to tiers: Middleware to check user role (free/pro/enterprise) from DB.
+Edge: Handle invalid creds, session expiry.
+Payments (ID 3): Connect Stripe.
+Endpoints: /create-subscription (use stripe.subscriptions.create), /webhook (handle events like invoice.paid).
+UI: Integrate Checkout with @stripe/react-stripe-js; link to tiers ($39.99 Pro, $2999 Enterprise).
+DB: Store subscription ID/status.
+Step 3: Fix High/Medium Issues and Complete Features (IDs 4-12)
+
+BIM/Photo AI (ID 4): Replace simulations.
+For BIM: Add real parsing (use open-source like ifc.js for IFC; note commercial for full RVT). Implement element detection (query model properties), quantity extraction (geometric calc via three.js if needed).
+Photo AI: Use OpenAI DALL-E fallback for rendering; add GPU note if Replit limits.
+Navigation/UI (ID 5): Standardize with Wouter; add useEffect for smooth transitions. Test mobile.
+Database (ID 6): Add Drizzle migration scripts; run db:push in prod script.
+Security (ID 7): Add express-rate-limit, helmet; validate all inputs with Zod; enforce HTTPS in .replit.
+Performance (ID 8): Enable TanStack Query caching; minify Vite build; test uploads with large files.
+Testing (ID 9): Write Jest unit tests (e.g., for routes), integration (API calls), E2E (via Playwright if addable). Run and log 100% coverage goal.
+Documentation (ID 10): Generate full README.md with setup, features, limitations.
+Dependencies (ID 11): Audit npm; fix conflicts.
+AI (ID 12): Add global error handling for API fails; expand cost predictor.
+Step 4: Comprehensive Testing
+
+Unit: All functions/components.
+Integration: End-to-end flows (e.g., upload -> translate -> view).
+Manual: Edge cases (invalid files, offline, high load via multiple tabs).
+Accessibility: Run Lighthouse; ensure ARIA.
+Fix any failures; aim for 100% pass.
+Step 5: Production Optimization and Deployment Prep
+
+Optimize: Code splitting, lazy loading; add error boundaries.
+Security: Full scan (e.g., manual for OWASP).
+Deployment: Update .replit for prod (autoscale); add env management; confirm Replit hosting works.
+Final Report: List all changes (before/after snippets), confirm 100% fixed (e.g., "Forge now shows high-quality real models; token usage visible"). Declare deployment-ready.
+Execute sequentially; provide updates per step. If blockers (e.g., need paid libs), note and propose alternatives. Goal: Flawless, production-grade app.

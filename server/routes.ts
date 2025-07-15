@@ -3,11 +3,11 @@ import { createServer, type Server } from "http";
 import path from "path";
 import session from "express-session";
 import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
-import bcrypt from "bcryptjs";
 import Stripe from "stripe";
 import multer from "multer";
 import OpenAI from "openai";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { storage } from "./storage";
 import { insertUserSchema, insertProjectSchema, insertRoomSchema, MATERIALS } from "@shared/schema";
 import { setupForgeRoutes } from "./forge-api";
@@ -16,6 +16,8 @@ import { setupDataProcessing } from "./data-processor";
 import { setupInstantUpload } from "./instant-upload";
 import { predictConstructionCost, analyzeBIMFile, generateQSReport } from "./xai-service";
 import { multiAI } from "./multi-ai-service";
+import { register, login, logout, getCurrentUser, isAuthenticated, requireTier } from "./auth";
+import { createSubscription, createPaymentIntent, handleWebhook, createBillingPortalSession } from "./stripe-service";
 
 // Initialize Stripe only if the secret is available
 let stripe: Stripe | null = null;
@@ -47,6 +49,45 @@ declare global {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Security middleware
+  app.use(helmet({
+    contentSecurityPolicy: false, // Allow inline scripts for development
+    crossOriginEmbedderPolicy: false // Allow Forge viewer
+  }));
+
+  // Rate limiting
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: { error: 'Too many requests, please try again later.' }
+  });
+  app.use('/api/', limiter);
+
+  // More strict rate limiting for auth endpoints
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // limit each IP to 5 requests per windowMs
+    message: { error: 'Too many authentication attempts, please try again later.' }
+  });
+
+  // Session configuration must come before passport
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'fallback-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24 hours
+  }));
+
+  // Initialize Passport
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  // Authentication routes
+  app.post('/api/auth/register', authLimiter, register);
+  app.post('/api/auth/login', authLimiter, login);
+  app.post('/api/auth/logout', logout);
+  app.get('/api/auth/user', getCurrentUser);
+
   // Serve static HTML files for demos
   app.get('/standalone', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'standalone.html'));
@@ -180,65 +221,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Session configuration
-  app.use(session({
-    secret: process.env.SESSION_SECRET || 'fallback-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24 hours
-  }));
 
-  app.use(passport.initialize());
-  app.use(passport.session());
 
-  // Passport configuration
-  passport.use(new LocalStrategy(
-    { usernameField: 'email' },
-    async (email, password, done) => {
-      try {
-        const user = await storage.getUserByEmail(email);
-        if (!user) {
-          return done(null, false, { message: 'Invalid email or password' });
-        }
+  // Payment processing routes
+  app.post('/api/payments/create-subscription', isAuthenticated, createSubscription);
+  app.post('/api/payments/create-payment-intent', isAuthenticated, createPaymentIntent);
+  app.post('/api/payments/webhook', handleWebhook);
+  app.post('/api/payments/billing-portal', isAuthenticated, createBillingPortalSession);
 
-        const isValid = await bcrypt.compare(password, user.password);
-        if (!isValid) {
-          return done(null, false, { message: 'Invalid email or password' });
-        }
+  // Setup external service integrations
+  setupForgeRoutes(app);
+  setupFastUpload(app);
+  setupDataProcessing(app);
+  setupInstantUpload(app);
 
-        return done(null, user);
-      } catch (error) {
-        return done(error);
-      }
-    }
-  ));
-
-  passport.serializeUser((user, done) => {
-    done(null, user.id);
-  });
-
-  passport.deserializeUser(async (id: number, done) => {
+  // Protected API routes
+  app.get('/api/projects', isAuthenticated, async (req, res) => {
     try {
-      const user = await storage.getUser(id);
-      done(null, user);
-    } catch (error) {
-      done(error);
-    }
-  });
-
-  // Auth routes
-  app.post('/api/register', async (req, res) => {
-    try {
-      const userData = insertUserSchema.parse(req.body);
-      
-      // Check if user already exists
-      const existingUser = await storage.getUserByEmail(userData.email);
-      if (existingUser) {
-        return res.status(400).json({ message: 'User already exists' });
-      }
-
-      const user = await storage.createUser(userData);
-      res.json({ message: 'User created successfully', userId: user.id });
+      const user = req.user as any;
+      const projects = await storage.getUserProjects(user.id);
+      res.json(projects);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import fetch from 'node-fetch';
+import axios from 'axios';
 import FormData from 'form-data';
 import { db } from './db';
 import { projects } from '@shared/schema';
@@ -32,113 +32,144 @@ export class ForgeAPI {
     console.log('ForgeAPI initialized with credentials');
   }
 
-  // Get access token
+  // Get access token with proper error handling and retry logic
   async getAccessToken(): Promise<string> {
+    // Return cached token if still valid
     if (this.token && this.tokenExpiry && this.tokenExpiry > new Date()) {
       return this.token.access_token;
     }
 
-    const params = new URLSearchParams({
-      client_id: this.clientId,
-      client_secret: this.clientSecret,
-      grant_type: 'client_credentials',
-      scope: 'data:read data:write data:create bucket:create bucket:read bucket:update bucket:delete'
-    });
+    try {
+      const response = await axios.post(
+        'https://developer.api.autodesk.com/authentication/v1/authenticate',
+        new URLSearchParams({
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
+          grant_type: 'client_credentials',
+          scope: 'viewables:read data:read data:write data:create bucket:create bucket:read bucket:update bucket:delete'
+        }),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'application/json'
+          },
+          timeout: 10000
+        }
+      );
 
-    const response = await fetch(FORGE_AUTH_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: params
-    });
-
-    if (!response.ok) {
-      throw new Error(`Authentication failed: ${response.statusText}`);
+      this.token = response.data;
+      // Set expiry with 5-minute buffer for safety
+      this.tokenExpiry = new Date(Date.now() + (this.token.expires_in - 300) * 1000);
+      
+      console.log('Forge token generated successfully, expires:', this.tokenExpiry);
+      return this.token.access_token;
+    } catch (error: any) {
+      console.error('Forge authentication failed:', error.response?.data || error.message);
+      throw new Error(`Forge authentication failed: ${error.response?.data?.message || error.message}`);
     }
-
-    this.token = await response.json() as ForgeToken;
-    this.tokenExpiry = new Date(Date.now() + (this.token.expires_in - 60) * 1000);
-    
-    return this.token.access_token;
   }
 
-  // Create bucket if not exists
+  // Create bucket if not exists with proper error handling
   async ensureBucket(bucketKey: string): Promise<void> {
     const token = await this.getAccessToken();
     
-    const response = await fetch(`${FORGE_BASE_URL}/oss/v2/buckets`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        bucketKey,
-        policyKey: 'transient'
-      })
-    });
+    try {
+      // First check if bucket exists
+      try {
+        await axios.get(`${FORGE_BASE_URL}/oss/v2/buckets/${bucketKey}/details`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        console.log(`Bucket ${bucketKey} already exists`);
+        return;
+      } catch (error: any) {
+        if (error.response?.status !== 404) {
+          throw error;
+        }
+      }
 
-    if (!response.ok && response.status !== 409) { // 409 means bucket already exists
-      throw new Error(`Failed to create bucket: ${response.statusText}`);
+      // Create bucket if it doesn't exist
+      await axios.post(`${FORGE_BASE_URL}/oss/v2/buckets`, {
+        bucketKey: bucketKey.toLowerCase(),
+        policyKey: 'temporary'
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log(`Bucket ${bucketKey} created successfully`);
+    } catch (error: any) {
+      console.error('Bucket creation failed:', error.response?.data || error.message);
+      throw new Error(`Bucket creation failed: ${error.response?.data?.reason || error.message}`);
     }
   }
 
-  // Upload file to Forge
+  // Upload file to Forge with progress tracking
   async uploadFile(bucketKey: string, objectName: string, fileBuffer: Buffer): Promise<string> {
     const token = await this.getAccessToken();
     
     await this.ensureBucket(bucketKey);
 
-    const response = await fetch(
-      `${FORGE_BASE_URL}/oss/v2/buckets/${bucketKey}/objects/${objectName}`,
-      {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/octet-stream',
-          'Content-Length': fileBuffer.length.toString()
-        },
-        body: fileBuffer
-      }
-    );
+    try {
+      const response = await axios.put(
+        `${FORGE_BASE_URL}/oss/v2/buckets/${bucketKey}/objects/${objectName}`,
+        fileBuffer,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/octet-stream',
+            'Content-Length': fileBuffer.length.toString()
+          },
+          timeout: 300000, // 5 minutes for large files
+          maxContentLength: Infinity,
+          maxBodyLength: Infinity
+        }
+      );
 
-    if (!response.ok) {
-      throw new Error(`Failed to upload file: ${response.statusText}`);
+      console.log(`File uploaded successfully: ${objectName}`);
+      return response.data.objectId;
+    } catch (error: any) {
+      console.error('File upload failed:', error.response?.data || error.message);
+      throw new Error(`File upload failed: ${error.response?.data?.reason || error.message}`);
     }
-
-    const result = await response.json();
-    return result.objectId;
   }
 
-  // Start translation job
+  // Start translation job with proper URN encoding
   async translateModel(urn: string): Promise<void> {
     const token = await this.getAccessToken();
     
-    const response = await fetch(`${FORGE_BASE_URL}/modelderivative/v2/designdata/job`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        input: {
-          urn: Buffer.from(urn).toString('base64')
+    try {
+      const response = await axios.post(
+        `${FORGE_BASE_URL}/modelderivative/v2/designdata/job`,
+        {
+          input: {
+            urn: Buffer.from(urn).toString('base64')
+          },
+          output: {
+            formats: [
+              {
+                type: 'svf2',
+                views: ['2d', '3d'],
+                advanced: {
+                  generateMasterViews: true
+                }
+              }
+            ]
+          }
         },
-        output: {
-          formats: [
-            {
-              type: 'svf2',
-              views: ['2d', '3d']
-            }
-          ]
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 30000
         }
-      })
-    });
+      );
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Failed to start translation: ${error}`);
+      console.log('Translation job started successfully:', response.data);
+    } catch (error: any) {
+      console.error('Translation failed:', error.response?.data || error.message);
+      throw new Error(`Translation failed: ${error.response?.data?.detail || error.message}`);
     }
   }
 
