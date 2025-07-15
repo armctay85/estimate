@@ -342,41 +342,10 @@ async function extractRealBIMData(forgeApi: ForgeAPI, urn: string, metadata: any
       }
     };
   } catch (error) {
-    console.error('Real BIM extraction failed, using simulation:', error);
+    console.error('Real BIM extraction failed:', error);
     
-    // Fallback to enhanced simulation if real extraction fails
-    return {
-      status: 'complete',
-      elements: {
-        structural: [
-          { id: 'COL001', type: 'Concrete Column', quantity: 12, unit: 'ea', cost: 45000 },
-          { id: 'BEAM001', type: 'Steel Beam IPE400', quantity: 24, unit: 'ea', cost: 72000 }
-        ],
-        architectural: [
-          { id: 'WALL001', type: 'Masonry Wall', quantity: 320, unit: 'm²', cost: 57600 },
-          { id: 'DOOR001', type: 'Timber Door', quantity: 18, unit: 'ea', cost: 21600 }
-        ],
-        mep: [
-          { id: 'HVAC001', type: 'Air Conditioning', quantity: 850, unit: 'm²', cost: 153000 }
-        ],
-        finishes: [
-          { id: 'FLOOR001', type: 'Porcelain Tiles', quantity: 680, unit: 'm²', cost: 47600 }
-        ],
-        external: [
-          { id: 'ROOF001', type: 'Colorbond Roofing', quantity: 400, unit: 'm²', cost: 32000 }
-        ]
-      },
-      totalElements: 7,
-      totalCost: 429800,
-      accuracy: '±5% (Simulation)',
-      processingTime: '1.8 minutes',
-      modelInfo: {
-        fileName: 'Simulation Model',
-        fileType: 'RVT',
-        processed: true,
-        realExtraction: false
-      }
-    };
+    // NO FALLBACK TO SIMULATION - Throw error to enforce real processing only
+    throw new Error(`Real BIM processing failed: ${error.message}. Please ensure your file is a valid BIM format (.rvt, .ifc, .dwg, .dxf) and try again.`);
   }
 }
 
@@ -433,7 +402,7 @@ export function setupForgeRoutes(app: any) {
     }
   });
 
-  // Upload and process BIM files (RVT, IFC, DWG, etc.)
+  // Upload and process BIM files (RVT, IFC, DWG, etc.) with real polling
   app.post('/api/forge/upload-bim', async (req: Request, res: Response) => {
     try {
       const file = req.file;
@@ -454,30 +423,73 @@ export function setupForgeRoutes(app: any) {
 
       console.log(`Processing ${file.originalname} (${file.size} bytes)`);
 
-      const bucketKey = 'estimate-bim-files';
-      const objectName = `${Date.now()}-${file.originalname}`;
+      // Create persistent bucket with user context
+      const userId = (req as any).user?.id || 'anonymous';
+      const bucketKey = `estimate-user-${userId}-${Date.now()}`;
+      const objectName = file.originalname;
       
       // Ensure bucket exists
       await forgeApi.ensureBucket(bucketKey);
       
       // Upload to Forge
       const objectId = await forgeApi.uploadFile(bucketKey, objectName, file.buffer);
+      const urn = Buffer.from(`${bucketKey}/${objectName}`).toString('base64');
       
       // Start translation for 3D viewing
-      await forgeApi.translateModel(objectId);
+      await forgeApi.translateModel(urn);
       
-      res.json({
-        success: true,
-        urn: objectId,
-        fileName: file.originalname,
-        fileSize: file.size,
-        fileType: fileName.split('.').pop()?.toUpperCase(),
-        bucketKey,
-        objectName,
-        status: 'processing',
-        message: 'BIM file uploaded successfully. Processing for 3D visualization...',
-        estimatedTime: '2-5 minutes'
+      console.log(`Translation started for URN: ${urn}`);
+
+      // Poll for completion with timeout
+      let attempts = 0;
+      const maxAttempts = 180; // 30 minutes (10s intervals)
+      let translationComplete = false;
+
+      while (attempts < maxAttempts && !translationComplete) {
+        await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
+        attempts++;
+
+        try {
+          const status = await forgeApi.getTranslationStatus(urn);
+          console.log(`Translation attempt ${attempts}: ${status.status}`);
+
+          if (status.status === 'success') {
+            translationComplete = true;
+            console.log(`Translation completed successfully for URN: ${urn}`);
+            return res.json({ 
+              success: true,
+              urn,
+              status: 'ready',
+              fileName: file.originalname,
+              fileSize: file.size,
+              fileType: fileName.split('.').pop()?.toUpperCase(),
+              message: 'File uploaded and translation completed successfully',
+              bucketKey,
+              objectName
+            });
+          } else if (status.status === 'failed') {
+            console.error(`Translation failed for URN: ${urn}`, status);
+            return res.status(500).json({ 
+              error: 'Translation failed',
+              message: 'The file could not be processed. Please check the file format and try again.',
+              details: status.messages || []
+            });
+          }
+          // Continue polling if status is 'inprogress' or 'pending'
+        } catch (statusError) {
+          console.warn(`Status check failed (attempt ${attempts}):`, statusError);
+          // Continue polling on status check failures
+        }
+      }
+
+      // Timeout reached
+      console.error(`Translation timeout for URN: ${urn} after ${attempts} attempts`);
+      res.status(408).json({ 
+        error: 'Translation timeout',
+        message: 'File processing is taking longer than expected. Please try again with a smaller file.',
+        urn // Return URN so client can check status later
       });
+
     } catch (error: any) {
       console.error('Forge upload error:', error);
       res.status(500).json({ error: error.message });
@@ -504,30 +516,46 @@ export function setupForgeRoutes(app: any) {
     }
   });
 
-  // Extract BIM elements with cost data
+  // Extract BIM elements with cost data - REAL PROCESSING ONLY
   app.get('/api/forge/extract/:urn', async (req: Request, res: Response) => {
     try {
-      const urn = req.params.urn;
-      const status = await forgeApi.getTranslationStatus(urn);
+      console.log(`Extracting real BIM data for URN: ${req.params.urn}`);
       
+      // Check translation status first
+      const status = await forgeApi.getTranslationStatus(req.params.urn);
       if (status.status !== 'success') {
         return res.json({
           status: 'processing',
-          progress: status.progress || '0%',
-          message: 'Model is still being processed. Please wait...'
+          message: `Translation still in progress: ${status.status}`,
+          progress: status.progress || '0%'
         });
       }
-
-      // Get metadata to extract elements
-      const metadata = await forgeApi.getModelMetadata(urn);
       
-      // Real BIM element extraction using Forge API
-      const extractedData = await extractRealBIMData(forgeApi, urn, metadata);
+      // Get model metadata
+      const metadata = await forgeApi.getModelMetadata(req.params.urn);
+      console.log('Retrieved metadata for real extraction:', metadata);
       
-      res.json(extractedData);
+      // Use ONLY real BIM extraction - NO simulation fallback
+      const extractionResult = await extractRealBIMData(forgeApi, req.params.urn, metadata);
+      
+      // Add real processing indicators
+      extractionResult.realProcessing = true;
+      extractionResult.simulationUsed = false;
+      extractionResult.urn = req.params.urn;
+      
+      console.log('Real BIM extraction completed:', extractionResult);
+      res.json(extractionResult);
     } catch (error: any) {
-      console.error('BIM extraction error:', error);
-      res.status(500).json({ error: error.message });
+      console.error('Real BIM extraction failed:', error);
+      
+      // Return error instead of falling back to simulation
+      res.status(500).json({ 
+        error: 'Real BIM extraction failed',
+        message: error.message,
+        realProcessing: false,
+        simulationUsed: false,
+        urn: req.params.urn
+      });
     }
   });
 }

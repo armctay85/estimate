@@ -1,0 +1,42 @@
+ectification Instruction: Eliminate Mocked BIM Outputs and Fix Live Deployment Issues for 100% Real Processing
+
+Based on user feedback and Grok 4 audit, fix BIM Auto-Takeoff to process/display user's uploaded RVT (no Rowville sample/hardcodes). Ensure real translation, high-quality viewing, quantity extraction/cost (integrate Forge metadata + Grok-2), ±2% accuracy from actual data. Address live issues (e.g., failed jobs = no token usage; viewer loads wrong model). No simulations/shortcuts – robust, edge-handled. Update frontend (add BimViewer.tsx if missing).
+
+Step 1: Backup and Prep
+
+Backup codebase; Export full source (include frontend: BimProcessor page, viewer component).
+Config: Set bucket policy to 'persistent' (non-expiring URNs); Add logging (console + file) for jobs/URNs.
+Env: Verify FORGE keys in Replit; Add BUCKET_POLICY: 'persistent'.
+Step 2: Fix Upload/Translation Flow (Real URN Handling)
+
+In forge-api.ts /api/forge/upload-bim: After translateModel(urn), add polling: Loop GET /manifest every 10s until status='success' (timeout 30min, retry on 'inprogress/failed').
+On success: Return {urn, status: 'ready'}; On fail: Error UI ("Translation failed – retry or check file").
+Remove hardcodes: Ensure bucketKey dynamic (e.g., estimate-user-${user.id}-${Date.now()}).
+Step 3: Fix Visualization (Load User Model, High-Quality)
+
+Add/Update frontend BimViewer.tsx (React):
+Use URN from upload response: Autodesk.Viewing.Document.load('urn:' + urn, onSuccess, onFail);
+Init: viewer = new Autodesk.Viewing.GuiViewer3D(container); viewer.start();
+Load: viewer.loadDocumentNode(doc, doc.getRoot().getDefaultGeometry());
+Quality: viewer.setQualityLevel(true, true); // FXAA/SAO and viewer.setProgressiveRendering(true); viewer.setOptimizeNavigation(true); (crisp shadows/edges).
+Handle: onFail show "Model load failed – check translation status"; Poll manifest client-side if needed.
+In BimProcessor UI: After upload, fetch /status/:urn; On ready, load viewer with user URN (not sample). Remove any Rowville references.
+Step 4: Fix Extraction/Takeoff (Real, Not Simulated)
+
+In /api/forge/extract: Replace hardcoded.
+Use getModelMetadata(urn) + getObjectProperties for elements (loop objects, extract type/quantity via properties like 'Area', 'Volume').
+Compute costs: Map to AUS rates (DB or prompt); Call analyzeBIMFile/Grok-2 for classification (±2% via confidence).
+Output: Real {elements: [{type: 'Concrete Slab', quantity: real_m², cost: calculated}], totalCost: sum, accuracy: Grok confidence}.
+Edges: Handle failed properties (retry), large models (paginate), invalid files (error msg).
+Step 5: Testing and Live Deployment Validation
+
+Test: Upload real RVT; Confirm viewer shows it (not Rowville), elements match file (e.g., 450m² slab), token usage in dashboard, processing time real.
+Edges: Invalid RVT (error), large files (timeout UI), concurrent uploads.
+Deployment: Update .replit run="npm start"; Force HTTPS; Log errors to console for debugging live issues.
+Update UI: Screenshot metrics from real data; Add "Processing..." spinner.
+Step 6: Final Output
+
+Export updated full source.
+Confirm: "Mocks removed; Real user files processed; Deployment-ready."
+Report: Changes (before/after), test results.
+Execute step-by-step; Report per step. Goal: Live app shows user's RVT accurately.
