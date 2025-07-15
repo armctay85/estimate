@@ -535,7 +535,7 @@ export default function Home() {
                         <div className="h-8 bg-green-300 rounded col-span-2"></div>
                         <div className="h-8 bg-green-200 rounded"></div>
                       </div>
-                      <div className="text-xs text-center mt-2 text-gray-800 dark:text-gray-200 font-bold">Simple floor plan sketch</div>
+                      <div className="text-xs text-center mt-2 text-black dark:text-white font-bold">Simple floor plan sketch</div>
                     </div>
                   </div>
                   <h3 className="text-2xl font-bold mb-3 text-black dark:text-white">Quick Floor Plan Sketch</h3>
@@ -589,19 +589,19 @@ export default function Home() {
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                       <div className="space-y-1">
                         <div className="flex justify-between items-center p-2 bg-blue-50 rounded text-xs">
-                          <span>Concrete Slab</span>
-                          <span className="font-mono">$165/m²</span>
+                          <span className="text-black font-bold">Concrete Slab</span>
+                          <span className="font-mono text-black font-bold">$165/m²</span>
                         </div>
                         <div className="flex justify-between items-center p-2 bg-blue-50 rounded text-xs">
-                          <span>Steel Frame</span>
-                          <span className="font-mono">$1,230/t</span>
+                          <span className="text-black font-bold">Steel Frame</span>
+                          <span className="font-mono text-black font-bold">$1,230/t</span>
                         </div>
                         <div className="flex justify-between items-center p-2 bg-blue-50 rounded text-xs">
-                          <span>HVAC Systems</span>
-                          <span className="font-mono">$180/m²</span>
+                          <span className="text-black font-bold">HVAC Systems</span>
+                          <span className="font-mono text-black font-bold">$180/m²</span>
                         </div>
                       </div>
-                      <div className="text-xs text-center mt-2 text-gray-600 dark:text-gray-300 font-medium">200+ Professional rates</div>
+                      <div className="text-xs text-center mt-2 text-black dark:text-white font-bold">200+ Professional rates</div>
                     </div>
                   </div>
                   <h3 className="text-2xl font-bold mb-3 text-black dark:text-white">Professional QS Tools</h3>
@@ -676,7 +676,7 @@ export default function Home() {
                           containerHeight="h-48"
                         />
                       </div>
-                      <div className="text-xs text-center mt-2 text-gray-600 dark:text-gray-300 font-medium">Live 3D Model Preview</div>
+                      <div className="text-xs text-center mt-2 text-black dark:text-white font-bold">Live 3D Model Preview</div>
                     </div>
                   </div>
                   <h3 className="text-2xl font-bold mb-3 text-black dark:text-white">BIM Auto-Takeoff</h3>
@@ -705,7 +705,7 @@ export default function Home() {
                       <span className="font-bold text-black dark:text-white">Replace 2-3 QS staff</span>
                     </div>
                   </div>
-                  <div className="text-center text-sm text-gray-600 dark:text-gray-300 mt-6 font-medium">
+                  <div className="text-center text-sm text-black dark:text-white mt-6 font-bold">
                     Click card to start BIM processing
                   </div>
                 </CardContent>
@@ -736,10 +736,10 @@ export default function Home() {
                         <div className="h-2 bg-orange-200 rounded-full w-2/3"></div>
                         <div className="text-center mt-3">
                           <span className="text-2xl font-bold text-orange-600">$2.4M</span>
-                          <span className="text-xs text-gray-500 block">± 5% confidence</span>
+                          <span className="text-xs text-black font-bold block">± 5% confidence</span>
                         </div>
                       </div>
-                      <div className="text-xs text-center mt-2 text-gray-600 dark:text-gray-300 font-medium">AI prediction engine</div>
+                      <div className="text-xs text-center mt-2 text-black dark:text-white font-bold">AI prediction engine</div>
                     </div>
                   </div>
                   <h3 className="text-2xl font-bold mb-3 text-black dark:text-white">AI Cost Predictor</h3>
@@ -790,11 +790,11 @@ export default function Home() {
                       <div className="flex items-center justify-center h-24">
                         <div className="border-2 border-dashed border-indigo-300 rounded-lg p-4 text-center">
                           <Upload className="w-8 h-8 text-indigo-400 mx-auto mb-2" />
-                          <div className="text-xs text-gray-600">Drag & Drop</div>
-                          <div className="text-xs text-gray-500">PDF, DWG, DXF</div>
+                          <div className="text-xs text-black font-bold">Drag & Drop</div>
+                          <div className="text-xs text-black font-bold">PDF, DWG, DXF</div>
                         </div>
                       </div>
-                      <div className="text-xs text-center mt-2 text-gray-600 dark:text-gray-300 font-medium">Import existing plans</div>
+                      <div className="text-xs text-center mt-2 text-black dark:text-white font-bold">Import existing plans</div>
                     </div>
                   </div>
                   <h3 className="text-2xl font-bold mb-3 text-black dark:text-white">Upload Floor Plans</h3>
@@ -860,7 +860,7 @@ export default function Home() {
                           </g>
                         </svg>
                       </div>
-                      <div className="text-xs text-center mt-2 text-gray-600 dark:text-gray-300 font-medium">Wireframe extraction</div>
+                      <div className="text-xs text-center mt-2 text-black dark:text-white font-bold">Wireframe extraction</div>
                     </div>
                   </div>
                   <h3 className="text-2xl font-bold mb-3 text-black dark:text-white">3D Wireframe Processor</h3>
@@ -916,7 +916,7 @@ export default function Home() {
                           <Sparkles className="w-6 h-6 text-white animate-pulse" />
                         </div>
                       </div>
-                      <div className="text-xs text-center mt-2 text-gray-600 dark:text-gray-300 font-medium">Before → After AI Render</div>
+                      <div className="text-xs text-center mt-2 text-black dark:text-white font-bold">Before → After AI Render</div>
                     </div>
                   </div>
                   <h3 className="text-2xl font-bold mb-3 text-black dark:text-white">Photo-to-Renovation</h3>
@@ -975,7 +975,7 @@ export default function Home() {
                           <div className="text-xs font-bold text-white">DWG</div>
                         </div>
                       </div>
-                      <div className="text-xs text-center mt-2 text-gray-600 dark:text-gray-300 font-medium">Review uploaded models</div>
+                      <div className="text-xs text-center mt-2 text-black dark:text-white font-bold">Review uploaded models</div>
                     </div>
                   </div>
                   <h3 className="text-2xl font-bold mb-3 text-black dark:text-white">Model Library</h3>
@@ -1022,26 +1022,26 @@ export default function Home() {
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                       <div className="space-y-1">
                         <div className="flex items-center justify-between p-2 bg-white border rounded text-xs">
-                          <span className="font-medium">Starbucks Werribee</span>
-                          <span className="text-blue-600">40%</span>
+                          <span className="font-bold text-black">Starbucks Werribee</span>
+                          <span className="text-blue-600 font-bold">40%</span>
                         </div>
                         <div className="flex items-center justify-between p-2 bg-white border rounded text-xs">
-                          <span className="font-medium">Kmart Gladstone</span>
-                          <span className="text-green-600">65%</span>
+                          <span className="font-bold text-black">Kmart Gladstone</span>
+                          <span className="text-green-600 font-bold">65%</span>
                         </div>
                         <div className="flex items-center justify-between p-2 bg-white border rounded text-xs">
-                          <span className="font-medium">Brisbane Residential</span>
-                          <span className="text-gray-600">100%</span>
+                          <span className="font-bold text-black">Brisbane Residential</span>
+                          <span className="text-gray-800 font-bold">100%</span>
                         </div>
                       </div>
-                      <div className="text-xs text-center mt-2 text-gray-600 dark:text-gray-300 font-medium">Your saved projects</div>
+                      <div className="text-xs text-center mt-2 text-black dark:text-white font-bold">Your saved projects</div>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">Recent Projects</h3>
-                  <p className="text-gray-700 dark:text-gray-200 mb-6 font-medium">
+                  <h3 className="text-2xl font-bold mb-3 text-black dark:text-white">Recent Projects</h3>
+                  <p className="text-gray-800 dark:text-gray-100 mb-6 font-bold">
                     Access your saved projects and continue where you left off.
                   </p>
-                  <div className="space-y-2 text-sm text-gray-700 dark:text-gray-200">
+                  <div className="space-y-2 text-sm text-gray-900 dark:text-gray-100">
                     <div className="flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-800 rounded">
                       <span className="font-medium">Starbucks Werribee</span>
                       <span className="font-bold text-blue-700 dark:text-blue-400">$1.32M</span>
