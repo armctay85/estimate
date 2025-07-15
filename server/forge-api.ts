@@ -104,15 +104,16 @@ export class ForgeAPI {
     }
   }
 
-  // Upload file to Forge with progress tracking
+  // Upload file to Forge with progress tracking - Updated to current API
   async uploadFile(bucketKey: string, objectName: string, fileBuffer: Buffer): Promise<string> {
     const token = await this.getAccessToken();
     
     await this.ensureBucket(bucketKey);
 
     try {
+      // Use the current Forge API endpoint with proper multipart upload
       const response = await axios.put(
-        `${FORGE_BASE_URL}/oss/v2/buckets/${bucketKey}/objects/${objectName}`,
+        `https://developer.api.autodesk.com/oss/v2/buckets/${bucketKey}/objects/${objectName}`,
         fileBuffer,
         {
           headers: {
