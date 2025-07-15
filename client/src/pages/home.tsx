@@ -11,6 +11,7 @@ import { CostDisplay } from "@/components/cost-display";
 import { RoomDetails } from "@/components/room-details";
 import { Header } from "@/components/header";
 import { AICostPredictor } from "@/components/ai-cost-predictor";
+import { ServiceStatusDashboard } from "@/components/service-status-dashboard";
 import { BIMProcessor } from "@/components/bim-processor";
 import { IntelligentAssistant } from "@/components/intelligent-assistant";
 import { Simple3DViewer } from "@/components/simple-3d-viewer";
@@ -500,6 +501,11 @@ export default function Home() {
               Choose how you want to estimate your construction project. From quick sketches to enterprise BIM processing.
             </p>
           </motion.div>
+
+          {/* Service Status Dashboard */}
+          <div className="mb-8">
+            <ServiceStatusDashboard />
+          </div>
 
           {/* Options Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

@@ -29,6 +29,7 @@ export class ForgeAPI {
   constructor(clientId: string, clientSecret: string) {
     this.clientId = clientId;
     this.clientSecret = clientSecret;
+    console.log('ForgeAPI initialized with credentials');
   }
 
   // Get access token
@@ -235,10 +236,18 @@ export function setupForgeRoutes(app: any) {
     next();
   };
 
+  // Check if Forge credentials are available
+  if (!process.env.FORGE_CLIENT_ID || !process.env.FORGE_CLIENT_SECRET) {
+    console.warn('Forge credentials not configured - BIM processing will use simulation mode');
+    return;
+  }
+
   const forgeApi = new ForgeAPI(
-    process.env.FORGE_CLIENT_ID || '',
-    process.env.FORGE_CLIENT_SECRET || ''
+    process.env.FORGE_CLIENT_ID,
+    process.env.FORGE_CLIENT_SECRET
   );
+  
+  console.log('Forge API routes configured with real credentials');
 
   // Get Forge token
   app.post('/api/forge/token', async (req: Request, res: Response) => {
