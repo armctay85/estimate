@@ -14,7 +14,7 @@ import { AICostPredictor } from "@/components/ai-cost-predictor";
 import { ServiceStatusDashboard } from "@/components/service-status-dashboard";
 import { BIMProcessor } from "@/components/bim-processor";
 import { IntelligentAssistant } from "@/components/intelligent-assistant";
-import { Working3DViewer } from "@/components/working-3d-viewer";
+import { Simple3DViewer } from "@/components/simple-3d-viewer";
 import { PhotoRenovationTool } from "@/components/photo-renovation-tool";
 import { ProjectScheduler } from "@/components/project-scheduler";
 import { ModelLibrary } from "@/components/model-library";
@@ -58,22 +58,21 @@ function useDarkMode() {
 
 export default function Home() {
   const [location, navigate] = useLocation();
-  
-  // Redirect to dashboard as the new home page
-  useEffect(() => {
-    navigate('/dashboard');
-  }, [navigate]);
-
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-          Redirecting to Dashboard...
-        </h1>
-        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto"></div>
-      </div>
-    </div>
-  );
+  const [darkMode, setDarkMode] = useDarkMode();
+  const [selectedMaterial, setSelectedMaterial] = useState<MaterialType>("timber");
+  const [selectedShape, setSelectedShape] = useState<ShapeType>("rectangle");
+  const [rooms, setRooms] = useState<RoomData[]>([]);
+  const [selectedRoom, setSelectedRoom] = useState<RoomData | null>(null);
+  const [totalCost, setTotalCost] = useState(0);
+  const [hasBackground, setHasBackground] = useState(false);
+  const [backgroundOpacity, setBackgroundOpacity] = useState(70);
+  const [projectType, setProjectType] = useState("commercial");
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [analyticsData, setAnalyticsData] = useState<any[]>([]);
+  const [collaborators, setCollaborators] = useState<string[]>([]);
+  const [onboardingStep, setOnboardingStep] = useState(0);
+  const [leftPanelWidth, setLeftPanelWidth] = useState(300);
+  const [rightPanelWidth, setRightPanelWidth] = useState(300);
   const [showDashboard, setShowDashboard] = useState(() => {
     // Always show dashboard first for all users to see the 3D model preview
     const savedWorkspace = localStorage.getItem('estimateWorkspaceMode');
@@ -667,21 +666,21 @@ export default function Home() {
                     {/* Preview graphic - Live 3D Model */}
                     <div className="mt-4 rounded-lg overflow-hidden">
                       <div className="h-48 relative rounded-lg bg-gray-900">
-                        <Working3DViewer 
+                        <Simple3DViewer 
                           isOpen={true}
                           elements={[
                             { id: '1', name: 'Structural Frame', category: 'structural', color: '#ef4444', cost: 125000, 
-                              x: 0, y: -30, z: 0, width: 100, height: 150, depth: 80 },
+                              position: { x: 0, y: -30, z: 0 }, dimensions: { width: 100, height: 150, depth: 80 } },
                             { id: '2', name: 'Floor Slab', category: 'structural', color: '#6b7280', cost: 85000,
-                              x: 0, y: -90, z: 0, width: 120, height: 10, depth: 100 },
+                              position: { x: 0, y: -90, z: 0 }, dimensions: { width: 120, height: 10, depth: 100 } },
                             { id: '3', name: 'Walls', category: 'architectural', color: '#f59e0b', cost: 65000,
-                              x: 0, y: 20, z: 0, width: 110, height: 60, depth: 90 },
+                              position: { x: 0, y: 20, z: 0 }, dimensions: { width: 110, height: 60, depth: 90 } },
                             { id: '4', name: 'Roof', category: 'architectural', color: '#10b981', cost: 95000,
-                              x: 0, y: 80, z: 0, width: 130, height: 20, depth: 110 },
+                              position: { x: 0, y: 80, z: 0 }, dimensions: { width: 130, height: 20, depth: 110 } },
                             { id: '5', name: 'MEP Services', category: 'mep', color: '#3b82f6', cost: 120000,
-                              x: 0, y: 0, z: 0, width: 80, height: 100, depth: 5 },
+                              position: { x: 0, y: 0, z: 0 }, dimensions: { width: 80, height: 100, depth: 5 } },
                             { id: '6', name: 'External Works', category: 'external', color: '#8b5cf6', cost: 48500,
-                              x: 60, y: -90, z: 0, width: 40, height: 5, depth: 100 }
+                              position: { x: 60, y: -90, z: 0 }, dimensions: { width: 40, height: 5, depth: 100 } }
                           ]}
                           showControls={false}
                           autoRotate={true}
@@ -1165,12 +1164,11 @@ export default function Home() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="h-[500px] bg-gray-100">
-                  <Working3DViewer
+                  <Simple3DViewer
                     isOpen={true}
-                    onClose={() => {}}
-                    fileName="Demo Building"
-                    showControls={true}
-                    autoRotate={false}
+                    onOpenChange={() => {}}
+                    projectType="commercial"
+                    projectName="Demo Building"
                   />
                 </div>
               </CardContent>
@@ -1832,7 +1830,7 @@ export default function Home() {
       
       {/* 3D Wireframe Viewer - Only show in workspace mode */}
       {!showDashboard && (
-        <Working3DViewer
+        <Simple3DViewer
           isOpen={show3DWireframe}
           onClose={() => setShow3DWireframe(false)}
           fileName="Current Project 3D Model"

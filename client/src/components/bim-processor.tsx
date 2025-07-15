@@ -9,7 +9,7 @@ import { Upload, FileText, Building, Zap, CheckCircle, Clock, Target, Eye, Layer
 import { useToast } from "@/hooks/use-toast";
 import { PARAMETRIC_ASSEMBLIES, AUSTRALIAN_RATES } from "@shared/schema";
 import { ProjectScheduler } from "./project-scheduler";
-import { Working3DViewer } from "./working-3d-viewer";
+import { Simple3DViewer } from "./simple-3d-viewer";
 import { ForgeViewer } from "./forge-viewer";
 import { AIQSCompliancePanel } from "./aiqs-compliance-panel";
 import { InteractiveBIMViewer } from './interactive-bim-viewer';
@@ -1434,7 +1434,7 @@ export function BIMProcessor({ isOpen: controlledIsOpen, onOpenChange }: BIMProc
           </DialogContent>
         </Dialog>
       ) : (
-        <Working3DViewer 
+        <Simple3DViewer 
           isOpen={showWireframe}
           onClose={() => setShowWireframe(false)}
           fileName={currentFileName || "Current Model"}
