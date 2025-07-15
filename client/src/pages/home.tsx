@@ -22,6 +22,7 @@ import { ProjectScheduler } from "@/components/project-scheduler";
 import { ModelLibrary } from "@/components/model-library";
 import { Forge3DViewer } from "@/components/forge-3d-viewer";
 import { Professional3DDemo } from "@/components/professional-3d-demo";
+import { RealForgeViewer } from "@/components/real-forge-viewer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -98,11 +99,13 @@ export default function Home() {
   const [showAICostPredictor, setShowAICostPredictor] = useState(false);
   const [showUploadPlans, setShowUploadPlans] = useState(false);
   const [showProfessional3D, setShowProfessional3D] = useState(false);
+  const [showRealForgeViewer, setShowRealForgeViewer] = useState(false);
   
   // Debug logging for showProfessional3D
   useEffect(() => {
     console.log('showProfessional3D state changed:', showProfessional3D);
-  }, [showProfessional3D]);
+    console.log('showRealForgeViewer state changed:', showRealForgeViewer);
+  }, [showProfessional3D, showRealForgeViewer]);
   const [selectedWorkspaceMode, setSelectedWorkspaceMode] = useState<string | null>(null);
   
   const canvasRef = useRef<{ uploadBackground: (file: File) => void } | null>(null);
@@ -658,8 +661,8 @@ export default function Home() {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      console.log('Enterprise card clicked, setting showProfessional3D to true');
-                      setShowProfessional3D(true);
+                      console.log('Enterprise card clicked, opening REAL Forge viewer');
+                      setShowRealForgeViewer(true);
                     }}>
                 <CardContent className="p-8">
                   <div className="mb-6">
@@ -1967,6 +1970,22 @@ export default function Home() {
           showControls={true}
           autoRotate={false}
           showCostOverlay={true}
+        />
+      )}
+
+      {/* REAL AUTODESK FORGE VIEWER - Authentic BIM Processing */}
+      {showRealForgeViewer && (
+        <RealForgeViewer
+          isOpen={showRealForgeViewer}
+          onClose={() => setShowRealForgeViewer(false)}
+          fileName="Real BIM Model"
+          onElementSelect={(element) => {
+            console.log('Real BIM element selected:', element);
+            toast({
+              title: "BIM Element Selected",
+              description: `${element.name} - ${element.category} ($${element.cost.toLocaleString()})`,
+            });
+          }}
         />
       )}
     </motion.div>

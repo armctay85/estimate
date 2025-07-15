@@ -11,6 +11,7 @@ import rateLimit from "express-rate-limit";
 import { storage } from "./storage";
 import { insertUserSchema, insertProjectSchema, insertRoomSchema, MATERIALS } from "@shared/schema";
 import { setupForgeRoutes } from "./forge-api";
+import { setupRealForgeRoutes } from "./forge-real-integration";
 import { setupFastUpload } from "./fast-upload";
 import { setupDataProcessing } from "./data-processor";
 import { setupInstantUpload } from "./instant-upload";
@@ -916,6 +917,9 @@ Return JSON: { "areas": [{ "roomType": string, "label": string, "x": number, "y"
 
   // Set up Forge API routes for RVT processing
   setupForgeRoutes(app);
+  
+  // Set up REAL Forge API routes for authentic BIM processing
+  setupRealForgeRoutes(app);
   
   // Set up fast upload routes for instant uploads
   setupFastUpload(app);
