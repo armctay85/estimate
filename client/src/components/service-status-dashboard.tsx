@@ -22,7 +22,9 @@ export function ServiceStatusDashboard() {
     const checkServices = async () => {
       try {
         const response = await apiRequest('GET', '/api/service-status');
-        setServiceStatus(response);
+        const data = await response.json();
+        console.log('Service status data:', data);
+        setServiceStatus(data);
       } catch (error) {
         console.error('Failed to check service status:', error);
       } finally {
@@ -31,6 +33,10 @@ export function ServiceStatusDashboard() {
     };
 
     checkServices();
+    
+    // Refresh status every 30 seconds
+    const interval = setInterval(checkServices, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const services = [
