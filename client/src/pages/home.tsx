@@ -573,7 +573,7 @@ export default function Home() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group border-2 border-blue-200"
+              <Card className="h-full hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 border-blue-300 hover:border-blue-400"
                     onClick={() => {
                       setProjectType('commercial');
                       setSelectedWorkspaceMode('pro');
@@ -581,10 +581,10 @@ export default function Home() {
                     }}>
                 <CardContent className="p-8">
                   <div className="mb-6">
-                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <BarChart3 className="w-8 h-8 text-blue-600" />
+                    <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md">
+                      <BarChart3 className="w-8 h-8 text-blue-700 dark:text-blue-300" />
                     </div>
-                    <Badge className="bg-blue-100 text-blue-800 mb-2">Pro - $39.99/month</Badge>
+                    <Badge className="bg-blue-200 dark:bg-blue-800 text-blue-900 dark:text-blue-100 mb-2 font-bold border border-blue-300 dark:border-blue-600">Pro - $39.99/month</Badge>
                     {/* Preview graphic */}
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                       <div className="space-y-1">
@@ -601,36 +601,36 @@ export default function Home() {
                           <span className="font-mono">$180/m²</span>
                         </div>
                       </div>
-                      <div className="text-xs text-center mt-2 text-gray-500">200+ Professional rates</div>
+                      <div className="text-xs text-center mt-2 text-gray-600 dark:text-gray-300 font-medium">200+ Professional rates</div>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-3">Professional QS Tools</h3>
-                  <p className="text-gray-600 mb-6">
+                  <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">Professional QS Tools</h3>
+                  <p className="text-gray-700 dark:text-gray-200 mb-6 font-medium">
                     Complete quantity surveying toolkit with 200+ materials and professional reports.
                   </p>
-                  <div className="space-y-2 text-sm text-gray-600">
+                  <div className="space-y-2 text-sm text-gray-700 dark:text-gray-200">
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-blue-600" />
-                      <span>200+ Australian materials</span>
+                      <CheckCircle className="w-4 h-4 text-blue-700 dark:text-blue-400" />
+                      <span className="font-medium">200+ Australian materials</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-blue-600" />
-                      <span>MEP services calculation</span>
+                      <CheckCircle className="w-4 h-4 text-blue-700 dark:text-blue-400" />
+                      <span className="font-medium">MEP services calculation</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-blue-600" />
-                      <span>Professional PDF reports</span>
+                      <CheckCircle className="w-4 h-4 text-blue-700 dark:text-blue-400" />
+                      <span className="font-medium">Professional PDF reports</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-blue-600" />
-                      <span>AIQS compliant outputs</span>
+                      <CheckCircle className="w-4 h-4 text-blue-700 dark:text-blue-400" />
+                      <span className="font-medium">AIQS compliant outputs</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-blue-600" />
-                      <span>Unlimited projects</span>
+                      <CheckCircle className="w-4 h-4 text-blue-700 dark:text-blue-400" />
+                      <span className="font-medium">Unlimited projects</span>
                     </div>
                   </div>
-                  <Button className="w-full mt-6 bg-blue-600 hover:bg-blue-700">
+                  <Button className="w-full mt-6 bg-blue-700 hover:bg-blue-800 text-white font-bold shadow-lg">
                     Launch Pro Tools
                   </Button>
                 </CardContent>
@@ -643,14 +643,14 @@ export default function Home() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4 }}
             >
-              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group border-2 border-purple-200"
+              <Card className="h-full hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 border-purple-300 hover:border-purple-400"
                     onClick={() => setShowBIMProcessor(true)}>
                 <CardContent className="p-8">
                   <div className="mb-6">
-                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <Zap className="w-8 h-8 text-purple-600" />
+                    <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md">
+                      <Zap className="w-8 h-8 text-purple-700 dark:text-purple-300" />
                     </div>
-                    <Badge className="bg-purple-100 text-purple-800 mb-2">Enterprise - $2,999/month</Badge>
+                    <Badge className="bg-purple-200 dark:bg-purple-800 text-purple-900 dark:text-purple-100 mb-2 font-bold border border-purple-300 dark:border-purple-600">Enterprise - $2,999/month</Badge>
                     {/* Preview graphic - Live 3D Model */}
                     <div className="mt-4 rounded-lg overflow-hidden">
                       <div className="h-48 relative rounded-lg bg-gray-900">
@@ -676,36 +676,36 @@ export default function Home() {
                           containerHeight="h-48"
                         />
                       </div>
-                      <div className="text-xs text-center mt-2 text-gray-500">Live 3D Model Preview</div>
+                      <div className="text-xs text-center mt-2 text-gray-600 dark:text-gray-300 font-medium">Live 3D Model Preview</div>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-3">BIM Auto-Takeoff</h3>
-                  <p className="text-gray-600 mb-6">
+                  <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">BIM Auto-Takeoff</h3>
+                  <p className="text-gray-700 dark:text-gray-200 mb-6 font-medium">
                     AI-powered BIM processing to replace your entire QS department.
                   </p>
-                  <div className="space-y-2 text-sm text-gray-600">
+                  <div className="space-y-2 text-sm text-gray-700 dark:text-gray-200">
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-purple-600" />
-                      <span>Upload DWG, IFC, Revit files</span>
+                      <CheckCircle className="w-4 h-4 text-purple-700 dark:text-purple-400" />
+                      <span className="font-medium">Upload DWG, IFC, Revit files</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-purple-600" />
-                      <span>AI element detection</span>
+                      <CheckCircle className="w-4 h-4 text-purple-700 dark:text-purple-400" />
+                      <span className="font-medium">AI element detection</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-purple-600" />
-                      <span>±2% accuracy guarantee</span>
+                      <CheckCircle className="w-4 h-4 text-purple-700 dark:text-purple-400" />
+                      <span className="font-medium">±2% accuracy guarantee</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-purple-600" />
-                      <span>15-45 minute processing</span>
+                      <CheckCircle className="w-4 h-4 text-purple-700 dark:text-purple-400" />
+                      <span className="font-medium">15-45 minute processing</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-purple-600" />
-                      <span>Replace 2-3 QS staff</span>
+                      <CheckCircle className="w-4 h-4 text-purple-700 dark:text-purple-400" />
+                      <span className="font-medium">Replace 2-3 QS staff</span>
                     </div>
                   </div>
-                  <div className="text-center text-sm text-gray-500 mt-6">
+                  <div className="text-center text-sm text-gray-600 dark:text-gray-300 mt-6 font-medium">
                     Click card to start BIM processing
                   </div>
                 </CardContent>
@@ -718,16 +718,16 @@ export default function Home() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group"
+              <Card className="h-full hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 border-orange-300 hover:border-orange-400"
                     onClick={() => {
                       setShowAICostPredictor(true);
                     }}>
                 <CardContent className="p-8">
                   <div className="mb-6">
-                    <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <Brain className="w-8 h-8 text-orange-600" />
+                    <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md">
+                      <Brain className="w-8 h-8 text-orange-700 dark:text-orange-300" />
                     </div>
-                    <Badge className="bg-orange-100 text-orange-800 mb-2">AI Powered</Badge>
+                    <Badge className="bg-orange-200 dark:bg-orange-800 text-orange-900 dark:text-orange-100 mb-2 font-bold border border-orange-300 dark:border-orange-600">AI Powered</Badge>
                     {/* Preview graphic */}
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                       <div className="space-y-2">
@@ -739,32 +739,32 @@ export default function Home() {
                           <span className="text-xs text-gray-500 block">± 5% confidence</span>
                         </div>
                       </div>
-                      <div className="text-xs text-center mt-2 text-gray-500">AI prediction engine</div>
+                      <div className="text-xs text-center mt-2 text-gray-600 dark:text-gray-300 font-medium">AI prediction engine</div>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-3">AI Cost Predictor</h3>
-                  <p className="text-gray-600 mb-6">
+                  <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">AI Cost Predictor</h3>
+                  <p className="text-gray-700 dark:text-gray-200 mb-6 font-medium">
                     Get instant cost predictions based on 10,000+ Australian projects.
                   </p>
-                  <div className="space-y-2 text-sm text-gray-600">
+                  <div className="space-y-2 text-sm text-gray-700 dark:text-gray-200">
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-orange-600" />
-                      <span>Regional cost variations</span>
+                      <CheckCircle className="w-4 h-4 text-orange-700 dark:text-orange-400" />
+                      <span className="font-medium">Regional cost variations</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-orange-600" />
-                      <span>Complexity factors</span>
+                      <CheckCircle className="w-4 h-4 text-orange-700 dark:text-orange-400" />
+                      <span className="font-medium">Complexity factors</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-orange-600" />
-                      <span>Timeline impacts</span>
+                      <CheckCircle className="w-4 h-4 text-orange-700 dark:text-orange-400" />
+                      <span className="font-medium">Timeline impacts</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-orange-600" />
-                      <span>95% confidence ranges</span>
+                      <CheckCircle className="w-4 h-4 text-orange-700 dark:text-orange-400" />
+                      <span className="font-medium">95% confidence ranges</span>
                     </div>
                   </div>
-                  <Button className="w-full mt-6 bg-orange-600 hover:bg-orange-700">
+                  <Button className="w-full mt-6 bg-orange-700 hover:bg-orange-800 text-white font-bold shadow-lg">
                     Predict Costs
                   </Button>
                 </CardContent>
@@ -777,14 +777,14 @@ export default function Home() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.6 }}
             >
-              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group"
+              <Card className="h-full hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 border-indigo-300 hover:border-indigo-400"
                     onClick={() => setShowUploadPlans(true)}>
                 <CardContent className="p-8">
                   <div className="mb-6">
-                    <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <Upload className="w-8 h-8 text-indigo-600" />
+                    <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md">
+                      <Upload className="w-8 h-8 text-indigo-700 dark:text-indigo-300" />
                     </div>
-                    <Badge className="bg-indigo-100 text-indigo-800 mb-2">Import & Trace</Badge>
+                    <Badge className="bg-indigo-200 dark:bg-indigo-800 text-indigo-900 dark:text-indigo-100 mb-2 font-bold border border-indigo-300 dark:border-indigo-600">Import & Trace</Badge>
                     {/* Preview graphic */}
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                       <div className="flex items-center justify-center h-24">
@@ -794,32 +794,32 @@ export default function Home() {
                           <div className="text-xs text-gray-500">PDF, DWG, DXF</div>
                         </div>
                       </div>
-                      <div className="text-xs text-center mt-2 text-gray-500">Import existing plans</div>
+                      <div className="text-xs text-center mt-2 text-gray-600 dark:text-gray-300 font-medium">Import existing plans</div>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-3">Upload Floor Plans</h3>
-                  <p className="text-gray-600 mb-6">
+                  <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">Upload Floor Plans</h3>
+                  <p className="text-gray-700 dark:text-gray-200 mb-6 font-medium">
                     Import PDF or image floor plans and trace over them for accurate estimates.
                   </p>
-                  <div className="space-y-2 text-sm text-gray-600">
+                  <div className="space-y-2 text-sm text-gray-700 dark:text-gray-200">
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-indigo-600" />
-                      <span>PDF & image support</span>
+                      <CheckCircle className="w-4 h-4 text-indigo-700 dark:text-indigo-400" />
+                      <span className="font-medium">PDF & image support</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-indigo-600" />
-                      <span>Scale calibration</span>
+                      <CheckCircle className="w-4 h-4 text-indigo-700 dark:text-indigo-400" />
+                      <span className="font-medium">Scale calibration</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-indigo-600" />
-                      <span>Trace assistance</span>
+                      <CheckCircle className="w-4 h-4 text-indigo-700 dark:text-indigo-400" />
+                      <span className="font-medium">Trace assistance</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-indigo-600" />
-                      <span>Auto-measurement</span>
+                      <CheckCircle className="w-4 h-4 text-indigo-700 dark:text-indigo-400" />
+                      <span className="font-medium">Auto-measurement</span>
                     </div>
                   </div>
-                  <Button className="w-full mt-6 bg-indigo-600 hover:bg-indigo-700">
+                  <Button className="w-full mt-6 bg-indigo-700 hover:bg-indigo-800 text-white font-bold shadow-lg">
                     Upload Plans
                   </Button>
                 </CardContent>
@@ -832,17 +832,17 @@ export default function Home() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.7 }}
             >
-              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group border-2 border-indigo-200"
+              <Card className="h-full hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 border-indigo-300 hover:border-indigo-400"
                     onClick={() => {
                       setShow3DWireframe(true);
                       setShowDashboard(false);
                     }}>
                 <CardContent className="p-8">
                   <div className="mb-6">
-                    <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <Grid3x3 className="w-8 h-8 text-indigo-600" />
+                    <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md">
+                      <Grid3x3 className="w-8 h-8 text-indigo-700 dark:text-indigo-300" />
                     </div>
-                    <Badge className="bg-indigo-100 text-indigo-800 mb-2">Geometry Engine</Badge>
+                    <Badge className="bg-indigo-200 dark:bg-indigo-800 text-indigo-900 dark:text-indigo-100 mb-2 font-bold border border-indigo-300 dark:border-indigo-600">Geometry Engine</Badge>
                     {/* Preview graphic */}
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                       <div className="relative h-24">
@@ -860,32 +860,32 @@ export default function Home() {
                           </g>
                         </svg>
                       </div>
-                      <div className="text-xs text-center mt-2 text-gray-500">Wireframe extraction</div>
+                      <div className="text-xs text-center mt-2 text-gray-600 dark:text-gray-300 font-medium">Wireframe extraction</div>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-3">3D Wireframe Processor</h3>
-                  <p className="text-gray-600 mb-6">
+                  <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">3D Wireframe Processor</h3>
+                  <p className="text-gray-700 dark:text-gray-200 mb-6 font-medium">
                     Extract true wireframes from IFC, DWG, DXF files. Convert RVT to IFC for processing.
                   </p>
-                  <div className="space-y-2 text-sm text-gray-600">
+                  <div className="space-y-2 text-sm text-gray-700 dark:text-gray-200">
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-indigo-600" />
-                      <span>IFC direct parsing</span>
+                      <CheckCircle className="w-4 h-4 text-indigo-700 dark:text-indigo-400" />
+                      <span className="font-medium">IFC direct parsing</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-indigo-600" />
-                      <span>Vertex & edge extraction</span>
+                      <CheckCircle className="w-4 h-4 text-indigo-700 dark:text-indigo-400" />
+                      <span className="font-medium">Vertex & edge extraction</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-indigo-600" />
-                      <span>Wireframe visualization</span>
+                      <CheckCircle className="w-4 h-4 text-indigo-700 dark:text-indigo-400" />
+                      <span className="font-medium">Wireframe visualization</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-indigo-600" />
-                      <span>Export to DXF/OBJ</span>
+                      <CheckCircle className="w-4 h-4 text-indigo-700 dark:text-indigo-400" />
+                      <span className="font-medium">Export to DXF/OBJ</span>
                     </div>
                   </div>
-                  <Button className="w-full mt-6 bg-indigo-600 hover:bg-indigo-700">
+                  <Button className="w-full mt-6 bg-indigo-700 hover:bg-indigo-800 text-white font-bold shadow-lg">
                     Process 3D Files
                   </Button>
                 </CardContent>
@@ -898,14 +898,14 @@ export default function Home() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.8 }}
             >
-              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group border-2 border-pink-200"
+              <Card className="h-full hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 border-pink-300 hover:border-pink-400"
                     onClick={() => setShowPhotoRenovation(true)}>
                 <CardContent className="p-8">
                   <div className="mb-6">
-                    <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <Camera className="w-8 h-8 text-pink-600" />
+                    <div className="w-16 h-16 bg-pink-100 dark:bg-pink-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md">
+                      <Camera className="w-8 h-8 text-pink-700 dark:text-pink-300" />
                     </div>
-                    <Badge className="bg-pink-100 text-pink-800 mb-2">AI Renovation</Badge>
+                    <Badge className="bg-pink-200 dark:bg-pink-800 text-pink-900 dark:text-pink-100 mb-2 font-bold border border-pink-300 dark:border-pink-600">AI Renovation</Badge>
                     {/* Preview graphic */}
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                       <div className="grid grid-cols-2 gap-2">
@@ -916,32 +916,32 @@ export default function Home() {
                           <Sparkles className="w-6 h-6 text-white animate-pulse" />
                         </div>
                       </div>
-                      <div className="text-xs text-center mt-2 text-gray-500">Before → After AI Render</div>
+                      <div className="text-xs text-center mt-2 text-gray-600 dark:text-gray-300 font-medium">Before → After AI Render</div>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-3">Photo-to-Renovation</h3>
-                  <p className="text-gray-600 mb-6">
+                  <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">Photo-to-Renovation</h3>
+                  <p className="text-gray-700 dark:text-gray-200 mb-6 font-medium">
                     Upload photos of kitchens & bathrooms, select areas, and get AI renovation renders with instant costs.
                   </p>
-                  <div className="space-y-2 text-sm text-gray-600">
+                  <div className="space-y-2 text-sm text-gray-700 dark:text-gray-200">
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-pink-600" />
-                      <span>AI area detection</span>
+                      <CheckCircle className="w-4 h-4 text-pink-700 dark:text-pink-400" />
+                      <span className="font-medium">AI area detection</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-pink-600" />
-                      <span>Multiple style options</span>
+                      <CheckCircle className="w-4 h-4 text-pink-700 dark:text-pink-400" />
+                      <span className="font-medium">Multiple style options</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-pink-600" />
-                      <span>Instant cost estimates</span>
+                      <CheckCircle className="w-4 h-4 text-pink-700 dark:text-pink-400" />
+                      <span className="font-medium">Instant cost estimates</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-pink-600" />
-                      <span>Before/after comparison</span>
+                      <CheckCircle className="w-4 h-4 text-pink-700 dark:text-pink-400" />
+                      <span className="font-medium">Before/after comparison</span>
                     </div>
                   </div>
-                  <Button className="w-full mt-6 bg-pink-600 hover:bg-pink-700">
+                  <Button className="w-full mt-6 bg-pink-700 hover:bg-pink-800 text-white font-bold shadow-lg">
                     Start Renovation Design
                   </Button>
                 </CardContent>
@@ -975,29 +975,29 @@ export default function Home() {
                           <div className="text-xs font-bold text-white">DWG</div>
                         </div>
                       </div>
-                      <div className="text-xs text-center mt-2 text-gray-600">Review uploaded models</div>
+                      <div className="text-xs text-center mt-2 text-gray-600 dark:text-gray-300 font-medium">Review uploaded models</div>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-3">Model Library</h3>
-                  <p className="text-gray-600 mb-6">
+                  <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">Model Library</h3>
+                  <p className="text-gray-700 dark:text-gray-200 mb-6 font-medium">
                     Review and manage your uploaded BIM models with Forge 3D viewer.
                   </p>
-                  <div className="space-y-2 text-sm text-gray-600">
+                  <div className="space-y-2 text-sm text-gray-700 dark:text-gray-200">
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-indigo-600" />
-                      <span>View all uploaded models</span>
+                      <CheckCircle className="w-4 h-4 text-indigo-700 dark:text-indigo-400" />
+                      <span className="font-medium">View all uploaded models</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-indigo-600" />
-                      <span>3D visualization with Forge</span>
+                      <CheckCircle className="w-4 h-4 text-indigo-700 dark:text-indigo-400" />
+                      <span className="font-medium">3D visualization with Forge</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-indigo-600" />
-                      <span>Search and filter models</span>
+                      <CheckCircle className="w-4 h-4 text-indigo-700 dark:text-indigo-400" />
+                      <span className="font-medium">Search and filter models</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-indigo-600" />
-                      <span>Cost and element data</span>
+                      <CheckCircle className="w-4 h-4 text-indigo-700 dark:text-indigo-400" />
+                      <span className="font-medium">Cost and element data</span>
                     </div>
                   </div>
                 </CardContent>
@@ -1010,14 +1010,14 @@ export default function Home() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.8 }}
             >
-              <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group"
+              <Card className="h-full hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 border-gray-300 hover:border-gray-400"
                     onClick={() => navigate('/projects')}>
                 <CardContent className="p-8">
                   <div className="mb-6">
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <FileBarChart className="w-8 h-8 text-gray-600" />
+                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md">
+                      <FileBarChart className="w-8 h-8 text-gray-700 dark:text-gray-300" />
                     </div>
-                    <Badge className="bg-gray-100 text-gray-800 mb-2">Continue Working</Badge>
+                    <Badge className="bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-gray-100 mb-2 font-bold border border-gray-300 dark:border-gray-600">Continue Working</Badge>
                     {/* Preview graphic */}
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                       <div className="space-y-1">
@@ -1034,28 +1034,28 @@ export default function Home() {
                           <span className="text-gray-600">100%</span>
                         </div>
                       </div>
-                      <div className="text-xs text-center mt-2 text-gray-500">Your saved projects</div>
+                      <div className="text-xs text-center mt-2 text-gray-600 dark:text-gray-300 font-medium">Your saved projects</div>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-3">Recent Projects</h3>
-                  <p className="text-gray-600 mb-6">
+                  <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">Recent Projects</h3>
+                  <p className="text-gray-700 dark:text-gray-200 mb-6 font-medium">
                     Access your saved projects and continue where you left off.
                   </p>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span>Starbucks Werribee</span>
-                      <span className="font-bold">$1.32M</span>
+                  <div className="space-y-2 text-sm text-gray-700 dark:text-gray-200">
+                    <div className="flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-800 rounded">
+                      <span className="font-medium">Starbucks Werribee</span>
+                      <span className="font-bold text-blue-700 dark:text-blue-400">$1.32M</span>
                     </div>
-                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span>North Lakes Development</span>
-                      <span className="font-bold">$850K</span>
+                    <div className="flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-800 rounded">
+                      <span className="font-medium">North Lakes Development</span>
+                      <span className="font-bold text-blue-700 dark:text-blue-400">$850K</span>
                     </div>
-                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span>Commercial Fitout Sydney</span>
-                      <span className="font-bold">$2.1M</span>
+                    <div className="flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-800 rounded">
+                      <span className="font-medium">Commercial Fitout Sydney</span>
+                      <span className="font-bold text-blue-700 dark:text-blue-400">$2.1M</span>
                     </div>
                   </div>
-                  <Button className="w-full mt-6" variant="outline">
+                  <Button className="w-full mt-6 border-2 border-gray-700 text-gray-900 dark:border-gray-300 dark:text-gray-100 font-bold hover:bg-gray-100 dark:hover:bg-gray-800">
                     View All Projects
                   </Button>
                 </CardContent>
