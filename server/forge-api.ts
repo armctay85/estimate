@@ -403,7 +403,14 @@ export function setupForgeRoutes(app: any) {
   });
 
   // Upload and process BIM files (RVT, IFC, DWG, etc.) with real polling
-  app.post('/api/forge/upload-bim', async (req: Request, res: Response) => {
+  app.post('/api/forge/upload-bim', (req: any, res: any, next: any) => {
+    const multer = require('multer');
+    const upload = multer({ 
+      storage: multer.memoryStorage(),
+      limits: { fileSize: 500 * 1024 * 1024 } // 500MB limit for BIM files
+    });
+    upload.single('file')(req, res, next);
+  }, async (req: Request, res: Response) => {
     try {
       const file = req.file;
       if (!file) {
