@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 // import { AuthProvider } from "./hooks/use-auth";
 import Home from "@/pages/home";
+import Dashboard from "@/pages/dashboard";
+import Workspace from "@/pages/workspace";
 import Auth from "@/pages/auth";
 import Subscribe from "@/pages/subscribe";
 import Projects from "@/pages/projects";
@@ -19,6 +21,8 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/workspace" component={Workspace} />
       <Route path="/auth" component={Auth} />
       <Route path="/subscribe" component={Subscribe} />
       <Route path="/projects" component={Projects} />

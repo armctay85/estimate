@@ -37,12 +37,12 @@ export function Simple3DViewer({
   showCostOverlay = true,
   containerHeight = "h-[600px]"
 }: Simple3DViewerProps) {
+  const { toast } = useToast();
   const [rotation, setRotation] = useState({ x: -20, y: 45 });
   const [zoom, setZoom] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [visibleCategories, setVisibleCategories] = useState<Set<string>>(new Set(['structural', 'architectural', 'mep', 'external']));
-  const { toast } = useToast();
 
   // Auto-rotation effect
   useEffect(() => {

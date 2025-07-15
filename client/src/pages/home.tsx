@@ -58,21 +58,22 @@ function useDarkMode() {
 
 export default function Home() {
   const [location, navigate] = useLocation();
-  const [darkMode, setDarkMode] = useDarkMode();
-  const [selectedMaterial, setSelectedMaterial] = useState<MaterialType>("timber");
-  const [selectedShape, setSelectedShape] = useState<ShapeType>("rectangle");
-  const [rooms, setRooms] = useState<RoomData[]>([]);
-  const [selectedRoom, setSelectedRoom] = useState<RoomData | null>(null);
-  const [totalCost, setTotalCost] = useState(0);
-  const [hasBackground, setHasBackground] = useState(false);
-  const [backgroundOpacity, setBackgroundOpacity] = useState(70);
-  const [projectType, setProjectType] = useState("commercial");
-  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
-  const [analyticsData, setAnalyticsData] = useState<any[]>([]);
-  const [collaborators, setCollaborators] = useState<string[]>([]);
-  const [onboardingStep, setOnboardingStep] = useState(0);
-  const [leftPanelWidth, setLeftPanelWidth] = useState(300);
-  const [rightPanelWidth, setRightPanelWidth] = useState(300);
+  
+  // Redirect to dashboard as the new home page
+  useEffect(() => {
+    navigate('/dashboard');
+  }, [navigate]);
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+          Redirecting to Dashboard...
+        </h1>
+        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto"></div>
+      </div>
+    </div>
+  );
   const [showDashboard, setShowDashboard] = useState(() => {
     // Always show dashboard first for all users to see the 3D model preview
     const savedWorkspace = localStorage.getItem('estimateWorkspaceMode');
