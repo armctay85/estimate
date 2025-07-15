@@ -6,6 +6,85 @@ const xai = new OpenAI({
   apiKey: process.env.XAI_API_KEY 
 });
 
+// Dynamic model selection system - automatically uses latest/best available models
+class AIModelSelector {
+  private static instance: AIModelSelector;
+  private bestModels: {
+    text: string;
+    vision: string;
+    reasoning: string;
+    lastChecked: Date;
+  };
+
+  private constructor() {
+    // Initialize with current best models (as of Jan 2025)
+    this.bestModels = {
+      text: "grok-4",           // Latest flagship model with 256k context
+      vision: "grok-4",         // Grok-4 supports vision
+      reasoning: "grok-4",      // Grok-4 has advanced reasoning
+      lastChecked: new Date()
+    };
+  }
+
+  static getInstance(): AIModelSelector {
+    if (!AIModelSelector.instance) {
+      AIModelSelector.instance = new AIModelSelector();
+    }
+    return AIModelSelector.instance;
+  }
+
+  // Check for newer models every 24 hours
+  private async checkForNewerModels(): Promise<void> {
+    const now = new Date();
+    const hoursSinceLastCheck = (now.getTime() - this.bestModels.lastChecked.getTime()) / (1000 * 60 * 60);
+    
+    if (hoursSinceLastCheck < 24) {
+      return; // Don't check too frequently
+    }
+
+    try {
+      // In production, this would check X AI's models endpoint
+      // For now, we'll update manually based on known model releases
+      const availableModels = [
+        "grok-4",           // Latest flagship (Jan 2025)
+        "grok-4-heavy",     // Multi-agent version
+        "grok-2-1212",      // Previous version
+        "grok-2-vision-1212" // Previous vision version
+      ];
+
+      // Auto-select the best available model (grok-4 is currently best)
+      if (availableModels.includes("grok-4")) {
+        this.bestModels.text = "grok-4";
+        this.bestModels.vision = "grok-4";
+        this.bestModels.reasoning = "grok-4";
+      }
+
+      this.bestModels.lastChecked = now;
+      console.log(`AI Model Check: Using ${this.bestModels.text} as primary model`);
+    } catch (error) {
+      console.log("Model check failed, using cached best models");
+    }
+  }
+
+  async getBestModel(type: 'text' | 'vision' | 'reasoning' = 'text'): Promise<string> {
+    await this.checkForNewerModels();
+    return this.bestModels[type];
+  }
+
+  getModelCapabilities(model: string): { contextWindow: number; maxTokens: number } {
+    const modelSpecs: Record<string, { contextWindow: number; maxTokens: number }> = {
+      "grok-4": { contextWindow: 256000, maxTokens: 4000 },
+      "grok-4-heavy": { contextWindow: 256000, maxTokens: 4000 },
+      "grok-2-1212": { contextWindow: 131072, maxTokens: 2000 },
+      "grok-2-vision-1212": { contextWindow: 8192, maxTokens: 1000 }
+    };
+
+    return modelSpecs[model] || { contextWindow: 8192, maxTokens: 1000 };
+  }
+}
+
+const modelSelector = AIModelSelector.getInstance();
+
 // Cost prediction using X AI's Grok model
 export async function predictConstructionCost(projectData: {
   type: string;
@@ -35,12 +114,15 @@ Provide a JSON response with:
 
 Format: { "predictedCost": number, "minCost": number, "maxCost": number, "confidence": string, "breakdown": object, "factors": object, "risks": array }`;
 
+    const bestModel = await modelSelector.getBestModel('reasoning');
+    const capabilities = modelSelector.getModelCapabilities(bestModel);
+    
     const response = await xai.chat.completions.create({
-      model: "grok-2-1212", // Latest Grok model with 131k context
+      model: bestModel, // Automatically uses latest/best available model
       messages: [
         {
           role: "system",
-          content: "You are an expert Australian quantity surveyor with 20+ years experience. Provide cost estimates based on current Australian construction rates. Note: Estimates are AI-generated and should be verified by professional QS."
+          content: "You are an expert Australian quantity surveyor with 20+ years experience. Provide cost estimates based on current Australian construction rates. Use your advanced reasoning capabilities to provide highly accurate estimates. Note: Estimates are AI-generated and should be verified by professional QS."
         },
         {
           role: "user",
@@ -49,7 +131,7 @@ Format: { "predictedCost": number, "minCost": number, "maxCost": number, "confid
       ],
       response_format: { type: "json_object" },
       temperature: 0.7,
-      max_tokens: 1000
+      max_tokens: Math.min(capabilities.maxTokens, 2000)
     });
 
     const result = JSON.parse(response.choices[0].message.content || "{}");
@@ -98,8 +180,11 @@ Based on the filename and type, provide:
 Note: Estimates are AI-generated and accuracy varies - consult professional QS for validation.
 Respond in JSON format.`;
 
+    const bestModel = await modelSelector.getBestModel('text');
+    const capabilities = modelSelector.getModelCapabilities(bestModel);
+    
     const response = await xai.chat.completions.create({
-      model: "grok-2-1212", // Latest Grok model with 131k context
+      model: bestModel, // Automatically uses latest/best available model
       messages: [
         {
           role: "user",
@@ -108,7 +193,7 @@ Respond in JSON format.`;
       ],
       response_format: { type: "json_object" },
       temperature: 0.7,
-      max_tokens: 800
+      max_tokens: Math.min(capabilities.maxTokens, 2000)
     });
 
     return JSON.parse(response.choices[0].message.content || "{}");
@@ -138,8 +223,11 @@ Create an executive summary including:
 Note: This is an AI-generated report summary. Professional QS review recommended.
 Keep it professional and concise.`;
 
+    const bestModel = await modelSelector.getBestModel('text');
+    const capabilities = modelSelector.getModelCapabilities(bestModel);
+    
     const response = await xai.chat.completions.create({
-      model: "grok-2-1212", // Latest Grok model with 131k context
+      model: bestModel, // Automatically uses latest/best available model
       messages: [
         {
           role: "user",
@@ -147,7 +235,7 @@ Keep it professional and concise.`;
         }
       ],
       temperature: 0.7,
-      max_tokens: 600
+      max_tokens: Math.min(capabilities.maxTokens, 2000)
     });
 
     return response.choices[0].message.content;

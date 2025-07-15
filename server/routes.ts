@@ -620,9 +620,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       Provide 3-5 specific actionable recommendations for cost reduction and efficiency improvements.`;
 
       const completion = await xai.chat.completions.create({
-        model: "grok-beta",
+        model: "grok-4", // Latest Grok-4 model with advanced reasoning
         messages: [{ role: "user", content: prompt }],
-        max_tokens: 500
+        max_tokens: 1000
       });
 
       const suggestions = completion.choices[0]?.message?.content || "No suggestions available";
@@ -650,9 +650,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       Return a JSON structure with structural, architectural, MEP, finishes, and external elements with quantities and estimated costs in AUD.`;
 
       const completion = await xai.chat.completions.create({
-        model: "grok-beta",
+        model: "grok-4", // Latest Grok-4 model with advanced reasoning
         messages: [{ role: "user", content: prompt }],
-        max_tokens: 1000
+        max_tokens: 2000
       });
 
       const result = completion.choices[0]?.message?.content || "{}";
@@ -831,7 +831,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 Return JSON format: { "areas": [{ "roomType": string, "label": string, "x": number, "y": number, "width": number, "height": number, "potential": string }] }`;
 
       const response = await xai.chat.completions.create({
-        model: "grok-2-vision-1212",
+        model: "grok-4", // Latest Grok-4 model with vision capabilities
         messages: [
           {
             role: "system",
@@ -846,7 +846,7 @@ Return JSON format: { "areas": [{ "roomType": string, "label": string, "x": numb
           }
         ],
         response_format: { type: "json_object" },
-        max_tokens: 1000
+        max_tokens: 2000
       });
 
       const result = JSON.parse(response.choices[0].message.content || '{"areas": []}');
