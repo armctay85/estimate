@@ -41,7 +41,7 @@ export class ForgeAPI {
 
     try {
       const response = await axios.post(
-        'https://developer.api.autodesk.com/authentication/v1/authenticate',
+        'https://developer.api.autodesk.com/authentication/v2/token',
         new URLSearchParams({
           client_id: this.clientId,
           client_secret: this.clientSecret,
