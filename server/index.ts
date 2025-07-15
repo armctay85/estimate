@@ -5,22 +5,45 @@ import helmet from "helmet";
 
 const app = express();
 
-// Security hardening with Helmet middleware
+// Security hardening with Helmet middleware - Updated for Stripe.js and Google Fonts
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "aps.autodesk.com", "developer.api.autodesk.com", "'unsafe-inline'"],
-      styleSrc: ["'self'", "developer.api.autodesk.com", "'unsafe-inline'"],
+      scriptSrc: [
+        "'self'", 
+        "'unsafe-inline'", 
+        "js.stripe.com",
+        "aps.autodesk.com", 
+        "developer.api.autodesk.com"
+      ],
+      styleSrc: [
+        "'self'", 
+        "'unsafe-inline'", 
+        "fonts.googleapis.com",
+        "developer.api.autodesk.com"
+      ],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "api.x.ai", "developer.api.autodesk.com"],
-      fontSrc: ["'self'", "fonts.gstatic.com"],
+      connectSrc: [
+        "'self'", 
+        "api.stripe.com",
+        "api.x.ai", 
+        "developer.api.autodesk.com"
+      ],
+      fontSrc: [
+        "'self'", 
+        "fonts.gstatic.com",
+        "fonts.googleapis.com"
+      ],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
-      frameSrc: ["'none'"],
+      frameSrc: [
+        "'self'",
+        "js.stripe.com"
+      ],
     },
   },
-  crossOriginEmbedderPolicy: { policy: 'require-corp' },
+  crossOriginEmbedderPolicy: false, // Disable COEP for Stripe compatibility
   crossOriginOpenerPolicy: { policy: 'same-origin' },
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   referrerPolicy: { policy: 'no-referrer' }
