@@ -1744,9 +1744,8 @@ export default function Home() {
       <Forge3DViewer
         isOpen={showForgeViewer}
         onClose={() => setShowForgeViewer(false)}
-        fileName="High-Quality BIM Model"
+        fileName={localStorage.getItem('currentModelFileName') || "BIM Model"}
         urn={localStorage.getItem('currentModelUrn') || undefined}
-        accessToken={localStorage.getItem('forgeAccessToken') || undefined}
       />
     </motion.div>
   );

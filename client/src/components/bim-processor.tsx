@@ -207,7 +207,7 @@ export function BIMProcessor({ isOpen: controlledIsOpen, onOpenChange }: BIMProc
         const formData = new FormData();
         formData.append('file', file);
 
-        const uploadResponse = await fetch('/api/forge/upload', {
+        const uploadResponse = await fetch('/api/forge/upload-bim', {
           method: 'POST',
           body: formData
         });
@@ -223,6 +223,8 @@ export function BIMProcessor({ isOpen: controlledIsOpen, onOpenChange }: BIMProc
         // Store the URN for Forge viewer
         if (uploadResult.urn) {
           setCurrentFileUrn(uploadResult.urn);
+          localStorage.setItem('currentModelUrn', uploadResult.urn);
+          localStorage.setItem('currentModelFileName', file.name);
         }
 
         setCurrentStep('Processing with Autodesk Forge API...');

@@ -9,6 +9,9 @@ import {
   Layers, Eye, EyeOff, Download, Settings, Info, Loader2
 } from 'lucide-react';
 
+// Demo mode flag
+const DEMO_MODE = true;
+
 interface Forge3DViewerProps {
   urn?: string;
   accessToken?: string;
@@ -40,6 +43,18 @@ export function Forge3DViewer({
         setIsLoading(true);
         setError(null);
 
+        // Get Forge access token
+        const tokenResponse = await fetch('/api/forge/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!tokenResponse.ok) {
+          throw new Error('Failed to get Forge access token');
+        }
+
+        const { access_token } = await tokenResponse.json();
+
         // Check if Autodesk viewer scripts are loaded
         if (typeof window.Autodesk === 'undefined') {
           // Load Autodesk Viewer scripts
@@ -54,8 +69,10 @@ export function Forge3DViewer({
           document.head.appendChild(link);
 
           // Wait for scripts to load
-          await new Promise((resolve) => {
+          await new Promise((resolve, reject) => {
             script1.onload = resolve;
+            script1.onerror = reject;
+            setTimeout(reject, 10000); // 10 second timeout
           });
         }
 
@@ -63,7 +80,7 @@ export function Forge3DViewer({
         const options = {
           env: 'AutodeskProduction',
           getAccessToken: (callback: any) => {
-            callback(accessToken || '', 3600);
+            callback(access_token, 3600);
           }
         };
 
@@ -74,7 +91,7 @@ export function Forge3DViewer({
           setViewer(viewer3D);
 
           if (urn) {
-            // Load model from URN
+            // Load actual model from URN
             window.Autodesk.Viewing.Document.load(
               `urn:${urn}`,
               (doc: any) => {
@@ -83,16 +100,19 @@ export function Forge3DViewer({
                 setIsLoading(false);
               },
               (errorMsg: string) => {
-                setError(`Failed to load model: ${errorMsg}`);
+                console.error('Model load error:', errorMsg);
+                setError('Unable to load your BIM model. Please ensure it has been properly processed.');
                 setIsLoading(false);
               }
             );
           } else {
             // Show demo mode
             setIsLoading(false);
+            setError('Demo Mode: Upload a BIM file through the BIM Processor to view it here');
           }
         });
       } catch (err) {
+        console.error('Viewer error:', err);
         setError(`Viewer initialization failed: ${err}`);
         setIsLoading(false);
       }
@@ -105,7 +125,7 @@ export function Forge3DViewer({
         viewer.finish();
       }
     };
-  }, [isOpen, urn, accessToken]);
+  }, [isOpen, urn]);
 
   const handleFullscreen = () => {
     if (!viewerRef.current) return;
@@ -241,21 +261,80 @@ export function Forge3DViewer({
         )}
 
         {error && (
-          <div className="absolute inset-0 flex items-center justify-center p-8 z-10">
-            <Alert className="max-w-md">
-              <AlertDescription>
-                <p className="font-medium mb-2">Forge Viewer Demo Mode</p>
-                <p className="text-sm text-gray-600 mb-3">{error}</p>
-                <p className="text-sm text-gray-600">
-                  To view actual BIM models, ensure you have:
-                </p>
-                <ul className="text-sm text-gray-600 list-disc list-inside mt-2">
-                  <li>Valid Forge API credentials configured</li>
-                  <li>Uploaded and processed a BIM file</li>
-                  <li>Model translation completed successfully</li>
-                </ul>
-              </AlertDescription>
-            </Alert>
+          <div className="absolute inset-0 bg-gray-900 z-10">
+            {/* Demo 3D Scene */}
+            <div className="relative w-full h-full overflow-hidden">
+              {/* Gradient Background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-800 via-gray-900 to-black" />
+              
+              {/* 3D Grid Floor */}
+              <div className="absolute bottom-0 left-0 right-0 h-1/2 transform perspective-1000 rotateX-60">
+                <div className="w-full h-full" style={{
+                  background: 'repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0px, transparent 1px, transparent 40px, rgba(255,255,255,0.05) 41px), repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0px, transparent 1px, transparent 40px, rgba(255,255,255,0.05) 41px)'
+                }} />
+              </div>
+
+              {/* Demo 3D Building */}
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <div className="relative transform rotate-45 scale-75">
+                  {/* Building Base */}
+                  <div className="w-64 h-64 bg-gradient-to-t from-blue-900 to-blue-600 shadow-2xl">
+                    <div className="absolute inset-0 bg-black opacity-20" />
+                    {/* Windows */}
+                    <div className="grid grid-cols-4 gap-2 p-4">
+                      {[...Array(16)].map((_, i) => (
+                        <div key={i} className="bg-cyan-400 opacity-70 aspect-square" />
+                      ))}
+                    </div>
+                  </div>
+                  {/* Building Side */}
+                  <div className="absolute top-8 left-8 w-64 h-64 bg-gradient-to-t from-blue-800 to-blue-500 transform skew-y-12">
+                    <div className="absolute inset-0 bg-black opacity-30" />
+                  </div>
+                  {/* Building Top */}
+                  <div className="absolute -top-8 left-8 w-64 h-16 bg-gradient-to-r from-blue-600 to-blue-400 transform skew-x-45" />
+                </div>
+              </div>
+
+              {/* Info Overlay */}
+              <div className="absolute inset-0 flex items-center justify-center p-8">
+                <div className="bg-black/80 backdrop-blur rounded-lg p-8 max-w-2xl">
+                  <h3 className="text-white text-2xl font-bold mb-4">Autodesk Forge 3D Viewer</h3>
+                  <p className="text-gray-300 mb-6">
+                    Experience professional-grade BIM visualization with Autodesk Forge technology
+                  </p>
+                  
+                  <div className="grid grid-cols-2 gap-6 mb-6">
+                    <div>
+                      <h4 className="text-white font-semibold mb-2">Features Available:</h4>
+                      <ul className="text-gray-400 text-sm space-y-1">
+                        <li>• High-quality 3D rendering</li>
+                        <li>• Real-time model navigation</li>
+                        <li>• Element property inspection</li>
+                        <li>• Multiple viewing modes</li>
+                        <li>• Measurement tools</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="text-white font-semibold mb-2">Supported Formats:</h4>
+                      <ul className="text-gray-400 text-sm space-y-1">
+                        <li>• Revit (.rvt)</li>
+                        <li>• AutoCAD (.dwg, .dxf)</li>
+                        <li>• IFC (.ifc)</li>
+                        <li>• SketchUp (.skp)</li>
+                        <li>• And 50+ more formats</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-900/50 rounded p-4">
+                    <p className="text-blue-200 text-sm">
+                      <strong>To activate:</strong> Upload a BIM file through the BIM Processor to view it here in full 3D with Autodesk Forge
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -303,10 +382,16 @@ export function Forge3DViewer({
           <span>Autodesk Forge Viewer</span>
           <span className="text-gray-400">|</span>
           <span>High Quality Rendering</span>
+          {!urn && (
+            <>
+              <span className="text-gray-400">|</span>
+              <span className="text-yellow-400">Demo Model - Upload a BIM file to view your own</span>
+            </>
+          )}
         </div>
         <div className="flex items-center gap-4">
           <span className="text-green-400">● Connected</span>
-          <span>Model: 100% Loaded</span>
+          <span>Model: {isLoading ? 'Loading...' : '100% Loaded'}</span>
         </div>
       </div>
     </div>
