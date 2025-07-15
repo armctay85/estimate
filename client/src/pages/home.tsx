@@ -91,6 +91,7 @@ export default function Home() {
   const [showModelLibrary, setShowModelLibrary] = useState(false);
   const [showForgeViewer, setShowForgeViewer] = useState(false);
   const [showAICostPredictor, setShowAICostPredictor] = useState(false);
+  const [showUploadPlans, setShowUploadPlans] = useState(false);
   const [selectedWorkspaceMode, setSelectedWorkspaceMode] = useState<string | null>(null);
   
   const canvasRef = useRef<{ uploadBackground: (file: File) => void } | null>(null);
@@ -771,15 +772,7 @@ export default function Home() {
               transition={{ delay: 0.6 }}
             >
               <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer group"
-                    onClick={() => {
-                      // Go to workspace and trigger file upload
-                      setShowDashboard(false);
-                      // We'll open the upload dialog after workspace loads
-                      setTimeout(() => {
-                        const uploadButton = document.querySelector('.upload-plans-button') as HTMLElement;
-                        if (uploadButton) uploadButton.click();
-                      }, 500);
-                    }}>
+                    onClick={() => setShowUploadPlans(true)}>
                 <CardContent className="p-8">
                   <div className="mb-6">
                     <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -1283,6 +1276,94 @@ export default function Home() {
                   }
                 }}
               />
+            </div>
+          </div>
+        )}
+        
+        {/* Upload Plans Modal - Direct implementation */}
+        {showUploadPlans && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <Upload className="w-6 h-6" />
+                  Upload Floor Plans
+                </h2>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowUploadPlans(false)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              
+              <Alert className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Upload PDF or image floor plans to trace over them. Supports PDF, PNG, JPG formats.
+                </AlertDescription>
+              </Alert>
+              
+              <Card className="border-dashed border-2 border-gray-300 hover:border-indigo-400 bg-gradient-to-br from-gray-50 to-white">
+                <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
+                  <Upload className="w-16 h-16 text-gray-400" />
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold mb-2 text-indigo-600">
+                      Select Your Floor Plan
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Click below or drag and drop your file
+                    </p>
+                    <input
+                      type="file"
+                      accept=".pdf,.png,.jpg,.jpeg"
+                      className="block mx-auto text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          // Enter workspace with the uploaded file
+                          setShowUploadPlans(false);
+                          setShowDashboard(false);
+                          setSelectedWorkspaceMode('quick-sketch');
+                          toast({
+                            title: "Floor plan uploaded",
+                            description: `${file.name} ready for tracing. Use the calibration tool to set the scale.`,
+                          });
+                          
+                          // Handle the file upload to canvas
+                          setTimeout(() => {
+                            if (canvasRef.current?.uploadBackground) {
+                              canvasRef.current.uploadBackground(file);
+                            }
+                          }, 500);
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Maximum file size: 10MB
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <div className="mt-6 space-y-3">
+                <h3 className="font-semibold">After uploading:</h3>
+                <div className="space-y-2 text-sm text-gray-600">
+                  <div className="flex items-start gap-2">
+                    <Badge className="bg-indigo-100 text-indigo-800 mt-0.5">1</Badge>
+                    <span>Use the calibration tool to set the correct scale</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Badge className="bg-indigo-100 text-indigo-800 mt-0.5">2</Badge>
+                    <span>Trace over rooms using the drawing tools</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Badge className="bg-indigo-100 text-indigo-800 mt-0.5">3</Badge>
+                    <span>Assign materials to get instant cost estimates</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

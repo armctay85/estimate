@@ -17,7 +17,7 @@ export function Header() {
   const user = null;
   const logout = () => {};
   // const { user, logout } = useAuth();
-  const [, setLocation] = useLocation();
+  const [, navigate] = useLocation();
 
   const getSubscriptionBadge = () => {
     // Check localStorage for admin status
@@ -53,7 +53,7 @@ export function Header() {
   };
 
   const handleUpgrade = () => {
-    setLocation("/subscribe");
+    navigate("/subscribe");
   };
 
   if (!user) {
@@ -75,7 +75,7 @@ export function Header() {
             <div className="flex items-center space-x-4">
               <Button 
                 variant="outline" 
-                onClick={() => setLocation("/auth")}
+                onClick={() => navigate("/auth")}
               >
                 Sign In
               </Button>
@@ -131,20 +131,20 @@ export function Header() {
               </DropdownMenuTrigger>
               
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={() => setLocation("/projects")}>
+                <DropdownMenuItem onClick={() => navigate("/projects")}>
                   <FolderOpen className="w-4 h-4 mr-2" />
                   Projects
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLocation("/reports")}>
+                <DropdownMenuItem onClick={() => navigate("/reports")}>
                   <FileBarChart className="w-4 h-4 mr-2" />
                   Reports
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLocation("/settings")}>
+                <DropdownMenuItem onClick={() => navigate("/settings")}>
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setLocation("/subscribe")}>
+                <DropdownMenuItem onClick={() => navigate("/subscribe")}>
                   <Crown className="w-4 h-4 mr-2" />
                   Subscription
                 </DropdownMenuItem>
