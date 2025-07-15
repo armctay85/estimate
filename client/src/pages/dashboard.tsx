@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Working3DViewer } from "@/components/working-3d-viewer";
+import { Enterprise3DViewer } from "@/components/enterprise-3d-viewer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ import {
 export default function Dashboard() {
   const [, navigate] = useLocation();
   const [show3DViewer, setShow3DViewer] = useState(false);
+  const [showEnterprise3D, setShowEnterprise3D] = useState(false);
   const [stats, setStats] = useState({
     totalProjects: 12,
     totalValue: 4850000,
