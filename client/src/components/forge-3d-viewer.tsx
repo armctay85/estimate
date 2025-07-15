@@ -85,16 +85,20 @@ export function Forge3DViewer({
         };
 
         window.Autodesk.Viewing.Initializer(options, () => {
+          console.log('Forge viewer initialized');
           const htmlDiv = viewerRef.current!;
           const viewer3D = new window.Autodesk.Viewing.GuiViewer3D(htmlDiv);
           viewer3D.start();
           setViewer(viewer3D);
+          console.log('Viewer started, URN:', urn);
 
           if (urn) {
             // Load actual model from URN
+            console.log('Loading model with URN:', urn);
             window.Autodesk.Viewing.Document.load(
               `urn:${urn}`,
               (doc: any) => {
+                console.log('Document loaded successfully');
                 const defaultModel = doc.getRoot().getDefaultGeometry();
                 viewer3D.loadDocumentNode(doc, defaultModel);
                 setIsLoading(false);
@@ -107,6 +111,7 @@ export function Forge3DViewer({
             );
           } else {
             // Show demo mode
+            console.log('No URN provided, showing demo mode');
             setIsLoading(false);
             setError('Demo Mode: Upload a BIM file through the BIM Processor to view it here');
           }
