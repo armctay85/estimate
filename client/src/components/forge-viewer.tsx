@@ -195,12 +195,17 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
           setViewer(viewerInstance);
           setViewerInitialized(true);
 
-          // Load the document with enhanced error handling and fallback geometry selection
-          const documentUrn = urn.startsWith('urn:') ? urn : 'urn:' + urn;
-          console.log('Loading document with URN:', documentUrn);
+          // Validate URN exists
+          if (!urn || urn === 'undefined') {
+            setError('No model URN provided. Please upload a BIM file first.');
+            setIsLoading(false);
+            return;
+          }
+          
+          console.log('Loading document with URN:', urn);
           
           window.Autodesk.Viewing.Document.load(
-            documentUrn,
+            urn,
             (doc) => {
               console.log('Document loaded successfully:', doc);
               

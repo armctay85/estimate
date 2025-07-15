@@ -1966,13 +1966,56 @@ export default function Home() {
                       <div>• 93136-001 Burleigh Junction DT AUS_Final DD Set.rvt (413MB)</div>
                     </div>
                     <button 
-                      onClick={() => {
-                        setShowForgeViewer(true);
+                      onClick={async () => {
                         setShowProfessional3D(false);
+                        
+                        // First, check if we have any uploaded files
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = '.rvt,.ifc,.dwg,.dxf,.fbx,.obj';
+                        input.multiple = false;
+                        
+                        input.onchange = async (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (!file) return;
+                          
+                          // Show upload progress
+                          const formData = new FormData();
+                          formData.append('file', file);
+                          
+                          try {
+                            console.log('Uploading file to Forge:', file.name);
+                            const uploadResponse = await fetch('/api/forge/upload-bim', {
+                              method: 'POST',
+                              body: formData
+                            });
+                            
+                            const uploadResult = await uploadResponse.json();
+                            
+                            if (uploadResult.error) {
+                              throw new Error(uploadResult.error);
+                            }
+                            
+                            console.log('Upload successful, URN:', uploadResult.urn);
+                            
+                            // Store the URN and filename
+                            localStorage.setItem('currentModelFileName', file.name);
+                            localStorage.setItem('currentModelUrn', uploadResult.urn);
+                            
+                            // Open the Forge viewer
+                            setShowForgeViewer(true);
+                            
+                          } catch (error) {
+                            console.error('Upload failed:', error);
+                            alert('Upload failed: ' + error.message);
+                          }
+                        };
+                        
+                        input.click();
                       }}
                       className="mt-4 w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
                     >
-                      Open Forge Viewer
+                      Upload & View RVT File
                     </button>
                   </div>
                   
