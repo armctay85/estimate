@@ -54,6 +54,8 @@ export function BIMProcessor({ isOpen: controlledIsOpen, onOpenChange }: BIMProc
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
   const setIsOpen = onOpenChange || setInternalIsOpen;
   
+
+  
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
@@ -364,6 +366,11 @@ export function BIMProcessor({ isOpen: controlledIsOpen, onOpenChange }: BIMProc
     };
     return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
+
+  // Add debug to check if component is rendering
+  if (isOpen) {
+    console.log('BIM Processor Dialog should be visible now, isOpen:', isOpen);
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>

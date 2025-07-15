@@ -12,6 +12,7 @@ import { RoomDetails } from "@/components/room-details";
 import { Header } from "@/components/header";
 import { AICostPredictor } from "@/components/ai-cost-predictor";
 import { BIMProcessor } from "@/components/bim-processor";
+import { TestDialog } from "@/components/test-dialog";
 import { IntelligentAssistant } from "@/components/intelligent-assistant";
 import { Simple3DViewer } from "@/components/simple-3d-viewer";
 import { PhotoRenovationTool } from "@/components/photo-renovation-tool";
@@ -87,6 +88,7 @@ export default function Home() {
   const [showScheduler, setShowScheduler] = useState(false);
   const [showCollaborators, setShowCollaborators] = useState(false);
   const [showBIMProcessor, setShowBIMProcessor] = useState(false);
+  const [showTestDialog, setShowTestDialog] = useState(false);
   const [showModelLibrary, setShowModelLibrary] = useState(false);
   const [showForgeViewer, setShowForgeViewer] = useState(false);
   const [selectedWorkspaceMode, setSelectedWorkspaceMode] = useState<string | null>(null);
@@ -447,6 +449,7 @@ export default function Home() {
   // Show dashboard selection screen if not in workspace mode
   if (showDashboard) {
     console.log('Rendering dashboard view');
+    console.log('showBIMProcessor state:', showBIMProcessor);
     return (
       <motion.div 
         initial={{ opacity: 0 }} 
@@ -698,8 +701,17 @@ export default function Home() {
                     className="w-full mt-6 bg-purple-600 hover:bg-purple-700"
                     onClick={(e) => {
                       e.stopPropagation();
-                      console.log('BIM button clicked, setting showBIMProcessor to true');
+                      console.log('BIM button clicked');
+                      console.log('Current showBIMProcessor:', showBIMProcessor);
+                      console.log('Current showTestDialog:', showTestDialog);
                       setShowBIMProcessor(true);
+                      setShowTestDialog(true);
+                      console.log('States should be set to true now');
+                      // Force a re-render to debug
+                      setTimeout(() => {
+                        console.log('After timeout - showBIMProcessor:', showBIMProcessor);
+                        console.log('After timeout - showTestDialog:', showTestDialog);
+                      }, 100);
                     }}
                   >
                     Start BIM Processing
@@ -1205,11 +1217,40 @@ export default function Home() {
           </div>
         </div>
         
-        {/* BIM Processor Dialog */}
-        <BIMProcessor 
-          isOpen={showBIMProcessor} 
-          onOpenChange={setShowBIMProcessor} 
+        {/* BIM Processor Dialog - Always render it */}
+        {showBIMProcessor && (
+          <BIMProcessor 
+            isOpen={true} 
+            onOpenChange={(open) => {
+              console.log('BIM Processor onOpenChange called with:', open);
+              if (!open) {
+                setShowBIMProcessor(false);
+              }
+            }} 
+          />
+        )}
+        
+        {/* Test Dialog */}
+        <TestDialog 
+          isOpen={showTestDialog} 
+          onOpenChange={setShowTestDialog} 
         />
+        
+        {/* Simple HTML test dialog */}
+        {showTestDialog && (
+          <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center">
+            <div className="bg-white p-8 rounded-lg shadow-xl">
+              <h2 className="text-xl font-bold mb-4">Test HTML Dialog</h2>
+              <p>If you can see this, basic dialogs work.</p>
+              <button 
+                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+                onClick={() => setShowTestDialog(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
       </motion.div>
     );
   }
