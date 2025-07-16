@@ -1978,6 +1978,22 @@ export default function Home() {
         />
       )}
 
+      {/* EMERGENCY CLOSE BUTTON */}
+      {showRealForgeViewer && (
+        <div className="fixed top-4 right-4 z-[99999]">
+          <Button
+            variant="destructive"
+            onClick={() => {
+              console.log('EMERGENCY CLOSE: Forcing viewer closed');
+              setShowRealForgeViewer(false);
+            }}
+            className="bg-red-600 hover:bg-red-700 text-white font-bold text-lg px-6 py-3"
+          >
+            EMERGENCY CLOSE VIEWER
+          </Button>
+        </div>
+      )}
+
       {/* TEST VIEWER - Debug close functionality */}
       {showRealForgeViewer && (
         <SimpleTestViewer
