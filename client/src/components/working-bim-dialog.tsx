@@ -8,7 +8,12 @@ interface WorkingBIMDialogProps {
 }
 
 export function WorkingBIMDialog({ isOpen, onClose }: WorkingBIMDialogProps) {
-  if (!isOpen) return null;
+  console.log('WorkingBIMDialog render - isOpen:', isOpen);
+  
+  if (!isOpen) {
+    console.log('WorkingBIMDialog: Not rendering - isOpen is false');
+    return null;
+  }
 
   const handleClose = () => {
     console.log('WorkingBIMDialog: Close button clicked');

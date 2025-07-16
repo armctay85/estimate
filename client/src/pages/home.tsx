@@ -660,7 +660,9 @@ export default function Home() {
               <Card className="h-full hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 border-purple-300 hover:border-purple-400"
                     onClick={() => {
                       console.log('Enterprise BIM card clicked - opening working dialog');
+                      console.log('Current showWorkingBIMDialog state:', showWorkingBIMDialog);
                       setShowWorkingBIMDialog(true);
+                      console.log('Setting showWorkingBIMDialog to true');
                     }}>
                 <CardContent className="p-8">
                   <div className="mb-6">
@@ -1974,8 +1976,18 @@ export default function Home() {
       {/* Working BIM Dialog */}
       <WorkingBIMDialog
         isOpen={showWorkingBIMDialog}
-        onClose={() => setShowWorkingBIMDialog(false)}
+        onClose={() => {
+          console.log('WorkingBIMDialog close called');
+          setShowWorkingBIMDialog(false);
+        }}
       />
+      
+      {/* DEBUG: Always show if state is true */}
+      {showWorkingBIMDialog && (
+        <div className="fixed top-4 left-4 z-[9999] bg-green-500 text-white p-2 rounded">
+          DEBUG: showWorkingBIMDialog is TRUE
+        </div>
+      )}
 
       {/* REAL AUTODESK FORGE VIEWER - DISABLED */}
     </motion.div>
