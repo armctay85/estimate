@@ -22,7 +22,7 @@ import { ProjectScheduler } from "@/components/project-scheduler";
 import { ModelLibrary } from "@/components/model-library";
 import { Forge3DViewer } from "@/components/forge-3d-viewer";
 import { Professional3DDemo } from "@/components/professional-3d-demo";
-import { RealForgeViewer } from "@/components/real-forge-viewer";
+import { RealForgeViewer as RealForgeViewerComplete } from "@/components/real-forge-viewer-complete";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -663,6 +663,10 @@ export default function Home() {
                       e.stopPropagation();
                       console.log('Enterprise card clicked, opening REAL Forge viewer');
                       setShowRealForgeViewer(true);
+                      // Ensure the dialog actually shows
+                      setTimeout(() => {
+                        console.log('RealForgeViewer should be visible now');
+                      }, 100);
                     }}>
                 <CardContent className="p-8">
                   <div className="mb-6">
@@ -1975,7 +1979,7 @@ export default function Home() {
 
       {/* REAL AUTODESK FORGE VIEWER - Authentic BIM Processing */}
       {showRealForgeViewer && (
-        <RealForgeViewer
+        <RealForgeViewerComplete
           isOpen={showRealForgeViewer}
           onClose={() => setShowRealForgeViewer(false)}
           fileName="Real BIM Model"

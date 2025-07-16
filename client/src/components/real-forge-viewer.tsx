@@ -105,6 +105,8 @@ export function RealForgeViewer({
   const [currentUrn, setCurrentUrn] = useState<string>('');
   const [currentAccessToken, setCurrentAccessToken] = useState<string>('');
 
+  if (!isOpen) return null;
+
   // Get access token from backend
   const getAccessToken = useCallback(async () => {
     try {
@@ -493,7 +495,7 @@ export function RealForgeViewer({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center p-4">
       <div className="bg-white rounded-lg max-w-[95vw] max-h-[95vh] w-full h-full overflow-hidden shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-blue-600 to-purple-600 text-white">
@@ -501,83 +503,149 @@ export function RealForgeViewer({
             <Building className="w-6 h-6" />
             <div>
               <h2 className="text-xl font-bold">Real Autodesk Forge BIM Viewer</h2>
-              <p className="text-sm text-blue-100">
-                {uploadedFile ? uploadedFile.name : fileName}
-              </p>
+              <p className="text-sm text-blue-100">Professional BIM File Processing</p>
             </div>
-            {isModelLoaded && (
-              <Badge variant="secondary" className="bg-green-500 text-white">
-                Real BIM Model Loaded
-              </Badge>
-            )}
-            {elementCount > 0 && (
-              <Badge variant="outline" className="bg-white/20 text-white border-white/30">
-                {elementCount} Real Elements
-              </Badge>
-            )}
+            <Badge variant="secondary" className="bg-green-500 text-white">
+              Enterprise Ready
+            </Badge>
           </div>
           
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-white/20 text-white border-white/30">
-              ${totalCost.toLocaleString()}
-            </Badge>
-            <Button
-              variant="ghost"
+            <Button 
+              variant="outline" 
               size="sm"
               onClick={onClose}
-              className="text-white hover:bg-white/20"
+              className="bg-white/20 text-white border-white/30 hover:bg-white/30"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </Button>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="h-[calc(100%-80px)]">
-          {!currentUrn && !isUploading && (
-            <div className="h-full flex items-center justify-center">
-              <Card className="p-8 text-center max-w-md">
-                <CardContent>
-                  <Upload className="w-16 h-16 mx-auto mb-4 text-blue-600" />
-                  <h3 className="text-xl font-semibold mb-2">Upload Real BIM File</h3>
-                  <p className="text-gray-600 mb-6">
-                    Upload .rvt, .ifc, .dwg, or other BIM files for professional 3D visualization
-                  </p>
-                  <input
-                    type="file"
-                    accept=".rvt,.ifc,.dwg,.dxf,.nwd,.fbx"
-                    onChange={handleFileInput}
-                    className="hidden"
-                    id="bim-upload"
-                  />
-                  <label htmlFor="bim-upload">
-                    <Button asChild className="cursor-pointer">
-                      <span>
-                        <Upload className="w-4 h-4 mr-2" />
-                        Select BIM File
-                      </span>
-                    </Button>
-                  </label>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Supported: .rvt, .ifc, .dwg, .dxf, .nwd, .fbx (Max: 500MB)
-                  </p>
-                </CardContent>
-              </Card>
+        {/* Main Content */}
+        <div className="flex h-[calc(100%-80px)]">
+          {/* Upload Section */}
+          <div className="w-1/3 p-6 border-r bg-gray-50">
+            <h3 className="text-lg font-semibold mb-4">Upload BIM File</h3>
+            
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+              <input
+                type="file"
+                id="bim-upload"
+                accept=".rvt,.ifc,.dwg,.dxf,.nwd,.fbx"
+                onChange={handleFileInput}
+                className="hidden"
+              />
+              <label htmlFor="bim-upload" className="cursor-pointer">
+                <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                <p className="text-lg font-medium text-gray-700 mb-2">
+                  {uploadedFile ? uploadedFile.name : "Drop BIM file here"}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Supports: .rvt, .ifc, .dwg, .dxf, .nwd, .fbx
+                </p>
+                <p className="text-xs text-gray-400 mt-2">Up to 500MB</p>
+              </label>
             </div>
-          )}
 
-          {isUploading && (
-            <div className="h-full flex items-center justify-center">
-              <Card className="p-6 min-w-[300px]">
-                <CardContent className="space-y-4">
-                  <div className="text-center">
-                    <Loader2 className="w-12 h-12 mx-auto mb-2 text-blue-600 animate-spin" />
-                    <h3 className="font-semibold">Processing Real BIM File</h3>
-                    <p className="text-sm text-gray-600">
-                      Uploading and translating {uploadedFile?.name}...
-                    </p>
-                  </div>
-                  <div className="text-center">
+            {isUploading && (
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Processing...</span>
+                  <span className="text-sm text-gray-500">{loadingProgress}%</span>
+                </div>
+                <Progress value={loadingProgress} className="w-full" />
+              </div>
+            )}
+
+            {error && (
+              <Alert className="mt-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {/* Features List */}
+            <div className="mt-6 space-y-3">
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span>Real BIM element extraction</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span>Australian construction rates</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span>Professional 3D visualization</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span>Cost overlay system</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Viewer Section */}
+          <div className="flex-1 relative">
+            <div 
+              ref={viewerRef} 
+              className="w-full h-full bg-gray-100 flex items-center justify-center"
+              style={{ minHeight: '400px' }}
+            >
+              {isLoading ? (
+                <div className="text-center">
+                  <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-500" />
+                  <p className="text-lg font-medium">Loading BIM Model...</p>
+                  <p className="text-sm text-gray-500">This may take a few minutes</p>
+                </div>
+              ) : !uploadedFile ? (
+                <div className="text-center text-gray-500">
+                  <Box className="w-16 h-16 mx-auto mb-4" />
+                  <p className="text-lg">Upload a BIM file to begin</p>
+                  <p className="text-sm">Real 3D visualization will appear here</p>
+                </div>
+              ) : (
+                <div className="text-center text-gray-500">
+                  <Building className="w-16 h-16 mx-auto mb-4" />
+                  <p className="text-lg">Processing BIM file...</p>
+                  <p className="text-sm">Translation in progress</p>
+                </div>
+              )}
+            </div>
+
+            {/* View Controls */}
+            {viewer && (
+              <div className="absolute top-4 right-4 flex gap-2">
+                <Button
+                  size="sm"
+                  variant={viewMode === 'default' ? 'default' : 'outline'}
+                  onClick={() => handleViewModeChange('default')}
+                >
+                  <Eye className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant={viewMode === 'wireframe' ? 'default' : 'outline'}
+                  onClick={() => handleViewModeChange('wireframe')}
+                >
+                  <Grid className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant={viewMode === 'transparent' ? 'default' : 'outline'}
+                  onClick={() => handleViewModeChange('transparent')}
+                >
+                  <Palette className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
                     <p className="text-xs text-gray-500">
                       This may take several minutes for large files
                     </p>
