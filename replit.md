@@ -9,6 +9,12 @@ BuildCost Sketch is a web-based mini take-off tool for property and construction
 Preferred communication style: Simple, everyday language.
 UI/UX Preferences: User prefers cleaner, more professional interface design and typography. Requested complete app code export and strategy summary for external review.
 Performance Requirements: CRITICAL - Upload speeds must be near-instant (2-5 seconds maximum). User has stated "unless you can fix for close to instant upload speed - then not worth it". This is a make-or-break feature.
+Quality Standards: MANDATORY - Every new component or feature must be systematically tested for:
+- All buttons function correctly (especially close buttons)
+- All navigation works as designed
+- No broken functionality or non-working elements
+- 100% execution quality - no shortcuts or watered-down implementations
+- User should never have to remind about testing basic functionality
 
 ## System Architecture
 

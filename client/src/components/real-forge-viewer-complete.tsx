@@ -397,8 +397,25 @@ export function RealForgeViewer({
     }
   };
 
+  const handleClose = () => {
+    console.log('Close button clicked - closing Real Forge Viewer');
+    if (viewer) {
+      viewer.tearDown();
+      setViewer(null);
+    }
+    onClose();
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center p-4">
+    <div 
+      className="fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center p-4"
+      onClick={(e) => {
+        // Close when clicking backdrop
+        if (e.target === e.currentTarget) {
+          handleClose();
+        }
+      }}
+    >
       <div className="bg-white rounded-lg max-w-[95vw] max-h-[95vh] w-full h-full overflow-hidden shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-blue-600 to-purple-600 text-white">
@@ -429,8 +446,13 @@ export function RealForgeViewer({
             <Button 
               variant="outline" 
               size="sm"
-              onClick={onClose}
-              className="bg-white/20 text-white border-white/30 hover:bg-white/30"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Close button clicked directly');
+                handleClose();
+              }}
+              className="bg-white/20 text-white border-white/30 hover:bg-white/30 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </Button>

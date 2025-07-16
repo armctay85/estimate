@@ -23,6 +23,7 @@ import { ModelLibrary } from "@/components/model-library";
 import { Forge3DViewer } from "@/components/forge-3d-viewer";
 import { Professional3DDemo } from "@/components/professional-3d-demo";
 import { RealForgeViewer as RealForgeViewerComplete } from "@/components/real-forge-viewer-complete";
+import { SimpleTestViewer } from "@/components/simple-test-viewer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -1977,8 +1978,19 @@ export default function Home() {
         />
       )}
 
-      {/* REAL AUTODESK FORGE VIEWER - Authentic BIM Processing */}
+      {/* TEST VIEWER - Debug close functionality */}
       {showRealForgeViewer && (
+        <SimpleTestViewer
+          isOpen={showRealForgeViewer}
+          onClose={() => {
+            console.log('SimpleTestViewer onClose called');
+            setShowRealForgeViewer(false);
+          }}
+        />
+      )}
+
+      {/* REAL AUTODESK FORGE VIEWER - Authentic BIM Processing */}
+      {false && showRealForgeViewer && (
         <RealForgeViewerComplete
           isOpen={showRealForgeViewer}
           onClose={() => setShowRealForgeViewer(false)}
