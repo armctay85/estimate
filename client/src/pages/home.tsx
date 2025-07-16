@@ -1994,6 +1994,25 @@ export default function Home() {
         </div>
       )}
 
+      {/* ALWAYS SHOW RED OVERLAY - Force visible for debugging */}
+      {true && (
+        <div className="fixed inset-0 bg-red-500/90 z-[99999] flex items-center justify-center">
+          <div className="bg-white p-8 rounded-lg max-w-md">
+            <h2 className="text-2xl font-bold mb-4">FORCE VISIBLE TEST</h2>
+            <p className="mb-4">State: showRealForgeViewer = {showRealForgeViewer.toString()}</p>
+            <button 
+              onClick={() => {
+                console.log('FORCE CLOSE clicked');
+                setShowRealForgeViewer(false);
+              }}
+              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+            >
+              FORCE CLOSE
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* TEST VIEWER - Debug close functionality */}
       {showRealForgeViewer && (
         <SimpleTestViewer

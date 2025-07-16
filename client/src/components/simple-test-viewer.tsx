@@ -8,7 +8,8 @@ interface SimpleTestViewerProps {
 }
 
 export function SimpleTestViewer({ isOpen, onClose }: SimpleTestViewerProps) {
-  console.log('SimpleTestViewer render - isOpen:', isOpen);
+  console.log('SimpleTestViewer render called - isOpen:', isOpen);
+  console.log('SimpleTestViewer onClose function:', typeof onClose);
   
   if (!isOpen) {
     console.log('SimpleTestViewer: Not rendering - isOpen is false');
