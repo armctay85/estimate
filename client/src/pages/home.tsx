@@ -22,7 +22,7 @@ import { ProjectScheduler } from "@/components/project-scheduler";
 import { ModelLibrary } from "@/components/model-library";
 import { Forge3DViewer } from "@/components/forge-3d-viewer";
 import { Professional3DDemo } from "@/components/professional-3d-demo";
-import { RealForgeViewer as RealForgeViewerComplete } from "@/components/real-forge-viewer-complete";
+import { WorkingBIMDialog } from "@/components/working-bim-dialog";
 import { SimpleTestViewer } from "@/components/simple-test-viewer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -100,13 +100,12 @@ export default function Home() {
   const [showAICostPredictor, setShowAICostPredictor] = useState(false);
   const [showUploadPlans, setShowUploadPlans] = useState(false);
   const [showProfessional3D, setShowProfessional3D] = useState(false);
-  const [showRealForgeViewer, setShowRealForgeViewer] = useState(false);
+  const [showWorkingBIMDialog, setShowWorkingBIMDialog] = useState(false);
   
   // Debug logging for showProfessional3D
   useEffect(() => {
     console.log('showProfessional3D state changed:', showProfessional3D);
-    console.log('showRealForgeViewer state changed:', showRealForgeViewer);
-  }, [showProfessional3D, showRealForgeViewer]);
+  }, [showProfessional3D]);
   const [selectedWorkspaceMode, setSelectedWorkspaceMode] = useState<string | null>(null);
   
   const canvasRef = useRef<{ uploadBackground: (file: File) => void } | null>(null);
@@ -659,15 +658,9 @@ export default function Home() {
               transition={{ delay: 0.4 }}
             >
               <Card className="h-full hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 border-purple-300 hover:border-purple-400"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      console.log('Enterprise card clicked, opening REAL Forge viewer');
-                      setShowRealForgeViewer(true);
-                      // Ensure the dialog actually shows
-                      setTimeout(() => {
-                        console.log('RealForgeViewer should be visible now');
-                      }, 100);
+                    onClick={() => {
+                      console.log('Enterprise BIM card clicked - opening working dialog');
+                      setShowWorkingBIMDialog(true);
                     }}>
                 <CardContent className="p-8">
                   <div className="mb-6">
@@ -1978,67 +1971,13 @@ export default function Home() {
         />
       )}
 
-      {/* EMERGENCY CLOSE BUTTON */}
-      {showRealForgeViewer && (
-        <div className="fixed top-4 right-4 z-[99999]">
-          <Button
-            variant="destructive"
-            onClick={() => {
-              console.log('EMERGENCY CLOSE: Forcing viewer closed');
-              setShowRealForgeViewer(false);
-            }}
-            className="bg-red-600 hover:bg-red-700 text-white font-bold text-lg px-6 py-3"
-          >
-            EMERGENCY CLOSE VIEWER
-          </Button>
-        </div>
-      )}
+      {/* Working BIM Dialog */}
+      <WorkingBIMDialog
+        isOpen={showWorkingBIMDialog}
+        onClose={() => setShowWorkingBIMDialog(false)}
+      />
 
-      {/* ALWAYS SHOW RED OVERLAY - Force visible for debugging */}
-      {true && (
-        <div className="fixed inset-0 bg-red-500/90 z-[99999] flex items-center justify-center">
-          <div className="bg-white p-8 rounded-lg max-w-md">
-            <h2 className="text-2xl font-bold mb-4">FORCE VISIBLE TEST</h2>
-            <p className="mb-4">State: showRealForgeViewer = {showRealForgeViewer.toString()}</p>
-            <button 
-              onClick={() => {
-                console.log('FORCE CLOSE clicked');
-                setShowRealForgeViewer(false);
-              }}
-              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-            >
-              FORCE CLOSE
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* TEST VIEWER - Debug close functionality */}
-      {showRealForgeViewer && (
-        <SimpleTestViewer
-          isOpen={showRealForgeViewer}
-          onClose={() => {
-            console.log('SimpleTestViewer onClose called');
-            setShowRealForgeViewer(false);
-          }}
-        />
-      )}
-
-      {/* REAL AUTODESK FORGE VIEWER - Authentic BIM Processing */}
-      {false && showRealForgeViewer && (
-        <RealForgeViewerComplete
-          isOpen={showRealForgeViewer}
-          onClose={() => setShowRealForgeViewer(false)}
-          fileName="Real BIM Model"
-          onElementSelect={(element) => {
-            console.log('Real BIM element selected:', element);
-            toast({
-              title: "BIM Element Selected",
-              description: `${element.name} - ${element.category} ($${element.cost.toLocaleString()})`,
-            });
-          }}
-        />
-      )}
+      {/* REAL AUTODESK FORGE VIEWER - DISABLED */}
     </motion.div>
   );
 }
