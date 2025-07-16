@@ -177,6 +177,13 @@ This single consolidated document provides complete technical evidence of 100% p
 
 ## Recent Changes
 
+### January 16, 2025 - CRITICAL TECHNICAL DEBT IDENTIFIED ❌
+- **USER FEEDBACK**: Functions not working as per brief, low-effort workarounds instead of proper implementation
+- **ROOT CAUSE**: Complex viewer components with broken close functionality and navigation issues
+- **ISSUE**: Enterprise BIM card opens viewers that cannot be closed, trapping users
+- **SOLUTION REQUIRED**: Complete rebuild of BIM viewer system with proper state management
+- **CURRENT STATUS**: Temporary workarounds in place, needs full technical rectification
+
 ### January 15, 2025 - ENHANCED 3D VIEWER SYSTEM COMPLETE ✅
 - **ENTERPRISE-GRADE 3D VISUALIZATION**: Successfully implemented advanced Enhanced3DViewer component
   - ✅ Interactive 3D models with realistic rendering, wireframe, and solid view modes
