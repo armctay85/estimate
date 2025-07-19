@@ -24,6 +24,7 @@ import { Forge3DViewer } from "@/components/forge-3d-viewer";
 import { Professional3DDemo } from "@/components/professional-3d-demo";
 import { WorkingBIMDialog } from "@/components/working-bim-dialog";
 import { FixedBIMProcessor } from "@/components/fixed-bim-processor";
+import { SimpleBIMModal } from "@/components/simple-bim-modal";
 import { SimpleTestViewer } from "@/components/simple-test-viewer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -1980,10 +1981,13 @@ export default function Home() {
         />
       )}
 
-      {/* Fixed BIM Processor - Grok's Implementation */}
-      <FixedBIMProcessor
+      {/* Simple BIM Modal - Working Solution */}
+      <SimpleBIMModal
         isOpen={showFixedBIMProcessor}
-        onClose={() => setShowFixedBIMProcessor(false)}
+        onClose={() => {
+          console.log('SimpleBIMModal onClose called');
+          setShowFixedBIMProcessor(false);
+        }}
       />
       
       {/* DEBUG: Show Fixed BIM Processor state */}
