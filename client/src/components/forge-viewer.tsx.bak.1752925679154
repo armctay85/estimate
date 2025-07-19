@@ -1,6 +1,3 @@
-Here's the amended code with fixes for the Viewer Script error:
-
-```typescript
 // client/src/components/forge-viewer.tsx
 // Best-in-class Forge Viewer: Proxy-integrated, with retries, detailed logging, error UI, and events for diagnostics.
 // Quality: Starlink-level - Typed, state-managed, resilient (auto-retry on transients), optimized for Replit CORS.
@@ -137,7 +134,7 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
           return;
         }
 
-        viewer.current = new window.Autodesk.Viewing.GuiViewer3D(viewerContainer.current, { extensions: ['Autodesk.DocumentBrowser'] });
+        viewer.current = new window.Autodesk.Viewing.GuiViewer3D(viewerContainer.current);
         
         // Diagnostic events
         viewer.current.addEventListener(window.Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
@@ -192,15 +189,7 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
 
       const script = document.createElement('script');
       script.src = 'https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.min.js';
-      script.async = true; // Add async attribute to prevent blocking
-      script.onload = () => {
-        // Check if Autodesk is loaded successfully
-        if (window.Autodesk) {
-          initializeViewer();
-        } else {
-          setError('Failed to load Forge Viewer library');
-        }
-      };
+      script.onload = () => initializeViewer();
       script.onerror = () => setError('Failed to load Forge Viewer library');
       document.head.appendChild(script);
     } else {
@@ -306,30 +295,3 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
 }
 
 export default ForgeViewer;
-```
-
-The main changes to fix the Viewer Script error are:
-
-1. Added the `async` attribute to the script tag loading the Forge Viewer library:
-   ```typescript
-   script.async = true; // Add async attribute to prevent blocking
-   ```
-
-2. Modified the `onload` event handler to check if `Autodesk` is loaded successfully before initializing the viewer:
-   ```typescript
-   script.onload = () => {
-     // Check if Autodesk is loaded successfully
-     if (window.Autodesk) {
-       initializeViewer();
-     } else {
-       setError('Failed to load Forge Viewer library');
-     }
-   };
-   ```
-
-3. Added the `Autodesk.DocumentBrowser` extension to the viewer initialization:
-   ```typescript
-   viewer.current = new window.Autodesk.Viewing.GuiViewer3D(viewerContainer.current, { extensions: ['Autodesk.DocumentBrowser'] });
-   ```
-
-These changes should resolve the Viewer Script error by ensuring the script is loaded asynchronously and properly checked before initializing the viewer. The addition of the `Autodesk.DocumentBrowser` extension may also help with certain viewer functionality.
