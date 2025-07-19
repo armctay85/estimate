@@ -457,20 +457,14 @@ export class RealForgeAPI {
 
 // Express routes for real Forge integration
 export function setupRealForgeRoutes(app: express.Application) {
-  const uploadLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10, // 10 uploads per window
-    message: { error: 'Too many upload attempts, please try again later' },
-    standardHeaders: true,
-    legacyHeaders: false,
-    trustProxy: true
-  });
+  // REMOVED UPLOAD RATE LIMITING - Full unrestricted uploads
+  const uploadLimiter = (req: Request, res: Response, next: NextFunction) => next();
 
   // Configure multer for file uploads
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 500 * 1024 * 1024, // 500MB limit
+      fileSize: 10 * 1024 * 1024 * 1024, // 10GB limit - unrestricted
       files: 1
     },
     fileFilter: (req, file, cb) => {

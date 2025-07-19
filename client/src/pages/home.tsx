@@ -31,21 +31,9 @@ export function Home() {
   const { toast } = useToast();
   const [showFixedBIMProcessor, setShowFixedBIMProcessor] = useState(false);
 
-  // Subscription tier checking
+  // REMOVED SUBSCRIPTION RESTRICTIONS - Full unrestricted access
   const canAccessFeature = (feature: string) => {
-    const tier = localStorage.getItem('subscriptionTier') || 'free';
-    const isAdmin = localStorage.getItem('isAdmin') === 'true';
-    
-    if (isAdmin) return true;
-    
-    switch (feature) {
-      case 'bim':
-        return tier === 'enterprise';
-      case 'pro-tools':
-        return tier === 'pro' || tier === 'enterprise';
-      default:
-        return true;
-    }
+    return true; // All features accessible without restrictions
   };
 
   const handleUpgradePrompt = (feature: string) => {

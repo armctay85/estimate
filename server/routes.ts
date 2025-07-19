@@ -93,28 +93,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     crossOriginEmbedderPolicy: false // Allow Forge viewer
   }));
 
-  // Rate limiting with proper trust proxy setup
-  const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-    message: { error: 'Too many requests, please try again later.' },
-    standardHeaders: true, // Return rate limit info in headers
-    legacyHeaders: false, // Disable X-RateLimit-* headers
-    validate: {trustProxy: false}, // Disable trust proxy validation for Replit
-    skip: (req) => req.ip === '127.0.0.1' // Skip localhost
-  });
-  app.use('/api/', limiter);
-
-  // More strict rate limiting for auth endpoints
-  const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // limit each IP to 5 requests per windowMs
-    message: { error: 'Too many authentication attempts, please try again later.' },
-    standardHeaders: true,
-    legacyHeaders: false,
-    validate: {trustProxy: false}, // Disable trust proxy validation for Replit
-    skip: (req) => req.ip === '127.0.0.1'
-  });
+  // REMOVED RATE LIMITING - Full unrestricted API access
+  // Rate limiting removed per user request for maximum functionality
+  
+  // Auth endpoints also unrestricted
+  const authLimiter = (req: Request, res: Response, next: NextFunction) => next();
 
   // Session configuration must come before passport
   app.use(session({
@@ -211,7 +194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 10 * 1024 * 1024, // 10MB limit
+      fileSize: 5 * 1024 * 1024 * 1024, // 5GB limit - unrestricted
     },
     fileFilter: (req, file, cb) => {
       const allowedMimes = ['image/jpeg', 'image/png', 'image/svg+xml', 'application/pdf'];
@@ -227,7 +210,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const adminUpload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 500 * 1024 * 1024, // 500MB limit for design files
+      fileSize: 10 * 1024 * 1024 * 1024, // 10GB limit - unrestricted
       fieldSize: 500 * 1024 * 1024,
     },
     fileFilter: (req, file, cb) => {
@@ -260,7 +243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const bimUpload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 500 * 1024 * 1024, // 500MB limit for BIM files
+      fileSize: 10 * 1024 * 1024 * 1024, // 10GB limit for BIM files - unrestricted
       fieldSize: 500 * 1024 * 1024,
     },
     fileFilter: (req, file, cb) => {

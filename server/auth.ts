@@ -55,25 +55,11 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
   res.status(401).json({ message: 'Unauthorized - Please log in' });
 };
 
-// Middleware to check subscription tier
+// REMOVED TIER RESTRICTIONS - Full unrestricted access
 export const requireTier = (minTier: 'free' | 'pro' | 'enterprise') => {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: 'Unauthorized - Please log in' });
-    }
-
-    const user = req.user as any;
-    const tierLevels = { free: 0, pro: 1, enterprise: 2 };
-    
-    if (tierLevels[user.subscriptionTier as keyof typeof tierLevels] >= tierLevels[minTier]) {
-      return next();
-    }
-
-    res.status(403).json({ 
-      message: `This feature requires ${minTier} subscription or higher`,
-      currentTier: user.subscriptionTier,
-      requiredTier: minTier
-    });
+    // All tiers have full access - no restrictions
+    return next();
   };
 };
 

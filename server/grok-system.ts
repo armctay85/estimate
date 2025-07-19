@@ -44,18 +44,10 @@ const authenticate = (req, res, next) => {
   }
 };
 
-// Rate limit: 5 requests/min with proper trust proxy settings
-const limiter = rateLimit({ 
-  windowMs: 60 * 1000, 
-  max: 5,
-  handler: (req, res) => {
-    res.status(429).json({ error: 'Too many requests' });
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// REMOVED RATE LIMITING - Full unrestricted Grok access
+// Rate limiting removed per user request
 
-router.use(authenticate, limiter);
+router.use(authenticate);
 
 // Chat endpoint: Full unrestricted Grok AI access
 router.post('/grok/chat', async (req, res) => {

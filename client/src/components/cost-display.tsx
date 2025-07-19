@@ -28,7 +28,8 @@ export function CostDisplay({ rooms, totalCost }: CostDisplayProps) {
     }).format(amount);
   };
 
-  const canExport = user?.subscriptionTier === 'pro' || user?.subscriptionTier === 'premium';
+  // REMOVED EXPORT RESTRICTIONS - Full unrestricted access
+  const canExport = true;
 
   const handleExportPDF = () => {
     if (!canExport) {
