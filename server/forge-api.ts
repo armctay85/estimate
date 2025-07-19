@@ -197,11 +197,15 @@ export class ForgeAPI {
     const token = await this.getAccessToken();
     
     try {
+      // Extract the base64 URN from the objectId (remove the prefix)
+      // objectId format: urn:adsk.objects:os.object:bucket/object
+      const base64Urn = Buffer.from(urn).toString('base64').replace(/=/g, '');
+      
       const response = await axios.post(
         `${FORGE_BASE_URL}/modelderivative/v2/designdata/job`,
         {
           input: {
-            urn: Buffer.from(urn).toString('base64')
+            urn: base64Urn
           },
           output: {
             formats: [
@@ -227,14 +231,15 @@ export class ForgeAPI {
       console.log('Translation job started successfully:', response.data);
     } catch (error: any) {
       console.error('Translation failed:', error.response?.data || error.message);
-      throw new Error(`Translation failed: ${error.response?.data?.detail || error.message}`);
+      throw new Error(`Translation failed: ${error.response?.data?.diagnostic || error.message}`);
     }
   }
 
   // Check translation status
   async getTranslationStatus(urn: string): Promise<TranslationStatus> {
     const token = await this.getAccessToken();
-    const encodedUrn = Buffer.from(urn).toString('base64');
+    // Use the same encoding as translateModel
+    const encodedUrn = Buffer.from(urn).toString('base64').replace(/=/g, '');
     
     const response = await fetch(
       `${FORGE_BASE_URL}/modelderivative/v2/designdata/${encodedUrn}/manifest`,
@@ -489,7 +494,9 @@ export async function setupForgeRoutes(app: any) {
       
       // Upload to Forge
       const objectId = await forgeApi.uploadFile(bucketKey, objectName, file.buffer);
-      const urn = Buffer.from(`${bucketKey}/${objectName}`).toString('base64');
+      
+      // Use the objectId as URN - it's already properly formatted
+      const urn = objectId;
       
       // Start translation for 3D viewing
       await forgeApi.translateModel(urn);

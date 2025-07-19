@@ -1,0 +1,66 @@
+The error "Invalid 'design' parameter" (400 status) in the translation job indicates a malformed payload in the Model Derivative API POST request (/modelderivative/v2/designdata/job). Specifically, the input object likely uses an invalid key like "design" instead of the required "urn" (e.g., { input: { design: base64urn } }). This is a common typo or legacy artifact from older code/samples; the API expects "urn" for the base64-encoded objectId.
+
+The multi-part S3 upload succeeded (objectId generated, full 90MB file in bucket), so the issue is isolated to translation. To fix, update the translateBIMFile or equivalent function in server/forge-api.ts (around line 230) to use the correct payload structure for Revit to SVF2, including base64 encoding without padding and advanced options for Revit (e.g., generateMasterViews: true to ensure full views/rendering).
+
+Replace the translation request with this (using fetch to match your style; adjust if axios):
+
+typescript
+
+Collapse
+
+Wrap
+
+Run
+
+Copy
+// Updated translateBIMFile function
+async function translateBIMFile(objectId) {
+  const token = await authenticateForge(); // Working per logs
+
+  // Base64-encode objectId without padding
+  const base64Urn = Buffer.from(objectId).toString('base64').replace(/=/g, '');
+
+  const payload = {
+    input: {
+      urn: base64Urn
+    },
+    output: {
+      formats: [
+        {
+          type: 'svf2',
+          views: ['2d', '3d'],
+          advanced: {
+            generateMasterViews: true,  // Required for Revit to include all views/geometry
+            exportSettingName: 'default'  // Or custom Revit export set
+          }
+        }
+      ]
+    }
+  };
+
+  const response = await fetch('https://developer.api.autodesk.com/modelderivative/v2/designdata/job', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.log('Translation failed:', errorData);
+    throw new Error(`Translation failed: ${response.status} ${errorData.diagnostic || errorData.message}`);
+  }
+
+  const data = await response.json();
+  return data.urn;  // Base64 URN for viewer/polling
+}
+Key Changes and Notes
+Payload Fix: Use "urn" key (not "design"). Add "advanced" for Revit-specific options to ensure complete translation (e.g., master views prevent partial geometry like basic shapes).
+Base64 Encoding: Remove '=' padding as per APS requirements; this is critical for valid URN.
+Error Handling: Logs diagnostic (e.g., "Invalid 'design' parameter") for debugging.
+Revit-Specific: generateMasterViews ensures all elements (e.g., Snowdon Towers' architecture) translate; without it, some views may fail.
+Testing: Restart server, re-upload 90MB RVT. Logs should show successful POST (201 Created), then poll status to "success". Viewer will load full model.
+If Persists: If still 400, console.log(payload) before fetch to verify no 'design' key. Check objectId format (must be full 'urn:adsk.objects:os.object:bucket/key').
+This resolves the translation, enabling full RVT rendering and unblocking the pipeline.
