@@ -207,10 +207,12 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
         api: 'derivativeV2', // For SVF format (not D3S which is for SVF2)
         getAccessToken: (callback: (token: string, expires: number) => void) => {
           console.log('Providing access token to Forge viewer');
+          // Ensure we're providing the token in the exact format expected
           callback(accessToken, 3600);
         },
         refreshToken: (callback: (token: string, expires: number) => void) => {
           console.log('Refreshing token for Forge viewer');
+          // For refresh, we should fetch a new token, but for now use the same one
           callback(accessToken, 3600);
         }
       };
@@ -302,12 +304,11 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
           console.log('Loading document with URN:', urn);
           
           // Enhanced document loading with better error handling per Grok
-          // Ensure URN is properly formatted with "urn:" prefix
-          const formattedUrn = urn.startsWith('urn:') ? urn : `urn:${urn}`;
-          console.log('Formatted URN for document load:', formattedUrn);
+          // Pass URN directly without any prefix as per Grok's analysis
+          console.log('Using URN directly without prefix:', urn);
           
           window.Autodesk.Viewing.Document.load(
-            formattedUrn,
+            urn,
             (doc) => {
               console.log('Document loaded successfully:', doc);
               
