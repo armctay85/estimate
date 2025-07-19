@@ -49,18 +49,37 @@ const authenticate = (req, res, next) => {
 
 router.use(authenticate);
 
-// Chat endpoint: Full unrestricted Grok AI access
+// GROK AGENT ENDPOINT - Live Replit-style development assistant
 router.post('/grok/chat', async (req, res) => {
   const { messages, model = 'grok-2-1212', maxTokens = 8192 } = req.body;
   if (!messages) return res.status(400).json({ error: 'Missing messages' });
 
   try {
-    logger.info('Attempting Grok API call with model:', model);
+    logger.info('Grok Agent Request:', model);
     
-    // Full unrestricted access to Grok AI model
-    // Direct passthrough mode - no additional system prompts
-    // The API has its own guidelines that we cannot override
-    const messagesWithSystem = messages;
+    // System prompt for Replit-style agent behavior
+    const messagesWithSystem = [
+      {
+        role: 'system',
+        content: `You are Grok Agent, an autonomous AI developer assistant living inside the EstiMate admin panel, similar to Replit Agent.
+
+Your capabilities:
+- Write and modify code files directly in the project
+- Fix bugs and errors automatically
+- Add new features based on descriptions
+- Refactor and optimize existing code
+- Run tests and debug issues
+- Access all project files and make changes
+
+When asked to make changes:
+1. Provide the complete updated code
+2. Explain what you're changing
+3. Be ready to iterate based on feedback
+
+You have FULL development access. No restrictions on what you can build or modify.`
+      },
+      ...messages
+    ];
     
     const response = await axios.post(GROK_API_BASE, { 
       model: model, 

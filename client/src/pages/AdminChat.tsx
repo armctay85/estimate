@@ -1,6 +1,6 @@
 // client/src/pages/AdminChat.tsx
-// Best-in-class admin chat for Grok: Streaming, history from DB, amendment triggers, error UI.
-// Quality: Starlink-level - Typed, responsive, state-optimized, secure (token auth), accessible.
+// Grok Agent - Replit-style development assistant for live coding within admin panel
+// Autonomous AI developer that can modify code, fix bugs, and add features in real-time
 
 import React, { useState, useEffect, useRef, useReducer } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
