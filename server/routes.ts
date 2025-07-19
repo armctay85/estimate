@@ -23,8 +23,10 @@ import { createSubscription, createPaymentIntent, handleWebhook, createBillingPo
 import { setupRegulationsRoutes } from "./aus-regulations-service";
 import { amendCode } from './grok-api-client';
 import { setupGrokErrorHandler } from './error-handler';
+import grokSystemRouter, { grokErrorHandler } from './grok-system';
 import PDFDocument from "pdfkit";
 import NodeCache from "node-cache";
+import jwt from "jsonwebtoken";
 
 // Initialize Stripe only if the secret is available
 let stripe: Stripe | null = null;
@@ -119,6 +121,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/login', authLimiter, login);
   app.post('/api/auth/logout', logout);
   app.get('/api/auth/user', getCurrentUser);
+  
+  // Mount Grok system routes
+  app.use('/api', grokSystemRouter);
 
   // Serve static HTML files for demos
   app.get('/standalone', (req, res) => {
@@ -1155,6 +1160,8 @@ Return JSON: { "areas": [{ "roomType": string, "label": string, "x": number, "y"
       });
     });
   });
+
+
 
   // Grok API endpoint for manual/live code fixes
   app.post('/api/grok/fix', async (req, res) => {

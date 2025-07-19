@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Access Test</title>
+</head>
+<body>
+    <h1>Admin Panel Access Test</h1>
+    <div id="status"></div>
+    
+    <script>
+        async function testAdminAccess() {
+            const statusDiv = document.getElementById('status');
+            
+            // First, login as admin
+            try {
+                const loginResponse = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'pass'
+                    })
+                });
+                
+                const loginData = await loginResponse.json();
+                
+                if (loginData.token) {
+                    statusDiv.innerHTML += '<p>✅ Admin login successful - Token received</p>';
+                    
+                    // Store token
+                    localStorage.setItem('adminToken', loginData.token);
+                    
+                    // Try accessing admin panel
+                    statusDiv.innerHTML += '<p>Attempting to access /admin...</p>';
+                    window.location.href = '/admin';
+                } else {
+                    statusDiv.innerHTML += '<p>❌ Login failed - No token received</p>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML += `<p>❌ Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Run test on page load
+        testAdminAccess();
+    </script>
+</body>
+</html>

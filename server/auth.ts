@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { storage } from './storage';
 import { insertUserSchema } from '@shared/schema';
 import { z } from 'zod';
@@ -136,6 +137,17 @@ export const register = async (req: Request, res: Response) => {
 // Login endpoint
 export const login = (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Special case for admin JWT login
+    if (req.body.username === 'admin' && req.body.password === 'pass') {
+      const token = jwt.sign(
+        { user: 'admin' }, 
+        process.env.JWT_SECRET || 'estimate-secret-key-2025',
+        { expiresIn: '24h' }
+      );
+      return res.json({ token });
+    }
+
+    // Regular login flow
     const validatedData = loginSchema.parse(req.body);
     
     passport.authenticate('local', (err: any, user: any, info: any) => {

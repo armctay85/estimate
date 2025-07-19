@@ -19,10 +19,14 @@ import { Regulations } from "@/pages/regulations";
 import { BIMViewerPage } from "@/pages/bim-viewer";
 import { TestViewer } from "@/pages/test-viewer";
 import { TestForge } from "@/pages/test-forge";
+import LoginPage from "@/pages/LoginPage";
+import AdminChat from "@/pages/AdminChat";
 import { useState, useEffect } from "react";
 import { Moon, Sun } from "lucide-react";
 
 function Router() {
+  const isAuthenticated = () => !!localStorage.getItem('authToken');
+
   return (
     <Switch>
       <Route path="/" component={Home} />
@@ -34,7 +38,10 @@ function Router() {
       <Route path="/reports" component={Reports} />
       <Route path="/settings" component={Settings} />
       <Route path="/3d-processor" component={ThreeDProcessor} />
-      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin">
+        {() => isAuthenticated() ? <AdminChat /> : <LoginPage />}
+      </Route>
+      <Route path="/login" component={LoginPage} />
       <Route path="/regulations" component={Regulations} />
       <Route path="/bim-viewer" component={BIMViewerPage} />
       <Route path="/test-viewer" component={TestViewer} />
