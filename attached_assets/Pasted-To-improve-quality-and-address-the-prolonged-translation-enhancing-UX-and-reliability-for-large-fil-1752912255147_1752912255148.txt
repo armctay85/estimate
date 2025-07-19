@@ -1,0 +1,103 @@
+To improve quality and address the prolonged translation (enhancing UX and reliability for large files like 90MB), here are updates with code snippets:
+
+Feature: Real-Time Translation Status Updates
+Provides live feedback during the 62-minute translation.
+File Update: client/src/components/BIMUploadModal.tsx (Add WebSocket or polling)
+typescript
+
+
+
+
+const [translationStatus, setTranslationStatus] = useState('Pending');
+useEffect(() => {
+  const interval = setInterval(() => {
+    fetch(`/api/forge/translation-status?urn=${urn}`).then(res => res.json()).then(data => {
+      setTranslationStatus(data.status || 'Pending');
+      if (data.status === 'success') clearInterval(interval);
+    });
+  }, 30000);
+  return () => clearInterval(interval);
+}, [urn]);
+<p className="mt-2">Translation: {translationStatus}</p>
+UI Enhancement: Progress Timeline for Long Tasks
+Visualizes upload and translation stages.
+File Update: client/src/components/BIMUploadModal.tsx
+typescript
+
+
+
+
+<div className="space-y-2">
+  <div className="flex items-center">
+    <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
+    <span>Upload Complete</span>
+  </div>
+  <div className="flex items-center">
+    <div className={`w-4 h-4 ${translationStatus === 'success' ? 'bg-green-500' : 'bg-gray-300'} rounded-full mr-2`}></div>
+    <span>Translation {translationStatus}</span>
+  </div>
+</div>
+Feature: Translation Retry Mechanism
+Automatically retries if "aborted" occurs.
+File Update: server/forge-api.ts (In translateBIMFile)
+typescript
+
+
+
+
+async function translateBIMFile(objectId, maxRetries = 5) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // Existing fetch logic
+      return data.urn;
+    } catch (error) {
+      if (attempt === maxRetries) throw error;
+      console.log(`Retry ${attempt + 1}/${maxRetries} due to ${error.message}`);
+      await new Promise(resolve => setTimeout(resolve, 60000)); // Wait 1min
+    }
+  }
+}
+UI Enhancement: Loading Overlay for Viewer
+Prevents seeing basic shapes during load.
+File Update: client/src/components/BIMViewer.tsx
+typescript
+
+
+
+
+if (status === 'Pending' || status === 'inprogress') {
+  return <div className="flex justify-center items-center h-[600px] bg-gray-200"><span>Loading model...</span></div>;
+}
+Feature: Model Optimization Options
+Reduces translation time for large RVTs by excluding unused views.
+File Update: server/forge-api.ts (In translateBIMFile payload)
+typescript
+
+
+
+
+output: {
+  formats: [
+    {
+      type: 'svf2',
+      views: ['3d'], // Exclude 2D if not needed
+      advanced: { generateMasterViews: true, exclude2DViews: true }
+    }
+  ]
+}
+Performance Enhancement: Cache Translation Status
+Avoids redundant polling.
+File Update: server/server.ts (Add node-cache; install npm install node-cache)
+typescript
+
+
+
+
+const cache = new NodeCache({ stdTTL: 300 });
+app.get('/api/forge/translation-status', async (req, res) => {
+  const { urn } = req.query;
+  if (cache.has(urn)) return res.json(cache.get(urn));
+  const status = await getTranslationStatus(urn);
+  cache.set(urn, status);
+  res.json(status);
+});
