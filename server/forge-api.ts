@@ -456,6 +456,20 @@ export async function setupForgeRoutes(app: any) {
     }
   });
 
+  // Get viewer token endpoint - used by the frontend ForgeViewer component
+  app.get('/api/forge/viewer-token', async (req: Request, res: Response) => {
+    try {
+      const token = await forgeApi.getAccessToken();
+      res.json({ 
+        access_token: token,
+        expires_in: 3600 // 1 hour
+      });
+    } catch (error: any) {
+      console.error('Viewer token error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Comprehensive Forge Resource Proxy
   // Handles: API calls, SVF binaries, textures, manifests, scripts, WASM, and CDN redirects
   // Supports: GET/POST, binary streaming, header preservation, error logging

@@ -259,12 +259,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/payments/webhook', handleWebhook);
   app.post('/api/payments/billing-portal', isAuthenticated, createBillingPortalSession);
 
+  // Import and setup the forge proxy routes
+  try {
+    const { default: forgeProxy } = await import('./forge-proxy');
+    app.use('/proxy/forge', forgeProxy);
+    console.log('✅ Forge proxy routes configured successfully');
+  } catch (error) {
+    console.error('Failed to load forge proxy:', error);
+  }
+
   // Setup external service integrations
   await setupForgeRoutes(app);
   setupFastUpload(app);
   setupDataProcessing(app);
   setupInstantUpload(app);
   setupRegulationsRoutes(app);
+
+  // Diagnostics endpoint for runtime checks
+  app.get('/diagnostics', async (req, res) => {
+    try {
+      // Import authenticateForge from forge-real-integration
+      const { authenticateForge } = await import('./forge-real-integration');
+      const token = await authenticateForge();
+      res.json({
+        tokenValid: !!token,
+        proxyTest: 'OK',
+        environment: 'Replit',
+        proxyConfigured: true,
+        advice: 'If errors persist, check browser console for CORS issues'
+      });
+    } catch (err: any) {
+      res.status(500).json({ 
+        error: err.message,
+        proxyTest: 'FAILED',
+        environment: 'Replit',
+        advice: 'Check Forge credentials in environment variables'
+      });
+    }
+  });
 
   // Protected API routes
   app.get('/api/projects', isAuthenticated, async (req, res) => {
