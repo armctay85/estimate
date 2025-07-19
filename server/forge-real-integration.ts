@@ -39,6 +39,7 @@ interface BIMElement {
 export class RealForgeAPI {
   private clientId: string;
   private clientSecret: string;
+  private bucketKey: string;
   private token: ForgeTokenResponse | null = null;
   private tokenExpiry: Date | null = null;
   private baseUrl = 'https://developer.api.autodesk.com';
@@ -46,6 +47,51 @@ export class RealForgeAPI {
   constructor(clientId: string, clientSecret: string) {
     this.clientId = clientId;
     this.clientSecret = clientSecret;
+    this.bucketKey = process.env.FORGE_BUCKET_KEY || 'estimate-ai-bucket';
+  }
+
+  // Ensure bucket exists (reusable bucket approach)
+  async ensureBucket(token: string): Promise<void> {
+    try {
+      console.log(`Checking bucket existence: ${this.bucketKey}`);
+      const response = await axios.get(
+        `${this.baseUrl}/oss/v2/buckets/${this.bucketKey}/details`,
+        {
+          headers: { 'Authorization': `Bearer ${token}` },
+          timeout: 30000
+        }
+      );
+      console.log('Bucket exists:', response.status === 200);
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        console.log('Bucket not found, creating...');
+        try {
+          await axios.post(
+            `${this.baseUrl}/oss/v2/buckets`,
+            {
+              bucketKey: this.bucketKey,
+              policyKey: 'persistent' // Use persistent for production
+            },
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              timeout: 30000
+            }
+          );
+          console.log('Bucket created successfully');
+        } catch (createError: any) {
+          if (createError.response?.status === 409) {
+            console.log('Bucket already exists (409 conflict)');
+            return; // Bucket exists, continue
+          }
+          throw new Error(`Bucket creation failed: ${createError.message}`);
+        }
+      } else {
+        throw new Error(`Bucket check failed: ${error.message}`);
+      }
+    }
   }
 
   // Get or refresh access token
@@ -88,57 +134,18 @@ export class RealForgeAPI {
     }
   }
 
-  // Create or ensure bucket exists
-  async ensureBucket(bucketKey: string): Promise<void> {
+  // Upload file to Forge OSS with proper bucket management  
+  async uploadFile(objectName: string, fileBuffer: Buffer): Promise<string> {
     const token = await this.getAccessToken();
     
-    try {
-      // Try to get bucket details first
-      await axios.get(`${this.baseUrl}/oss/v2/buckets/${bucketKey}/details`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-        timeout: 15000
-      });
-      
-      console.log(`✅ Bucket ${bucketKey} already exists`);
-      
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        // Bucket doesn't exist, create it
-        try {
-          await axios.post(`${this.baseUrl}/oss/v2/buckets`, {
-            bucketKey: bucketKey,
-            policyKey: 'temporary', // Files auto-deleted after 24 hours
-            access: 'full'
-          }, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            timeout: 15000
-          });
-          
-          console.log(`✅ Created new bucket ${bucketKey}`);
-          
-        } catch (createError: any) {
-          console.error('❌ Failed to create bucket:', createError.response?.data || createError.message);
-          throw new Error(`Failed to create bucket: ${createError.response?.data?.reason || createError.message}`);
-        }
-      } else {
-        console.error('❌ Failed to check bucket:', error.response?.data || error.message);
-        throw new Error(`Failed to access bucket: ${error.response?.data?.reason || error.message}`);
-      }
-    }
-  }
-
-  // Upload file to Forge OSS
-  async uploadFile(bucketKey: string, objectName: string, fileBuffer: Buffer): Promise<string> {
-    const token = await this.getAccessToken();
+    // Ensure bucket exists before upload
+    await this.ensureBucket(token);
     
     try {
       console.log(`📤 Uploading ${objectName} (${(fileBuffer.length / 1024 / 1024).toFixed(2)} MB)`);
 
       const response = await axios.put(
-        `${this.baseUrl}/oss/v2/buckets/${bucketKey}/objects/${encodeURIComponent(objectName)}`,
+        `${this.baseUrl}/oss/v2/buckets/${this.bucketKey}/objects/${encodeURIComponent(objectName)}`,
         fileBuffer,
         {
           headers: {
@@ -152,8 +159,8 @@ export class RealForgeAPI {
         }
       );
 
-      // Create base64 URN from objectId
-      const urn = Buffer.from(response.data.objectId).toString('base64');
+      // Create base64 URN from objectId (remove padding as per Grok's recommendation)
+      const urn = Buffer.from(response.data.objectId).toString('base64').replace(/=/g, '');
       console.log(`✅ Upload successful, URN: ${urn}`);
       
       return urn;
@@ -204,7 +211,7 @@ export class RealForgeAPI {
     }
   }
 
-  // Get translation status
+  // Get translation status with proper APS manifest parsing (Grok's fix)
   async getTranslationStatus(urn: string): Promise<TranslationJob> {
     const token = await this.getAccessToken();
     
@@ -218,13 +225,29 @@ export class RealForgeAPI {
       );
 
       const manifest = response.data;
+      console.log('Full manifest response:', JSON.stringify(manifest, null, 2));
+      
+      // Parse status correctly according to APS structure
+      const derivativeStatus = manifest.derivatives?.[0]?.status || 'pending';
+      const overallProgress = manifest.progress || '0% complete';
+      
+      // Determine final status
+      let finalStatus: 'pending' | 'inprogress' | 'success' | 'failed' | 'timeout';
+      
+      if (derivativeStatus === 'success' && overallProgress === 'complete') {
+        finalStatus = 'success';
+      } else if (derivativeStatus === 'failed') {
+        finalStatus = 'failed';
+      } else if (overallProgress === 'complete') {
+        finalStatus = 'success';
+      } else {
+        finalStatus = 'inprogress';
+      }
       
       return {
         urn,
-        status: manifest.status === 'success' ? 'success' : 
-                manifest.status === 'failed' ? 'failed' : 
-                manifest.progress === 'complete' ? 'success' : 'inprogress',
-        progress: manifest.progress || '0% complete',
+        status: finalStatus,
+        progress: overallProgress,
         messages: manifest.messages || []
       };
 
@@ -357,31 +380,19 @@ export class RealForgeAPI {
         }
       }
 
-      console.log(`✅ Extracted ${elements.length} real BIM elements, Total cost: $${Math.round(totalCost).toLocaleString()}`);
-      
-      return { 
-        elements, 
-        totalCost: Math.round(totalCost) 
-      };
+      console.log(`✅ Extracted ${elements.length} BIM elements, total cost: $${Math.round(totalCost).toLocaleString()}`);
+      return { elements, totalCost: Math.round(totalCost) };
 
     } catch (error: any) {
-      console.error('❌ Failed to extract BIM elements:', error.response?.data || error.message);
+      console.error('❌ BIM element extraction failed:', error.response?.data || error.message);
       throw new Error(`Element extraction failed: ${error.response?.data?.detail || error.message}`);
     }
   }
 
-  // Helper to get property value by display name
-  private getPropertyValue(properties: any, displayName: string): string {
-    for (const category of Object.values(properties)) {
-      if (typeof category === 'object' && category !== null) {
-        for (const [key, value] of Object.entries(category as any)) {
-          if (key === displayName && value && typeof value === 'object' && 'displayValue' in value) {
-            return (value as any).displayValue;
-          }
-        }
-      }
-    }
-    return '';
+  // Helper method to extract property values
+  private getPropertyValue(properties: any[], propertyName: string): any {
+    const prop = properties.find(p => p.displayName === propertyName || p.attributeName === propertyName);
+    return prop ? prop.displayValue || prop.value : null;
   }
 }
 
@@ -451,93 +462,93 @@ export function setupRealForgeRoutes(app: express.Application) {
       
       console.log(`📁 Processing real BIM upload: ${originalname} (${(size / 1024 / 1024).toFixed(2)} MB)`);
 
-      // Generate unique bucket key
-      const bucketKey = `estimate-real-${Date.now()}`.toLowerCase();
-      
-      // Ensure bucket exists
-      await realForgeAPI.ensureBucket(bucketKey);
-      
-      // Upload file to Forge
-      const urn = await realForgeAPI.uploadFile(bucketKey, originalname, buffer);
-      
-      // Start translation immediately
-      await realForgeAPI.translateModel(urn);
+      // Check file size (Grok's recommendation)
+      if (size > 500 * 1024 * 1024) {
+        return res.status(400).json({ error: 'File too large. Maximum size is 500MB.' });
+      }
+
+      const urn = await realForgeAPI.uploadFile(originalname, buffer);
       
       res.json({
         urn,
-        bucketKey,
-        objectName: originalname,
-        originalName: originalname,
-        fileSize: size,
-        message: 'Real BIM file uploaded and translation started',
-        uploadType: 'REAL_FORGE_INTEGRATION'
+        fileName: originalname,
+        message: 'Real BIM file uploaded successfully to Autodesk Platform Services'
       });
 
     } catch (error: any) {
-      console.error('Real upload failed:', error.message);
+      console.error('Real BIM upload failed:', error.message);
       res.status(500).json({ 
         error: 'Real BIM upload failed',
         message: error.message,
-        uploadType: 'REAL_FORGE_INTEGRATION'
+        details: 'Check file format and try again'
       });
     }
   });
 
-  // Get real translation status
+  // Start real model translation
+  app.post('/api/forge-real/translate', async (req: Request, res: Response) => {
+    try {
+      const { urn } = req.body;
+      
+      if (!urn) {
+        return res.status(400).json({ error: 'URN is required for translation' });
+      }
+
+      await realForgeAPI.translateModel(urn);
+      
+      res.json({
+        success: true,
+        message: 'Real translation job started',
+        urn
+      });
+
+    } catch (error: any) {
+      console.error('Real translation failed:', error.message);
+      res.status(500).json({ 
+        error: 'Real translation failed',
+        message: error.message
+      });
+    }
+  });
+
+  // Get real translation status 
   app.get('/api/forge-real/status/:urn', async (req: Request, res: Response) => {
     try {
       const { urn } = req.params;
       const status = await realForgeAPI.getTranslationStatus(urn);
+      
       res.json(status);
 
     } catch (error: any) {
       console.error('Real status check failed:', error.message);
       res.status(500).json({ 
         error: 'Real status check failed',
-        message: error.message 
+        message: error.message
       });
     }
   });
 
-  // Get real model metadata
-  app.get('/api/forge-real/metadata/:urn', async (req: Request, res: Response) => {
+  // Extract real BIM elements with costs (Grok's new endpoint)
+  app.post('/api/forge-real/extract/:urn', async (req: Request, res: Response) => {
     try {
       const { urn } = req.params;
-      const metadata = await realForgeAPI.getModelMetadata(urn);
-      res.json({ data: metadata });
-
-    } catch (error: any) {
-      console.error('Real metadata retrieval failed:', error.message);
-      res.status(500).json({ 
-        error: 'Real metadata retrieval failed',
-        message: error.message 
-      });
-    }
-  });
-
-  // Extract real BIM elements and costs
-  app.get('/api/forge-real/extract/:urn', async (req: Request, res: Response) => {
-    try {
-      const { urn } = req.params;
-      const result = await realForgeAPI.extractBIMElements(urn);
+      const extractedData = await realForgeAPI.extractBIMElements(urn);
       
       res.json({
-        elements: result.elements,
-        totalCost: result.totalCost,
-        extractionType: 'REAL_BIM_DATA',
-        elementCount: result.elements.length
+        success: true,
+        urn,
+        ...extractedData,
+        message: 'Real BIM elements extracted with Australian construction costs'
       });
 
     } catch (error: any) {
-      console.error('Real element extraction failed:', error.message);
+      console.error('Real BIM extraction failed:', error.message);
       res.status(500).json({ 
-        error: 'Real element extraction failed',
-        message: error.message 
+        error: 'Real BIM extraction failed',
+        message: error.message
       });
     }
   });
 
   console.log('✅ Real Forge API routes configured successfully');
 }
-
-export default RealForgeAPI;

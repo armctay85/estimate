@@ -23,6 +23,7 @@ import { ModelLibrary } from "@/components/model-library";
 import { Forge3DViewer } from "@/components/forge-3d-viewer";
 import { Professional3DDemo } from "@/components/professional-3d-demo";
 import { WorkingBIMDialog } from "@/components/working-bim-dialog";
+import { FixedBIMProcessor } from "@/components/fixed-bim-processor";
 import { SimpleTestViewer } from "@/components/simple-test-viewer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -101,6 +102,7 @@ export default function Home() {
   const [showUploadPlans, setShowUploadPlans] = useState(false);
   const [showProfessional3D, setShowProfessional3D] = useState(false);
   const [showWorkingBIMDialog, setShowWorkingBIMDialog] = useState(false);
+  const [showFixedBIMProcessor, setShowFixedBIMProcessor] = useState(false);
   
   // Debug logging for showProfessional3D
   useEffect(() => {
@@ -659,10 +661,8 @@ export default function Home() {
             >
               <Card className="h-full hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 border-purple-300 hover:border-purple-400"
                     onClick={() => {
-                      console.log('Enterprise BIM card clicked - opening working dialog');
-                      console.log('Current showWorkingBIMDialog state:', showWorkingBIMDialog);
-                      setShowWorkingBIMDialog(true);
-                      console.log('Setting showWorkingBIMDialog to true');
+                      console.log('Enterprise BIM card clicked - opening FIXED BIM processor');
+                      setShowFixedBIMProcessor(true);
                     }}>
                 <CardContent className="p-8">
                   <div className="mb-6">
@@ -1973,21 +1973,11 @@ export default function Home() {
         />
       )}
 
-      {/* Working BIM Dialog */}
-      <WorkingBIMDialog
-        isOpen={showWorkingBIMDialog}
-        onClose={() => {
-          console.log('WorkingBIMDialog close called');
-          setShowWorkingBIMDialog(false);
-        }}
+      {/* Fixed BIM Processor - Grok's Implementation */}
+      <FixedBIMProcessor
+        isOpen={showFixedBIMProcessor}
+        onClose={() => setShowFixedBIMProcessor(false)}
       />
-      
-      {/* DEBUG: Always show if state is true */}
-      {showWorkingBIMDialog && (
-        <div className="fixed top-4 left-4 z-[9999] bg-green-500 text-white p-2 rounded">
-          DEBUG: showWorkingBIMDialog is TRUE
-        </div>
-      )}
 
       {/* REAL AUTODESK FORGE VIEWER - DISABLED */}
     </motion.div>
