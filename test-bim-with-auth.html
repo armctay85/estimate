@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BIM Upload Test</title>
+</head>
+<body>
+    <h1>BIM Upload Test with Authentication</h1>
+    <button onclick="setAdmin()">Set Admin Status</button>
+    <button onclick="testAuth()">Test Auth</button>
+    <button onclick="openBIM()">Open BIM Upload</button>
+    
+    <script>
+    function setAdmin() {
+        localStorage.setItem('isAdmin', 'true');
+        localStorage.setItem('subscriptionTier', 'enterprise');
+        alert('Admin status set!');
+    }
+    
+    function testAuth() {
+        fetch('/api/forge/viewer-token')
+            .then(res => res.json())
+            .then(data => {
+                if (data.access_token) {
+                    alert('Auth working! Token received.');
+                } else {
+                    alert('Auth failed: ' + JSON.stringify(data));
+                }
+            })
+            .catch(err => alert('Error: ' + err));
+    }
+    
+    function openBIM() {
+        window.location.href = '/';
+    }
+    </script>
+</body>
+</html>

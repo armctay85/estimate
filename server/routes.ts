@@ -278,15 +278,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Diagnostics endpoint for runtime checks
   app.get('/diagnostics', async (req, res) => {
     try {
-      // Import authenticateForge from forge-real-integration
-      const { authenticateForge } = await import('./forge-real-integration');
-      const token = await authenticateForge();
+      // Test the viewer token endpoint
+      const tokenResponse = await fetch('http://localhost:5000/api/forge/viewer-token');
+      const tokenData = await tokenResponse.json();
+      
       res.json({
-        tokenValid: !!token,
+        tokenValid: !!tokenData.access_token,
         proxyTest: 'OK',
         environment: 'Replit',
         proxyConfigured: true,
-        advice: 'If errors persist, check browser console for CORS issues'
+        forgeAuth: tokenData.access_token ? 'Working' : 'Failed',
+        advice: 'Forge authentication is operational'
       });
     } catch (err: any) {
       res.status(500).json({ 

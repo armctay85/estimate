@@ -173,6 +173,23 @@ export function Home() {
                 <Button 
                   variant="outline" 
                   className="w-full justify-start hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200"
+                  onClick={() => {
+                    if (canAccessFeature('bim')) {
+                      setShowFixedBIMProcessor(true);
+                    } else {
+                      handleUpgradePrompt('bim');
+                    }
+                  }}
+                  title="BIM Auto-Takeoff from CAD files"
+                >
+                  <Building2 className="w-4 h-4 mr-2" />
+                  BIM Auto-Takeoff
+                  {!canAccessFeature('bim') && <Crown className="w-3 h-3 ml-auto" />}
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200"
                   onClick={() => navigate("/projects")}
                   title="View your recent projects"
                 >
