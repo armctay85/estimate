@@ -70,9 +70,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Security middleware
+  // Security middleware with Tailwind CDN allowed
   app.use(helmet({
-    contentSecurityPolicy: false, // Allow inline scripts for development
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "js.stripe.com", "aps.autodesk.com", "developer.api.autodesk.com", "cdn.tailwindcss.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "fonts.googleapis.com", "developer.api.autodesk.com", "cdn.tailwindcss.com"],
+        imgSrc: ["'self'", "data:", "https:"],
+        connectSrc: ["'self'", "api.stripe.com", "api.x.ai", "developer.api.autodesk.com"],
+        fontSrc: ["'self'", "fonts.gstatic.com", "fonts.googleapis.com"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'self'", "js.stripe.com"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        frameAncestors: ["'self'"],
+        scriptSrcAttr: ["'none'"],
+        upgradeInsecureRequests: []
+      }
+    },
     crossOriginEmbedderPolicy: false // Allow Forge viewer
   }));
 
@@ -1185,6 +1202,11 @@ Return JSON: { "areas": [{ "roomType": string, "label": string, "x": number, "y"
         error: err.message 
       });
     }
+  });
+
+  // Serve admin login page directly
+  app.get('/admin-login.html', (req, res) => {
+    res.sendFile(path.resolve('admin-login.html'));
   });
 
   // Setup Grok error handler (must be last middleware)
