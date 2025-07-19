@@ -1,9 +1,8 @@
-
 // client/src/components/forge-viewer.tsx
 // Best-in-class Forge Viewer: Proxy-integrated, with retries, detailed logging, error UI, and events for diagnostics.
 // Quality: Starlink-level - Typed, state-managed, resilient (auto-retry on transients), optimized for Replit CORS.
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -34,7 +33,7 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
   const { toast } = useToast();
 
   // Auto-retry mechanism
-  const handleViewerError = useCallback((errorMessage: string, retry = true) => {
+  const handleViewerError = (errorMessage: string, retry = true) => {
     console.error('Forge Viewer Error:', errorMessage);
     setError(errorMessage);
     
@@ -52,9 +51,9 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
         variant: "destructive",
       });
     }
-  }, [retryCount, toast]);
+  };
 
-  const initializeViewer = useCallback(async () => {
+  const initializeViewer = async () => {
     if (!viewerContainer.current) return;
 
     try {
@@ -106,9 +105,9 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
     } catch (err: any) {
       handleViewerError(err.message);
     }
-  }, [urn, handleViewerError, toast]);
+  };
 
-  const loadForgeSDK = useCallback((): Promise<void> => {
+  const loadForgeSDK = (): Promise<void> => {
     return new Promise((resolve, reject) => {
       if (window.Autodesk) {
         resolve();
@@ -126,18 +125,18 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
       link.href = 'https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.min.css';
       document.head.appendChild(link);
     });
-  }, []);
+  };
 
-  const getViewerToken = useCallback(async (): Promise<string> => {
+  const getViewerToken = async (): Promise<string> => {
     const response = await fetch('/api/forge/viewer-token');
     if (!response.ok) {
       throw new Error('Failed to get viewer token');
     }
     const data = await response.json();
     return data.access_token;
-  }, []);
+  };
 
-  const loadDocument = useCallback((urn: string) => {
+  const loadDocument = (urn: string) => {
     const documentId = urn.startsWith('urn:') ? urn : `urn:adsk.objects:os.object:${urn}`;
     
     window.Autodesk.Viewing.Document.load(documentId, (doc: any) => {
@@ -150,7 +149,7 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
     }, (error: any) => {
       handleViewerError(`Document load failed: ${error}`);
     });
-  }, [handleViewerError]);
+  };
 
   useEffect(() => {
     initializeViewer();
@@ -161,12 +160,12 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
         viewer.current = null;
       }
     };
-  }, [urn, initializeViewer]);
+  }, [urn]);
 
-  const handleZoomIn = useCallback(() => viewer.current?.navigation.setZoomTowards(1.2), []);
-  const handleZoomOut = useCallback(() => viewer.current?.navigation.setZoomTowards(0.8), []);
-  const handleReset = useCallback(() => viewer.current?.navigation.setRequestHomeView(true), []);
-  const handleFullscreen = useCallback(() => viewer.current?.setFullscreen(true), []);
+  const handleZoomIn = () => viewer.current?.navigation.setZoomTowards(1.2);
+  const handleZoomOut = () => viewer.current?.navigation.setZoomTowards(0.8);
+  const handleReset = () => viewer.current?.navigation.setRequestHomeView(true);
+  const handleFullscreen = () => viewer.current?.setFullscreen(true);
 
   return (
     <Card className="h-full">
