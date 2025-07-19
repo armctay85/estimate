@@ -203,18 +203,15 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
 
       // Fixed options per Grok's analysis for SVF format
       const options = {
-        env: 'AutodeskProduction', // For SVF format
-        api: 'derivativeV2', // For SVF format (not D3S which is for SVF2)
+        env: 'AutodeskProduction',
+        api: 'derivativeV2',
         getAccessToken: (callback: (token: string, expires: number) => void) => {
           console.log('Providing access token to Forge viewer');
-          // Ensure we're providing the token in the exact format expected
           callback(accessToken, 3600);
         },
-        refreshToken: (callback: (token: string, expires: number) => void) => {
-          console.log('Refreshing token for Forge viewer');
-          // For refresh, we should fetch a new token, but for now use the same one
-          callback(accessToken, 3600);
-        }
+        language: 'en',
+        useADP: false,
+        useConsolidation: true
       };
 
       window.Autodesk.Viewing.Initializer(options, async () => {

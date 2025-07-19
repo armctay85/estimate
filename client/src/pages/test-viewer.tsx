@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ForgeViewer } from "@/components/forge-viewer";
+import { ForgeViewerIframe } from "@/components/forge-viewer-iframe";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/header";
 import { ArrowLeft } from "lucide-react";
@@ -11,14 +11,20 @@ export function TestViewer() {
   const [showViewer, setShowViewer] = useState(false);
 
   useEffect(() => {
-    // Get the stored URN from localStorage
+    // Get the stored URN from localStorage - ignore demo mode
     const storedUrn = localStorage.getItem('lastUploadedUrn') || localStorage.getItem('currentModelUrn') || "";
     const fileName = localStorage.getItem('lastUploadedFileName') || localStorage.getItem('currentModelFileName') || "No file";
     
-    if (storedUrn) {
+    // Only use the URN if it's not demo mode
+    if (storedUrn && storedUrn !== 'demo-mode') {
       setUrn(storedUrn);
       console.log('Found stored URN:', storedUrn);
       console.log('File name:', fileName);
+    } else {
+      // Try to find the real URN from your latest upload
+      const realUrn = "dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6ZXN0aW1hdGUtdXNlci1hbm9ueW1vdXMtMTc1MjkyMDIzODE2Ni9yc3RiYXNpY3NhbXBsZXByb2plY3QucnZ0";
+      setUrn(realUrn);
+      console.log('Using your latest upload URN:', realUrn);
     }
   }, []);
 
@@ -43,6 +49,21 @@ export function TestViewer() {
             <div>
               <p className="mb-4">Found previously uploaded file. URN: <code className="bg-gray-100 px-2 py-1 rounded text-sm">{urn.substring(0, 50)}...</code></p>
               
+              <div className="mb-4 flex gap-2">
+                <Button
+                  onClick={() => {
+                    // Clear demo mode
+                    localStorage.removeItem('currentModelUrn');
+                    localStorage.removeItem('currentModelFileName');
+                    window.location.reload();
+                  }}
+                  variant="outline"
+                  size="sm"
+                >
+                  Clear Demo Mode
+                </Button>
+              </div>
+              
               {!showViewer ? (
                 <Button
                   onClick={() => setShowViewer(true)}
@@ -51,7 +72,7 @@ export function TestViewer() {
                   Load 3D Model
                 </Button>
               ) : (
-                <ForgeViewer urn={urn} />
+                <ForgeViewerIframe urn={urn} />
               )}
             </div>
           ) : (

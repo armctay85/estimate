@@ -481,6 +481,106 @@ export async function setupForgeRoutes(app: any) {
     }
   });
 
+  // Proxy endpoint for viewer resources to bypass CORS
+  app.get('/api/forge/viewer-resource/*', async (req: Request, res: Response) => {
+    try {
+      const resourcePath = req.params[0];
+      const token = await forgeApi.getAccessToken();
+      
+      const response = await axios.get(
+        `https://developer.api.autodesk.com/derivativeservice/v2/${resourcePath}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept-Encoding': 'gzip, deflate',
+          },
+          responseType: 'stream'
+        }
+      );
+      
+      res.set(response.headers);
+      response.data.pipe(res);
+    } catch (error: any) {
+      console.error('Resource proxy error:', error.message);
+      res.status(error.response?.status || 500).json({
+        error: error.response?.data || { message: error.message }
+      });
+    }
+  });
+
+  // Serve standalone viewer HTML
+  app.get('/api/forge/viewer', async (req: Request, res: Response) => {
+    const { urn, token, env, api } = req.query;
+    
+    if (!urn || !token) {
+      return res.status(400).send('Missing required parameters: urn and token');
+    }
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forge Viewer</title>
+    <link rel="stylesheet" href="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.min.css" type="text/css">
+    <script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.min.js"></script>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; }
+        #viewer { position: absolute; width: 100%; height: 100%; }
+        #loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+        #error { position: absolute; top: 20px; left: 20px; right: 20px; background: #f44336; color: white; padding: 10px; border-radius: 4px; display: none; }
+    </style>
+</head>
+<body>
+    <div id="viewer"></div>
+    <div id="loading">
+        <p>Loading 3D model...</p>
+    </div>
+    <div id="error"></div>
+    
+    <script>
+        const urn = '${urn}';
+        const accessToken = '${token}';
+        
+        const options = {
+            env: '${env || 'AutodeskProduction'}',
+            api: '${api || 'derivativeV2'}',
+            getAccessToken: function(callback) {
+                callback(accessToken, 3600);
+            }
+        };
+        
+        Autodesk.Viewing.Initializer(options, function() {
+            const viewerDiv = document.getElementById('viewer');
+            const viewer = new Autodesk.Viewing.GuiViewer3D(viewerDiv);
+            
+            viewer.start();
+            
+            Autodesk.Viewing.Document.load(
+                urn,
+                function(doc) {
+                    const viewables = doc.getRoot().getDefaultGeometry();
+                    viewer.loadDocumentNode(doc, viewables).then(function() {
+                        document.getElementById('loading').style.display = 'none';
+                        console.log('Model loaded successfully');
+                    });
+                },
+                function(errorCode, errorMsg) {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('error').style.display = 'block';
+                    document.getElementById('error').textContent = 'Error loading model: ' + errorMsg + ' (Code: ' + errorCode + ')';
+                    console.error('Document load error:', errorCode, errorMsg);
+                }
+            );
+        });
+    </script>
+</body>
+</html>`;
+    
+    res.type('html').send(html);
+  });
+
   // Use dynamic import for multer in ES6 module
   const multer = await import('multer');
   const bimUpload = multer.default({
