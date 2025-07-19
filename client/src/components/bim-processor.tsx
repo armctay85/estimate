@@ -65,8 +65,12 @@ export function BIMProcessor({ isOpen: controlledIsOpen, onOpenChange }: BIMProc
   const [result, setResult] = useState<ProcessingResult | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [showWireframe, setShowWireframe] = useState(false);
-  const [currentFileName, setCurrentFileName] = useState<string>("");
-  const [currentFileUrn, setCurrentFileUrn] = useState<string>("");
+  const [currentFileName, setCurrentFileName] = useState<string>(() => {
+    return localStorage.getItem('lastUploadedFileName') || "";
+  });
+  const [currentFileUrn, setCurrentFileUrn] = useState<string>(() => {
+    return localStorage.getItem('lastUploadedUrn') || "";
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -232,6 +236,10 @@ export function BIMProcessor({ isOpen: controlledIsOpen, onOpenChange }: BIMProc
         // Store the URN for Forge viewer
         if (uploadResult.urn) {
           setCurrentFileUrn(uploadResult.urn);
+          setCurrentFileName(file.name);
+          // Save with consistent keys for persistence
+          localStorage.setItem('lastUploadedUrn', uploadResult.urn);
+          localStorage.setItem('lastUploadedFileName', file.name);
           localStorage.setItem('currentModelUrn', uploadResult.urn);
           localStorage.setItem('currentModelFileName', file.name);
         }
