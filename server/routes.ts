@@ -83,7 +83,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     message: { error: 'Too many requests, please try again later.' },
     standardHeaders: true, // Return rate limit info in headers
     legacyHeaders: false, // Disable X-RateLimit-* headers
-    trustProxy: true, // Trust proxy headers for Replit
+    validate: {trustProxy: false}, // Disable trust proxy validation for Replit
     skip: (req) => req.ip === '127.0.0.1' // Skip localhost
   });
   app.use('/api/', limiter);
@@ -95,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     message: { error: 'Too many authentication attempts, please try again later.' },
     standardHeaders: true,
     legacyHeaders: false,
-    trustProxy: true,
+    validate: {trustProxy: false}, // Disable trust proxy validation for Replit
     skip: (req) => req.ip === '127.0.0.1'
   });
 

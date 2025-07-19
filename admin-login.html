@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - EstiMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+        <h1 class="text-2xl font-bold mb-6 text-center">Admin Login</h1>
+        
+        <form id="loginForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-2">Username</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    value="admin"
+                    class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+                    required
+                />
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium mb-2">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    value="pass"
+                    class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+                    required
+                />
+            </div>
+            
+            <button 
+                type="submit" 
+                class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+            >
+                Login to Admin Panel
+            </button>
+        </form>
+        
+        <div id="message" class="mt-4 text-center"></div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.token) {
+                    messageDiv.innerHTML = '<p class="text-green-600">Login successful! Redirecting...</p>';
+                    localStorage.setItem('adminToken', data.token);
+                    setTimeout(() => {
+                        window.location.href = '/admin';
+                    }, 1000);
+                } else {
+                    messageDiv.innerHTML = '<p class="text-red-600">Login failed. Please try again.</p>';
+                }
+            } catch (error) {
+                messageDiv.innerHTML = '<p class="text-red-600">Error: ' + error.message + '</p>';
+            }
+        });
+    </script>
+</body>
+</html>
