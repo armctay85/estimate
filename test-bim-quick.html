@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick BIM Test</title>
+</head>
+<body>
+    <h1>Quick BIM Viewer Test</h1>
+    <p>This page sets you as admin and provides quick access to test the BIM viewer.</p>
+    
+    <button onclick="setAdmin()">1. Set as Admin (Click First)</button>
+    <button onclick="goToHome()">2. Go to Home Page</button>
+    
+    <hr>
+    <h2>Stored URN:</h2>
+    <pre id="urn"></pre>
+    
+    <script>
+        // Display stored URN
+        const urn = localStorage.getItem('lastUploadedUrn');
+        document.getElementById('urn').textContent = urn || 'No URN stored yet';
+        
+        function setAdmin() {
+            localStorage.setItem('isAdmin', 'true');
+            localStorage.setItem('userRole', 'admin');
+            localStorage.setItem('subscriptionTier', 'enterprise');
+            alert('You are now set as admin with enterprise access!');
+        }
+        
+        function goToHome() {
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>
