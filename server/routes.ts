@@ -20,6 +20,7 @@ import { predictConstructionCost, analyzeBIMFile, generateQSReport } from "./xai
 import { multiAI } from "./multi-ai-service";
 import { register, login, logout, getCurrentUser, isAuthenticated, requireTier } from "./auth";
 import { createSubscription, createPaymentIntent, handleWebhook, createBillingPortalSession } from "./stripe-service";
+import { setupRegulationsRoutes } from "./aus-regulations-service";
 
 // Initialize Stripe only if the secret is available
 let stripe: Stripe | null = null;
@@ -249,6 +250,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupFastUpload(app);
   setupDataProcessing(app);
   setupInstantUpload(app);
+  setupRegulationsRoutes(app);
 
   // Protected API routes
   app.get('/api/projects', isAuthenticated, async (req, res) => {

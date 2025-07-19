@@ -19,7 +19,8 @@ import {
   Crown,
   Star,
   ArrowRight,
-  Zap
+  Zap,
+  Shield
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -171,6 +172,16 @@ export function Home() {
                 >
                   <FileText className="w-4 h-4 mr-2" />
                   Recent Projects
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => navigate("/regulations")}
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  Building Regulations
+                  <Badge className="ml-auto" variant="secondary">AU</Badge>
                 </Button>
               </CardContent>
             </Card>
