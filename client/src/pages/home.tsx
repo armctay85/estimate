@@ -1981,11 +1981,11 @@ export default function Home() {
         />
       )}
 
-      {/* Simple BIM Modal - Working Solution */}
+      {/* Simple BIM Modal - Force Visible for Testing */}
       <SimpleBIMModal
-        isOpen={showFixedBIMProcessor}
+        isOpen={true}
         onClose={() => {
-          console.log('SimpleBIMModal onClose called');
+          console.log('SimpleBIMModal onClose called - should close now');
           setShowFixedBIMProcessor(false);
         }}
       />

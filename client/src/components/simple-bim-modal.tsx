@@ -16,8 +16,10 @@ export function SimpleBIMModal({ isOpen, onClose }: SimpleBIMModalProps) {
   
   console.log('SimpleBIMModal IS RENDERING - modal should be visible');
 
-  const handleClose = () => {
-    console.log('SimpleBIMModal close clicked');
+  const handleClose = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    console.log('SimpleBIMModal close clicked - calling onClose');
     onClose();
   };
 
@@ -44,8 +46,12 @@ export function SimpleBIMModal({ isOpen, onClose }: SimpleBIMModalProps) {
             </div>
           </div>
           <button
-            onClick={handleClose}
+            onClick={(e) => {
+              console.log('X button clicked!');
+              handleClose(e);
+            }}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            type="button"
           >
             <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
           </button>
