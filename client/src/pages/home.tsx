@@ -716,10 +716,16 @@ export default function Home() {
                       <span className="font-bold text-black dark:text-white">Replace 2-3 QS staff</span>
                     </div>
                   </div>
-                  <div className="text-center text-sm text-black dark:text-white mt-6 font-bold bg-purple-100 dark:bg-purple-900 p-3 rounded-lg border-2 border-purple-300">
-                    ⬆️ CLICK ANYWHERE ON THIS CARD ⬆️<br/>
-                    To launch BIM processor
-                  </div>
+                  <Button 
+                    className="w-full mt-6 bg-purple-700 hover:bg-purple-800 text-white font-bold shadow-lg"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log('Launch Enterprise BIM button clicked');
+                      setShowFixedBIMProcessor(true);
+                    }}
+                  >
+                    Launch Enterprise BIM
+                  </Button>
                 </CardContent>
               </Card>
             </motion.div>
