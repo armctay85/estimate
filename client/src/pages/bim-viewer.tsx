@@ -30,11 +30,9 @@ export function BIMViewerPage() {
       <main className="pt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-6">
-            <Link href="/">
-              <a className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
-                <ArrowLeft className="w-4 h-4" />
-                Back to Dashboard
-              </a>
+            <Link href="/" className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Dashboard
             </Link>
           </div>
 
@@ -57,10 +55,8 @@ export function BIMViewerPage() {
                   <p className="text-gray-500 dark:text-gray-400 mb-4">
                     No model URN provided
                   </p>
-                  <Link href="/">
-                    <a className="text-blue-600 dark:text-blue-400 hover:underline">
-                      Return to Dashboard
-                    </a>
+                  <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline">
+                    Return to Dashboard
                   </Link>
                 </div>
               </div>
