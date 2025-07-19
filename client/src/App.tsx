@@ -24,9 +24,14 @@ import AdminChat from "@/pages/AdminChat";
 import { useState, useEffect } from "react";
 import { Moon, Sun } from "lucide-react";
 
-function Router() {
-  const isAuthenticated = () => !!localStorage.getItem('adminToken');
+// Separate component for admin conditional to avoid parse issues
+function AdminRoute() {
+  const hasToken = !!localStorage.getItem('adminToken');
+  console.log('Admin route check - hasToken:', hasToken, 'token:', localStorage.getItem('adminToken'));
+  return hasToken ? <AdminChat /> : <LoginPage />;
+}
 
+function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
@@ -38,13 +43,7 @@ function Router() {
       <Route path="/reports" component={Reports} />
       <Route path="/settings" component={Settings} />
       <Route path="/3d-processor" component={ThreeDProcessor} />
-      <Route path="/admin">
-        {() => {
-          const hasToken = isAuthenticated();
-          console.log('Admin route check - hasToken:', hasToken, 'token:', localStorage.getItem('adminToken'));
-          return hasToken ? <AdminChat /> : <LoginPage />;
-        }}
-      </Route>
+      <Route path="/admin" component={AdminRoute} />
       <Route path="/login" component={LoginPage} />
       <Route path="/regulations" component={Regulations} />
       <Route path="/bim-viewer" component={BIMViewerPage} />

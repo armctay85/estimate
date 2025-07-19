@@ -1,6 +1,3 @@
-Here's the amended code with fixes for the Viewer Script error:
-
-```typescript
 // client/src/components/forge-viewer.tsx
 // Best-in-class Forge Viewer: Proxy-integrated, with retries, detailed logging, error UI, and events for diagnostics.
 // Quality: Starlink-level - Typed, state-managed, resilient (auto-retry on transients), optimized for Replit CORS.
@@ -35,301 +32,218 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
   const maxRetries = 3;
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (!urn) {
-      setError('No URN provided');
+  // Auto-retry mechanism
+  const handleViewerError = (errorMessage: string, retry = true) => {
+    console.error('Forge Viewer Error:', errorMessage);
+    setError(errorMessage);
+    
+    if (retry && retryCount < maxRetries) {
+      const nextRetry = retryCount + 1;
+      setRetryCount(nextRetry);
+      setStatus(`Retrying... (${nextRetry}/${maxRetries})`);
+      setTimeout(() => initializeViewer(), 2000 * nextRetry);
+    } else {
+      setStatus('Failed');
       setIsLoading(false);
-      return;
+      toast({
+        title: "Viewer Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     }
+  };
 
-    // Validate URN (base64 without prefix)
-    if (!/^[A-Za-z0-9+/]*={0,2}$/.test(urn)) {
-      setError('Invalid URN format - Must be base64 without prefix');
-      setIsLoading(false);
-      return;
-    }
+  const initializeViewer = async () => {
+    if (!viewerContainer.current) return;
 
-    console.log('Starting Forge Viewer with URN:', urn);
-    setStatus('Initializing viewer...');
+    try {
+      setStatus('Loading Forge SDK...');
+      setIsLoading(true);
+      setError(null);
 
-    const getAccessToken = async (callback: (token: string, expires: number) => void) => {
-      try {
-        const response = await fetch('/api/forge/viewer-token');
-        const data = await response.json();
-        callback(data.access_token, data.expires_in || 3600);
-      } catch (err) {
-        setError('Token fetch failed: ' + (err as Error).message);
-      }
-    };
-
-    const loadModel = () => {
-      setStatus('Loading model...');
-      window.Autodesk.Viewing.Document.load(
-        urn,
-        (doc: any) => {
-          setStatus('Document loaded');
-          console.log('Document loaded');
-          const viewable = doc.getRoot().getDefaultGeometry();
-          if (!viewable) {
-            setError('No viewable geometry found in document');
-            return;
-          }
-          viewer.current!.loadDocumentNode(doc, viewable).then(() => {
-            setStatus('Model loaded successfully');
-            console.log('Model loaded');
-            setIsLoading(false);
-          }).catch((err: any) => {
-            setError(`Node load failed: ${err.message}`);
-            console.error('Load node error:', err);
-            if (retryCount < maxRetries) {
-              setRetryCount(retryCount + 1);
-              setStatus(`Retrying... (${retryCount + 1}/${maxRetries})`);
-              setTimeout(loadModel, 5000); // Retry after 5s
-            }
-          });
-        },
-        (code: string, message: string) => {
-          setError(`Document load failed: Code ${code} - ${message}`);
-          console.error(`Document load error: Code ${code} - ${message}`);
-          if (retryCount < maxRetries) {
-            setRetryCount(retryCount + 1);
-            setStatus(`Retrying... (${retryCount + 1}/${maxRetries})`);
-            setTimeout(loadModel, 5000);
-          }
-        }
-      );
-    };
-
-    const initializeViewer = () => {
-      // Set proxy for all endpoints
-      window.Autodesk.Viewing.endpoint.setEndpointAndApi('/proxy/forge', 'derivativeV2');
-      console.log('Endpoint set to proxy for CORS bypass');
-
-      // Enable verbose logging
-      if (window.Autodesk?.Viewing?.Private?.Logger) {
-        window.Autodesk.Viewing.Private.Logger.setLevel(0);
+      // Load Forge SDK if not already loaded
+      if (!window.Autodesk) {
+        await loadForgeSDK();
       }
 
+      setStatus('Getting viewer token...');
+      const token = await getViewerToken();
+      
+      setStatus('Initializing viewer...');
       const options = {
         env: 'AutodeskProduction',
         api: 'derivativeV2',
-        getAccessToken: getAccessToken,
-        language: 'en',
-        useADP: false,
-        useConsolidation: true,
-        consolidationMemoryLimit: 800 * 1024 * 1024,
-        enablePixelRatioAdjustment: true,
-        useDevicePixelRatio: true,
-        antialias: true,
-        alpha: false,
-        premultipliedAlpha: false,
-        preserveDrawingBuffer: false,
-        powerPreference: 'high-performance',
-        forceWebGL: true,
-        webGLHelpersExtension: true
+        accessToken: token
       };
 
-      window.Autodesk.Viewing.Initializer(options, () => {
-        setStatus('Viewer SDK initialized');
-        
-        if (!viewerContainer.current) {
-          setError('Viewer container not found');
-          return;
-        }
+      // Configure proxy endpoints
+      window.Autodesk.Viewing.endpoint.setEndpointAndApi('/proxy/forge', 'derivativeV2');
 
-        viewer.current = new window.Autodesk.Viewing.GuiViewer3D(viewerContainer.current, { extensions: ['Autodesk.DocumentBrowser'] });
-        
-        // Diagnostic events
-        viewer.current.addEventListener(window.Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
-          setStatus('Geometry loaded');
-          console.log('Geometry loaded');
-        });
-        viewer.current.addEventListener(window.Autodesk.Viewing.OBJECT_TREE_CREATED_EVENT, () => {
-          setStatus('Model tree created');
-          console.log('Object tree created');
-        });
-        viewer.current.addEventListener(window.Autodesk.Viewing.ERROR_EVENT, (evt: any) => {
-          setError(`Viewer error: ${evt.message}`);
-          console.error('Viewer error event:', evt);
-          
-          // Trigger Grok auto-fix for viewer errors
-          if (evt.message && (evt.message.includes('Script') || evt.message.includes('load') || evt.message.includes('viewer'))) {
-            console.log('Attempting Grok auto-fix for viewer error...');
-            fetch('/api/grok/fix', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                file: 'client/src/components/forge-viewer.tsx', 
-                error: evt.message 
-              })
-            })
-            .then(res => res.json())
-            .then(data => {
-              if (data.success) {
-                console.log('Grok fix applied successfully');
-              }
-            })
-            .catch(fixErr => console.error('Grok fix failed:', fixErr));
-          }
-        });
+      const Viewer3D = window.Autodesk.Viewing.GuiViewer3D;
+      viewer.current = new Viewer3D(viewerContainer.current, {});
 
-        const startResult = viewer.current.start();
-        if (startResult > 0) {
-          setError(`Viewer start failed with code: ${startResult}`);
-          return;
-        }
-
-        loadModel();
+      viewer.current.addEventListener(window.Autodesk.Viewing.VIEWER_INITIALIZED, () => {
+        setStatus('Loading model...');
+        loadDocument(urn);
       });
-    };
 
-    // Load Forge Viewer script
-    if (!window.Autodesk) {
+      viewer.current.addEventListener(window.Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
+        setStatus('Ready');
+        setIsLoading(false);
+        toast({
+          title: "Model Loaded",
+          description: "3D model loaded successfully",
+        });
+      });
+
+      viewer.current.addEventListener(window.Autodesk.Viewing.MODEL_ROOT_LOADED_EVENT, () => {
+        console.log('Model root loaded');
+      });
+
+      viewer.current.start();
+
+    } catch (err: any) {
+      handleViewerError(err.message);
+    }
+  };
+
+  const loadForgeSDK = (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      if (window.Autodesk) {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.min.js';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load Forge SDK'));
+      document.head.appendChild(script);
+
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = 'https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.min.css';
       document.head.appendChild(link);
+    });
+  };
 
-      const script = document.createElement('script');
-      script.src = 'https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.min.js';
-      script.async = true; // Add async attribute to prevent blocking
-      script.onload = () => {
-        // Check if Autodesk is loaded successfully
-        if (window.Autodesk) {
-          initializeViewer();
-        } else {
-          setError('Failed to load Forge Viewer library');
-        }
-      };
-      script.onerror = () => setError('Failed to load Forge Viewer library');
-      document.head.appendChild(script);
-    } else {
-      initializeViewer();
+  const getViewerToken = async (): Promise<string> => {
+    const response = await fetch('/api/forge/viewer-token');
+    if (!response.ok) {
+      throw new Error('Failed to get viewer token');
     }
+    const data = await response.json();
+    return data.access_token;
+  };
 
+  const loadDocument = (urn: string) => {
+    const documentId = urn.startsWith('urn:') ? urn : `urn:adsk.objects:os.object:${urn}`;
+    
+    window.Autodesk.Viewing.Document.load(documentId, (doc: any) => {
+      const viewables = doc.getRoot().getDefaultGeometry();
+      if (viewables) {
+        viewer.current.loadDocumentNode(doc, viewables);
+      } else {
+        handleViewerError('No viewable items found in the model');
+      }
+    }, (error: any) => {
+      handleViewerError(`Document load failed: ${error}`);
+    });
+  };
+
+  useEffect(() => {
+    initializeViewer();
+    
     return () => {
       if (viewer.current) {
         viewer.current.finish();
         viewer.current = null;
       }
     };
-  }, [urn, retryCount]);
+  }, [urn]);
 
-  const handleRetry = () => {
-    setError(null);
-    setRetryCount(0);
-    setStatus('Retrying...');
-    window.location.reload();
-  };
+  const handleZoomIn = () => viewer.current?.navigation.setZoomTowards(1.2);
+  const handleZoomOut = () => viewer.current?.navigation.setZoomTowards(0.8);
+  const handleReset = () => viewer.current?.navigation.setRequestHomeView(true);
+  const handleFullscreen = () => viewer.current?.setFullscreen(true);
 
   return (
-    <Card className="w-full h-full">
+    <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <div className="space-y-1">
-          <CardTitle>Forge 3D Viewer</CardTitle>
-          {fileName && <p className="text-sm text-muted-foreground">{fileName}</p>}
+        <div>
+          <CardTitle className="text-lg">Forge 3D Viewer</CardTitle>
+          {fileName && <p className="text-sm text-gray-600">{fileName}</p>}
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant={error ? 'destructive' : isLoading ? 'secondary' : 'default'}>
+          <Badge variant={isLoading ? "secondary" : error ? "destructive" : "default"}>
             {status}
           </Badge>
           {onClose && (
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              ✕
+            <Button variant="outline" size="sm" onClick={onClose}>
+              Close
             </Button>
           )}
         </div>
       </CardHeader>
+      
       <CardContent className="p-0">
-        <div className="relative w-full" style={{ height: '600px' }}>
-          <div ref={viewerContainer} className="w-full h-full bg-gray-900" />
-          
-          {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-              <Loader2 className="h-8 w-8 animate-spin text-white" />
-            </div>
-          )}
-          
-          {error && (
-            <Alert variant="destructive" className="absolute top-4 left-4 right-4 max-w-md">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="flex items-center justify-between">
-                <span>{error}</span>
-                <Button size="sm" variant="outline" onClick={handleRetry}>
+        {error && (
+          <Alert className="m-4 mb-0" variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {error}
+              {retryCount < maxRetries && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="ml-2"
+                  onClick={() => {
+                    setRetryCount(0);
+                    initializeViewer();
+                  }}
+                >
                   <RefreshCw className="h-3 w-3 mr-1" />
                   Retry
                 </Button>
-              </AlertDescription>
-            </Alert>
-          )}
-          
-          {!error && !isLoading && viewer.current && (
-            <div className="absolute bottom-4 left-4 flex gap-2">
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => viewer.current?.navigation.setZoomIn()}
-              >
-                <ZoomIn className="h-4 w-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => viewer.current?.navigation.setZoomOut()}
-              >
-                <ZoomOut className="h-4 w-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => viewer.current?.navigation.setRequestHomeView()}
-              >
-                <RotateCcw className="h-4 w-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => viewer.current?.setViewerMode('fullscreen')}
-              >
-                <Maximize2 className="h-4 w-4" />
-              </Button>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <div className="relative h-96">
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+              <div className="text-center">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+                <p className="text-sm text-gray-600">{status}</p>
+              </div>
             </div>
           )}
           
-          <div className="absolute bottom-4 right-4 text-xs text-white bg-black/50 px-2 py-1 rounded">
-            {retryCount > 0 && `Retry ${retryCount}/${maxRetries}`}
-          </div>
+          <div 
+            ref={viewerContainer} 
+            className="w-full h-full border rounded-b-lg"
+            style={{ minHeight: '400px' }}
+          />
+
+          {!isLoading && !error && (
+            <div className="absolute bottom-4 right-4 flex gap-2">
+              <Button size="sm" variant="outline" onClick={handleZoomIn}>
+                <ZoomIn className="h-3 w-3" />
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleZoomOut}>
+                <ZoomOut className="h-3 w-3" />
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleReset}>
+                <RotateCcw className="h-3 w-3" />
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleFullscreen}>
+                <Maximize2 className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
   );
 }
-
-export default ForgeViewer;
-```
-
-The main changes to fix the Viewer Script error are:
-
-1. Added the `async` attribute to the script tag loading the Forge Viewer library:
-   ```typescript
-   script.async = true; // Add async attribute to prevent blocking
-   ```
-
-2. Modified the `onload` event handler to check if `Autodesk` is loaded successfully before initializing the viewer:
-   ```typescript
-   script.onload = () => {
-     // Check if Autodesk is loaded successfully
-     if (window.Autodesk) {
-       initializeViewer();
-     } else {
-       setError('Failed to load Forge Viewer library');
-     }
-   };
-   ```
-
-3. Added the `Autodesk.DocumentBrowser` extension to the viewer initialization:
-   ```typescript
-   viewer.current = new window.Autodesk.Viewing.GuiViewer3D(viewerContainer.current, { extensions: ['Autodesk.DocumentBrowser'] });
-   ```
-
-These changes should resolve the Viewer Script error by ensuring the script is loaded asynchronously and properly checked before initializing the viewer. The addition of the `Autodesk.DocumentBrowser` extension may also help with certain viewer functionality.

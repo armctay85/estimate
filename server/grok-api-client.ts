@@ -13,7 +13,7 @@ if (!API_KEY) {
   throw new Error('XAI_API_KEY missing in env');
 }
 
-export async function callGrok(prompt: string, model = 'grok-2-1212', maxTokens = 2048) {
+export async function callGrok(prompt: string, model = 'grok-beta', maxTokens = 2048) {
   try {
     const response = await axios.post(
       `${GROK_API_BASE}/chat/completions`,
@@ -34,7 +34,7 @@ export async function callGrok(prompt: string, model = 'grok-2-1212', maxTokens 
     );
 
     return response.data.choices[0].message.content;
-  } catch (error: any) {
+  } catch (error) {
     console.error('Grok API error:', error.response?.data || error.message);
     throw error;
   }
@@ -44,8 +44,8 @@ export async function callGrok(prompt: string, model = 'grok-2-1212', maxTokens 
 export async function amendCode(filePath: string, errorMessage: string) {
   const fullPath = path.resolve(process.cwd(), filePath);
   const code = await fs.readFile(fullPath, 'utf-8');
-  const backupPath = `${fullPath}.bak`;
-  await fs.copyFile(fullPath, backupPath); // Backup for safety
+  const backupPath = `${fullPath}.bak.${Date.now()}`;
+  await fs.copyFile(fullPath, backupPath); // Timestamped backup
 
   const prompt = `You are an expert coder fixing bugs in this Node.js/React app. Current code in ${filePath}:
 \`\`\`typescript
@@ -67,7 +67,7 @@ Provide the full amended code (no explanations, just the code). Ensure it's comp
 export async function testCode(command: string) {
   const { exec } = require('child_process');
   return new Promise((resolve, reject) => {
-    exec(command, (err: any, stdout: string, stderr: string) => {
+    exec(command, (err, stdout, stderr) => {
       if (err) reject(stderr);
       resolve(stdout);
     });

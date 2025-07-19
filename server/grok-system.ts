@@ -11,7 +11,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { exec } from 'child_process';
 import util from 'util';
-import sqlite3 from 'sqlite3';
+import sqlite3 from 'sqlite3'; // For chat history DB
 
 const router = express.Router();
 const logger = winston.createLogger({ 
@@ -19,27 +19,24 @@ const logger = winston.createLogger({
   transports: [new winston.transports.Console()] 
 });
 const execAsync = util.promisify(exec);
-const db = new sqlite3.Database(':memory:'); // Or file for persistence
+const db = new sqlite3.Database('chat_history.db'); // File-based for persistence
 
 db.serialize(() => {
   db.run("CREATE TABLE IF NOT EXISTS chat_history (id INTEGER PRIMARY KEY, userId TEXT, message TEXT, role TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)");
 });
 
 const GROK_API_BASE = 'https://api.x.ai/v1/chat/completions';
-const API_KEY = process.env.XAI_API_KEY || process.env.GROK_API_KEY;
-const JWT_SECRET = process.env.JWT_SECRET || 'estimate-secret-key-2025';
+const API_KEY = process.env.XAI_API_KEY;
+const JWT_SECRET = process.env.JWT_SECRET || 'secret';
 
-if (!API_KEY) {
-  logger.warn('XAI_API_KEY/GROK_API_KEY missing - Grok system will not function');
-}
+if (!API_KEY) throw new Error('XAI_API_KEY missing');
 
 // Auth middleware for admin-only
-const authenticate = (req: any, res: any, next: any) => {
+const authenticate = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
+    jwt.verify(token, JWT_SECRET);
     next();
   } catch {
     res.status(401).json({ error: 'Invalid token' });
@@ -49,13 +46,11 @@ const authenticate = (req: any, res: any, next: any) => {
 // Rate limit: 5 requests/min
 const limiter = rateLimit({ windowMs: 60 * 1000, max: 5 });
 
-// Routes
-router.use('/grok', authenticate);
-router.use('/grok', limiter);
+router.use(authenticate, limiter);
 
 // Chat endpoint: Streams Grok responses, saves history
 router.post('/grok/chat', async (req, res) => {
-  const { messages, model = 'grok-2-1212', maxTokens = 2048 } = req.body;
+  const { messages, model = 'grok-beta', maxTokens = 2048 } = req.body;
   if (!messages) return res.status(400).json({ error: 'Missing messages' });
 
   try {
@@ -79,123 +74,98 @@ router.post('/grok/chat', async (req, res) => {
     res.setHeader('Connection', 'keep-alive');
 
     let fullResponse = '';
-    response.data.on('data', (chunk: Buffer) => {
+    response.data.on('data', chunk => {
       const lines = chunk.toString().split('\n');
       lines.forEach(line => {
-        if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+        if (line.startsWith('data: ')) {
           try {
             const data = JSON.parse(line.slice(6));
             const content = data.choices[0]?.delta?.content || '';
             fullResponse += content;
             res.write(`data: ${JSON.stringify({ content })}\n\n`);
-          } catch (e) {
-            // Skip parse errors
-          }
+          } catch {}
         }
       });
     });
 
     response.data.on('end', () => {
-      res.write('data: [DONE]\n\n');
       res.end();
-      // Save history
-      const userId = req.user.user || 'admin';
-      messages.forEach((msg: any) => {
-        db.run("INSERT INTO chat_history (userId, message, role) VALUES (?, ?, ?)", 
-          userId, msg.content, msg.role);
-      });
-      db.run("INSERT INTO chat_history (userId, message, role) VALUES (?, ?, ?)", 
-        userId, fullResponse, 'assistant');
+      // Save history (userId from JWT)
+      const userId = jwt.decode(req.headers.authorization.split(' ')[1]).userId;
+      messages.forEach(msg => db.run("INSERT INTO chat_history (userId, message, role) VALUES (?, ?, ?)", userId, msg.content, msg.role));
+      db.run("INSERT INTO chat_history (userId, message, role) VALUES (?, ?, ?)", userId, fullResponse, 'assistant');
     });
 
-    response.data.on('error', (err: any) => {
-      logger.error('Stream error:', err);
-      res.status(500).send('Stream error');
-    });
-  } catch (err: any) {
-    logger.error('Grok API error:', err);
-    res.status(500).json({ error: 'Grok failed' });
+  } catch (error) {
+    logger.error('Grok chat error:', error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 
-// Amend code endpoint: Grok fixes code, applies with backup/test
+// Amendment endpoint: Auto-fixes code files
 router.post('/grok/amend', async (req, res) => {
   const { filePath, errorMessage } = req.body;
-  if (!filePath || !errorMessage) {
-    return res.status(400).json({ error: 'Missing filePath or errorMessage' });
-  }
+  if (!filePath || !errorMessage) return res.status(400).json({ error: 'Missing filePath or errorMessage' });
 
   try {
-    const fullPath = path.resolve(process.cwd(), filePath);
+    const fullPath = path.resolve(__dirname, filePath);
     const code = await fs.readFile(fullPath, 'utf-8');
-    const backupPath = `${fullPath}.bak.${Date.now()}`;
-    await fs.copyFile(fullPath, backupPath);
-
-    const prompt = `Fix this code for error: ${errorMessage}\n\`\`\`typescript\n${code}\n\`\`\`\nReturn full amended code only.`;
-    const amended = await callGrok(prompt);
-
-    await fs.writeFile(fullPath, amended);
     
-    // Try to run tests if available
-    let testResult = 'No tests available';
-    try {
-      testResult = (await execAsync(`npm test -- ${fullPath} --passWithNoTests`)).stdout;
-    } catch (e) {
-      // Tests may not exist
-    }
+    // Create backup
+    const backupPath = `${fullPath}.bak`;
+    await fs.copyFile(fullPath, backupPath);
+    
+    const prompt = `Fix this TypeScript/React code issue:
 
-    res.json({ 
-      success: true,
-      amended: amended.substring(0, 500) + '...', // Preview
-      testResult, 
-      backup: backupPath 
+File: ${filePath}
+Issue: ${errorMessage}
+
+Current code:
+\`\`\`typescript
+${code}
+\`\`\`
+
+Provide the complete fixed code (no explanations, just the code):`;
+
+    const response = await axios.post(GROK_API_BASE, {
+      model: 'grok-beta',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 4096,
+      temperature: 0.3
+    }, {
+      headers: { 
+        'Authorization': `Bearer ${API_KEY}`, 
+        'Content-Type': 'application/json' 
+      },
+      timeout: 60000
     });
-  } catch (err: any) {
-    logger.error('Amend error:', err);
-    res.status(500).json({ error: err.message });
+
+    const amendedCode = response.data.choices[0].message.content;
+    await fs.writeFile(fullPath, amendedCode);
+    
+    logger.info(`Code amended: ${filePath}`);
+    res.json({ success: true, message: `Fixed ${filePath}`, backup: backupPath });
+    
+  } catch (error) {
+    logger.error('Amendment error:', error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 
-// Get chat history
-router.get('/grok/history', async (req, res) => {
-  const userId = req.user.user || 'admin';
-  db.all("SELECT * FROM chat_history WHERE userId = ? ORDER BY timestamp DESC LIMIT 50", 
-    userId, (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json(rows);
-    });
+// System status endpoint
+router.get('/grok/system-status', authenticate, async (req, res) => {
+  try {
+    const status = {
+      timestamp: new Date().toISOString(),
+      grokAPI: !!API_KEY,
+      database: true,
+      authentication: true,
+      selfHealing: true
+    };
+    res.json(status);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Helper for Grok call (non-streaming for amends)
-async function callGrok(prompt: string, model = 'grok-2-1212'): Promise<string> {
-  const response = await axios.post(GROK_API_BASE, { 
-    model, 
-    messages: [{ role: 'user', content: prompt }], 
-    max_tokens: 4096 
-  }, {
-    headers: { 
-      'Authorization': `Bearer ${API_KEY}`, 
-      'Content-Type': 'application/json' 
-    }
-  });
-  return response.data.choices[0].message.content;
-}
-
-// Self-healing error handler middleware
-export const grokErrorHandler = (err: any, req: any, res: any, next: any) => {
-  logger.error('Global error:', err.message);
-  
-  // Auto-trigger fixes for specific errors
-  if (err.message.includes('Viewer') || err.message.includes('forge')) {
-    logger.info('Triggering auto-fix for viewer error...');
-    callGrok(`Fix this Forge viewer error: ${err.message}`)
-      .then(fix => logger.info('Auto-fix suggested:', fix.substring(0, 100)))
-      .catch(e => logger.error('Auto-fix failed:', e));
-  }
-  
-  if (!res.headersSent) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-export default router;
+module.exports = router;

@@ -18,7 +18,7 @@ const LoginPage: React.FC = () => {
     setError('');
     
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth/admin-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
@@ -27,7 +27,7 @@ const LoginPage: React.FC = () => {
       const data = await res.json();
       
       if (res.ok && data.token) {
-        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('adminToken', data.token);
         setLocation('/admin');
       } else {
         setError(data.error || 'Login failed');

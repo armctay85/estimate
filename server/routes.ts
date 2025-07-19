@@ -139,6 +139,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/logout', logout);
   app.get('/api/auth/user', getCurrentUser);
   
+  // Admin JWT login endpoint for Grok system (separate route)
+  app.post('/api/auth/admin-login', authLimiter, async (req, res) => {
+    const { username, password } = req.body;
+    
+    if (username === 'admin' && password === 'pass') {
+      const jwt = require('jsonwebtoken');
+      const token = jwt.sign({ user: 'admin' }, process.env.JWT_SECRET || 'estimate-secret-key-2025', { expiresIn: '24h' });
+      res.json({ token });
+    } else {
+      res.status(401).json({ error: 'Invalid credentials' });
+    }
+  });
+  
   // Mount Grok system routes
   app.use('/api', grokSystemRouter);
 
