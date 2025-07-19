@@ -54,12 +54,15 @@ declare global {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Global CORS headers middleware for Forge proxy
+  // Global CORS Middleware - Allow all origins, methods, headers for maximum compatibility in Replit
   app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    if (req.method === 'OPTIONS') return res.sendStatus(200);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, HEAD');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Range, If-None-Match, If-Modified-Since');
+    res.header('Access-Control-Expose-Headers', 'Content-Length, Content-Range, ETag, Last-Modified');
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(200);
+    }
     next();
   });
 

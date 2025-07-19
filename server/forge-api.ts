@@ -456,81 +456,76 @@ export async function setupForgeRoutes(app: any) {
     }
   });
 
-  // Comprehensive proxy for all Forge resources to bypass CORS
+  // Comprehensive Forge Resource Proxy
+  // Handles: API calls, SVF binaries, textures, manifests, scripts, WASM, and CDN redirects
+  // Supports: GET/POST, binary streaming, header preservation, error logging
   app.all('/proxy/forge/*', async (req: Request, res: Response) => {
     try {
-      const targetPath = req.params[0];
-      const targetUrl = `https://developer.api.autodesk.com/${targetPath}`;
-      
-      console.log(`Proxying ${req.method} request to: ${targetUrl}`);
-      
-      const token = await forgeApi.getAccessToken();
-      
-      // Build headers
+      // Construct target URL - Handle all Autodesk domains dynamically
+      let targetUrl = req.url.replace('/proxy/forge/', '');
+      if (!targetUrl.startsWith('http')) {
+        // Detect domain based on path
+        if (targetUrl.startsWith('modelderivative/') || targetUrl.startsWith('oss/')) {
+          targetUrl = `https://developer.api.autodesk.com/${targetUrl}`;
+        } else if (targetUrl.startsWith('regions/')) {
+          targetUrl = `https://cdn.derivative.autodesk.com/${targetUrl}`;
+        } else if (targetUrl.startsWith('otg/')) {
+          targetUrl = `https://otg.autodesk.com/${targetUrl}`;
+        } else {
+          // Default to developer API
+          targetUrl = `https://developer.api.autodesk.com/${targetUrl}`;
+        }
+      }
+
+      console.log(`Proxying ${req.method} to ${targetUrl}`);
+
+      const token = await forgeApi.getAccessToken(); // Get fresh token with viewables:read scope
+
+      // Forward headers, excluding host/origin to avoid mismatches
       const headers: any = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': req.headers['content-type'] || 'application/json',
-        'Accept': req.headers['accept'] || '*/*',
-        'Accept-Encoding': 'gzip, deflate, br'
+        ...req.headers,
+        authorization: `Bearer ${token}`,
+        host: undefined,
+        origin: undefined,
+        referer: undefined,
+        'user-agent': 'EstiMate-Forge-Proxy/1.0' // Custom UA to avoid blocks
       };
 
-      // Forward any custom headers
-      if (req.headers['if-none-match']) headers['If-None-Match'] = req.headers['if-none-match'];
-      if (req.headers['if-modified-since']) headers['If-Modified-Since'] = req.headers['if-modified-since'];
+      // Remove undefined headers
+      Object.keys(headers).forEach(key => {
+        if (headers[key] === undefined) {
+          delete headers[key];
+        }
+      });
 
-      const axiosConfig: AxiosRequestConfig = {
+      // Axios config for request
+      const config: AxiosRequestConfig = {
         method: req.method as any,
         url: targetUrl,
-        headers,
         params: req.query,
         data: req.body,
-        // Use arraybuffer for binary files
-        responseType: targetPath.includes('.svf') || 
-                      targetPath.includes('/meshes/') || 
-                      targetPath.includes('/materials/') ||
-                      targetPath.includes('/textures/') ||
-                      targetPath.includes('/images/')
-                      ? 'arraybuffer' 
-                      : 'json',
-        maxRedirects: 5,
-        validateStatus: () => true, // Accept any status code
-        timeout: 60000 // 60 second timeout
+        headers,
+        responseType: 'stream', // Stream for binaries/large files to avoid memory issues
+        maxRedirects: 10, // Handle CDN redirects
+        validateStatus: (status) => status >= 200 && status < 400 // Accept redirects as valid
       };
 
-      const response = await axios(axiosConfig);
-      
-      // Set CORS headers
-      res.set({
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
-        'Access-Control-Expose-Headers': 'Content-Length, Content-Type, Location',
-        'Content-Type': response.headers['content-type'] || 'application/json'
+      const response = await axios(config);
+
+      // Forward response headers (preserve content-type, etag, etc.)
+      Object.keys(response.headers).forEach(key => {
+        res.setHeader(key, response.headers[key]);
       });
-      
-      // Forward other important headers
-      if (response.headers['content-length']) res.set('Content-Length', response.headers['content-length']);
-      if (response.headers['etag']) res.set('ETag', response.headers['etag']);
-      if (response.headers['last-modified']) res.set('Last-Modified', response.headers['last-modified']);
-      if (response.headers['cache-control']) res.set('Cache-Control', response.headers['cache-control']);
-      
-      // Handle redirects
-      if (response.headers['location']) {
-        res.set('Location', response.headers['location']);
-      }
-      
-      res.status(response.status).send(response.data);
+
+      // Stream response back to client
+      response.data.pipe(res);
     } catch (error: any) {
-      console.error('Forge proxy error:', error.message);
+      console.error('Forge proxy error:', error.message, error.stack);
       if (error.response) {
-        console.error('Response status:', error.response.status);
-        console.error('Response data:', error.response.data);
+        res.status(error.response.status).send(error.response.data);
+      } else {
+        res.status(500).json({ error: 'Proxy failed', details: error.message });
       }
-      res.status(error.response?.status || 500).json({ 
-        error: 'Proxy request failed',
-        message: error.message,
-        details: error.response?.data
-      });
     }
   });
 
