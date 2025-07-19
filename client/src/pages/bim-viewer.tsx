@@ -15,7 +15,17 @@ export function BIMViewerPage() {
     const fileNameParam = urlParams.get('fileName');
     
     if (urnParam) {
-      setUrn(urnParam);
+      // Fix: Decode URN to handle URL encoding (e.g., %3A to :)
+      const decodedUrn = decodeURIComponent(urnParam);
+      console.log('Raw URN from URL:', urnParam);
+      console.log('Decoded URN:', decodedUrn);
+      
+      // Validate base64 format after decoding
+      if (!/^[A-Za-z0-9+/]*={0,2}$/.test(decodedUrn)) {
+        console.error('Invalid base64 URN after decode:', decodedUrn);
+      }
+      
+      setUrn(decodedUrn);
     }
     
     if (fileNameParam) {

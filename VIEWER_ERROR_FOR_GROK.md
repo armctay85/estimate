@@ -110,3 +110,36 @@ The SVF format change was indeed causing compatibility issues. SVF and SVF2 requ
 
 ### Next Steps
 The viewer should now properly load SVF format models. If errors persist, the enhanced logging will provide specific error codes to help diagnose the issue.
+
+## GROK'S ADDITIONAL FIX - URN ENCODING ISSUE ✅
+
+### New Error Identified (January 19, 2025)
+The error "Failed to execute 'atob' on 'Window': The string to be decoded is not correctly encoded" was caused by URL-encoded URNs.
+
+### Root Cause
+- URN passed as URL parameter gets encoded (e.g., `urn%3Aadsk...` instead of `urn:adsk...`)
+- The `%3A` and other encoded characters break base64 decoding
+- Forge Viewer uses `atob` internally for asset handling which fails on URL-encoded strings
+
+### Solution Implemented ✅
+Updated `client/src/pages/bim-viewer.tsx` to decode the URN:
+
+```javascript
+// Fix: Decode URN to handle URL encoding
+const decodedUrn = decodeURIComponent(urnParam);
+console.log('Raw URN from URL:', urnParam);
+console.log('Decoded URN:', decodedUrn);
+
+// Validate base64 format after decoding
+if (!/^[A-Za-z0-9+/]*={0,2}$/.test(decodedUrn)) {
+  console.error('Invalid base64 URN after decode:', decodedUrn);
+}
+
+setUrn(decodedUrn);
+```
+
+### Status
+- ✅ URN decoding implemented
+- ✅ Base64 validation added
+- ✅ Debug logging for troubleshooting
+- ✅ Ready for testing with uploaded models
