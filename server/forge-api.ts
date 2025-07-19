@@ -503,54 +503,20 @@ export async function setupForgeRoutes(app: any) {
       
       console.log(`Translation started for URN: ${urn}`);
 
-      // Poll for completion with timeout
-      let attempts = 0;
-      const maxAttempts = 180; // 30 minutes (10s intervals)
-      let translationComplete = false;
-
-      while (attempts < maxAttempts && !translationComplete) {
-        await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
-        attempts++;
-
-        try {
-          const status = await forgeApi.getTranslationStatus(urn);
-          console.log(`Translation attempt ${attempts}: ${status.status}`);
-
-          if (status.status === 'success') {
-            translationComplete = true;
-            console.log(`Translation completed successfully for URN: ${urn}`);
-            return res.json({ 
-              success: true,
-              urn,
-              status: 'ready',
-              fileName: file.originalname,
-              fileSize: file.size,
-              fileType: fileName.split('.').pop()?.toUpperCase(),
-              message: 'File uploaded and translation completed successfully',
-              bucketKey,
-              objectName
-            });
-          } else if (status.status === 'failed') {
-            console.error(`Translation failed for URN: ${urn}`, status);
-            return res.status(500).json({ 
-              error: 'Translation failed',
-              message: 'The file could not be processed. Please check the file format and try again.',
-              details: status.messages || []
-            });
-          }
-          // Continue polling if status is 'inprogress' or 'pending'
-        } catch (statusError) {
-          console.warn(`Status check failed (attempt ${attempts}):`, statusError);
-          // Continue polling on status check failures
-        }
-      }
-
-      // Timeout reached
-      console.error(`Translation timeout for URN: ${urn} after ${attempts} attempts`);
-      res.status(408).json({ 
-        error: 'Translation timeout',
-        message: 'File processing is taking longer than expected. Please try again with a smaller file.',
-        urn // Return URN so client can check status later
+      // Return immediately with translation started status
+      console.log(`Translation initiated, returning URN for viewer: ${urn}`);
+      
+      return res.json({ 
+        success: true,
+        urn,
+        status: 'translating',
+        fileName: file.originalname,
+        fileSize: file.size,
+        fileType: fileName.split('.').pop()?.toUpperCase(),
+        message: 'File uploaded successfully. Translation in progress...',
+        bucketKey,
+        objectName,
+        translationStarted: true
       });
 
     } catch (error: any) {

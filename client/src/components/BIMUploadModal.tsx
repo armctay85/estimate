@@ -46,16 +46,19 @@ export function BIMUploadModal({ isOpen, onClose, onUploadSuccess }: BIMUploadMo
           try {
             const result = JSON.parse(xhr.responseText);
             console.log('Upload successful:', result);
-            setUploadStatus('Upload successful! Processing BIM file...');
             
-            // Notify parent component
-            if (onUploadSuccess && result.urn) {
-              onUploadSuccess(result.urn);
-            }
-            
-            // Start polling for translation completion
-            if (result.urn) {
-              pollTranslationStatus(result.urn);
+            if (result.status === 'translating') {
+              setUploadStatus('Upload successful! Translation in progress...');
+              // Start polling for translation completion
+              if (result.urn) {
+                pollTranslationStatus(result.urn);
+              }
+            } else if (result.status === 'ready') {
+              setUploadStatus('Upload and translation complete! BIM model ready.');
+              // Notify parent component
+              if (onUploadSuccess && result.urn) {
+                onUploadSuccess(result.urn);
+              }
             }
           } catch (parseError) {
             console.error('Failed to parse response:', parseError);
@@ -91,12 +94,16 @@ export function BIMUploadModal({ isOpen, onClose, onUploadSuccess }: BIMUploadMo
 
     const poll = async (): Promise<void> => {
       try {
-        const response = await fetch(`/api/forge/translation-status?urn=${encodeURIComponent(urn)}`);
+        const response = await fetch(`/api/forge/status/${encodeURIComponent(urn)}`);
         const status = await response.json();
 
         if (status.status === 'success') {
           setUploadStatus('Translation complete! BIM model ready for viewing.');
           console.log('Translation completed successfully');
+          // Notify parent component when translation is complete
+          if (onUploadSuccess) {
+            onUploadSuccess(urn);
+          }
         } else if (status.status === 'failed') {
           setUploadStatus('Translation failed. Please try a different file format.');
           console.error('Translation failed:', status);
