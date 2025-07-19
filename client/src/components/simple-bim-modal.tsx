@@ -7,14 +7,15 @@ interface SimpleBIMModalProps {
 }
 
 export function SimpleBIMModal({ isOpen, onClose }: SimpleBIMModalProps) {
-  console.log('SimpleBIMModal render - isOpen:', isOpen);
+  console.log('SimpleBIMModal render function called - isOpen:', isOpen);
   
+  // Force render for debugging
   if (!isOpen) {
     console.log('SimpleBIMModal not rendering - isOpen is false');
     return null;
   }
   
-  console.log('SimpleBIMModal IS RENDERING - modal should be visible');
+  console.log('SimpleBIMModal IS RENDERING - modal should be visible NOW!!!');
 
   const handleClose = (e?: React.MouseEvent) => {
     e?.preventDefault();

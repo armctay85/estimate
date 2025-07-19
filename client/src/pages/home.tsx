@@ -1953,7 +1953,24 @@ export default function Home() {
         />
       )}
 
-      {/* Simple BIM Modal - Controlled by State */}
+      {/* Simple BIM Modal - TEST FORCED RENDERING */}
+      {showFixedBIMProcessor && (
+        <div className="fixed inset-0 bg-red-500 bg-opacity-50 z-[10000] flex items-center justify-center">
+          <div className="bg-white p-8 rounded-lg">
+            <h2>TEST MODAL WORKS!</h2>
+            <button 
+              onClick={() => {
+                console.log('Test modal close clicked');
+                setShowFixedBIMProcessor(false);
+              }}
+              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+            >
+              Close Test Modal
+            </button>
+          </div>
+        </div>
+      )}
+      
       <SimpleBIMModal
         isOpen={showFixedBIMProcessor}
         onClose={() => {
