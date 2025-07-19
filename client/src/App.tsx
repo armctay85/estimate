@@ -39,7 +39,11 @@ function Router() {
       <Route path="/settings" component={Settings} />
       <Route path="/3d-processor" component={ThreeDProcessor} />
       <Route path="/admin">
-        {() => isAuthenticated() ? <AdminChat /> : <LoginPage />}
+        {() => {
+          const hasToken = isAuthenticated();
+          console.log('Admin route check - hasToken:', hasToken, 'token:', localStorage.getItem('adminToken'));
+          return hasToken ? <AdminChat /> : <LoginPage />;
+        }}
       </Route>
       <Route path="/login" component={LoginPage} />
       <Route path="/regulations" component={Regulations} />

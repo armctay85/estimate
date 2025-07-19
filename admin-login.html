@@ -53,6 +53,7 @@
             const messageDiv = document.getElementById('message');
             
             try {
+                console.log('Attempting login with:', username, password);
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: {
@@ -61,18 +62,25 @@
                     body: JSON.stringify({ username, password })
                 });
                 
+                console.log('Login response status:', response.status);
                 const data = await response.json();
+                console.log('Login response data:', data);
                 
                 if (data.token) {
                     messageDiv.innerHTML = '<p class="text-green-600">Login successful! Redirecting...</p>';
                     localStorage.setItem('adminToken', data.token);
+                    console.log('Token stored in localStorage:', localStorage.getItem('adminToken'));
+                    
+                    // Small delay to ensure token is stored, then redirect
                     setTimeout(() => {
+                        console.log('Redirecting to /admin...');
                         window.location.href = '/admin';
-                    }, 1000);
+                    }, 500);
                 } else {
-                    messageDiv.innerHTML = '<p class="text-red-600">Login failed. Please try again.</p>';
+                    messageDiv.innerHTML = '<p class="text-red-600">Login failed: ' + (data.message || 'Unknown error') + '</p>';
                 }
             } catch (error) {
+                console.error('Login error:', error);
                 messageDiv.innerHTML = '<p class="text-red-600">Error: ' + error.message + '</p>';
             }
         });

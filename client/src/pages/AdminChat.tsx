@@ -43,7 +43,7 @@ const AdminChat: React.FC = () => {
   const fetchHistory = async () => {
     try {
       const res = await fetch('/api/grok/history', { 
-        headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` } 
+        headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` } 
       });
       if (res.ok) {
         const data = await res.json();
