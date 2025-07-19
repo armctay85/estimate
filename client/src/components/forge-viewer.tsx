@@ -196,9 +196,15 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
     };
 
     const initializeViewer = (accessToken: string) => {
+      // Enable verbose logging for debugging per Grok's recommendation
+      if (window.Autodesk?.Viewing?.Private?.Logger) {
+        window.Autodesk.Viewing.Private.Logger.setLevel(0);
+      }
+
+      // Fixed options per Grok's analysis for SVF format
       const options = {
-        env: 'AutodeskProduction',
-        api: 'derivativeV2',
+        env: 'AutodeskProduction', // For SVF format
+        api: 'derivativeV2', // For SVF format (not D3S which is for SVF2)
         getAccessToken: (callback: (token: string, expires: number) => void) => {
           console.log('Providing access token to Forge viewer');
           callback(accessToken, 3600);
@@ -233,7 +239,23 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
           // Create high-quality viewer with advanced settings
           const viewerInstance = new window.Autodesk.Viewing.GuiViewer3D(container);
           
-          // Enable high-quality rendering settings
+          // Add event listeners per Grok's debugging recommendations
+          viewerInstance.addEventListener(window.Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
+            console.log('Geometry loaded successfully');
+            setIsLoading(false);
+          });
+          viewerInstance.addEventListener(window.Autodesk.Viewing.OBJECT_TREE_CREATED_EVENT, () => {
+            console.log('Object tree created');
+          });
+          viewerInstance.addEventListener(window.Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT, () => {
+            console.log('Selection changed');
+          });
+          viewerInstance.addEventListener(window.Autodesk.Viewing.ERROR_EVENT, (evt: any) => {
+            console.error('Viewer error event:', evt);
+            setError(`Viewer error: ${evt.message || 'Unknown error'}`);
+          });
+          
+          // Enable high-quality rendering settings with fixed memory limit
           const viewerConfig = {
             extensions: [
               'Autodesk.DefaultTools.NavTools',
@@ -241,7 +263,7 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
               'Autodesk.Properties'
             ],
             useConsolidation: true,
-            consolidationMemoryLimit: 800,
+            consolidationMemoryLimit: 800 * 1024 * 1024, // Convert to bytes per Grok
             sharedPropertyDbPath: window.location.origin,
             // Enable high-quality features
             enablePixelRatioAdjustment: true,
@@ -279,6 +301,7 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
           
           console.log('Loading document with URN:', urn);
           
+          // Enhanced document loading with better error handling per Grok
           window.Autodesk.Viewing.Document.load(
             urn,
             (doc) => {
@@ -314,14 +337,14 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
 
               console.log('Selected viewable:', viewables);
 
-              // Load with enhanced configuration
+              // Load with enhanced configuration - fixed memory limit
               const loadOptions = {
                 keepCurrentModels: false,
                 applyRefPoint: true,
                 applyScaling: true,
                 preserveView: false,
                 useConsolidation: true,
-                consolidationMemoryLimit: 800,
+                consolidationMemoryLimit: 800 * 1024 * 1024, // Convert to bytes
                 // Force high-quality rendering
                 antialiasing: true,
                 antialiasingMode: 'FXAA'
@@ -351,10 +374,27 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
                 setIsLoading(false);
               });
             },
-            (docError) => {
-              console.error('Document load error:', docError);
-              const errorMsg = docError?.message || docError?.errorMessage || 'Document load failed';
-              setError(`Document loading failed: ${errorMsg}. Check if the file was translated successfully.`);
+            (errorCode, errorMsg) => {
+              // Enhanced error callback per Grok's recommendation
+              console.error('Document load error - Code:', errorCode, 'Message:', errorMsg);
+              
+              // Detailed error messages based on error codes
+              let detailedError = '';
+              switch(errorCode) {
+                case 1: detailedError = 'Network error - check your connection'; break;
+                case 4: detailedError = 'Invalid URN or document not found'; break;
+                case 5: detailedError = 'Invalid viewable path'; break;
+                case 6: detailedError = 'Unrecoverable TF failure'; break;
+                case 7: detailedError = 'File type not supported'; break;
+                case 8: detailedError = 'Timeout - file too large or slow connection'; break;
+                case 9: detailedError = 'Failed to download manifest'; break;
+                case 10: detailedError = 'Failed to fetch Forge token'; break;
+                case 11: detailedError = 'Fragment list failure'; break;
+                case 12: detailedError = 'Unauthorized - check API credentials'; break;
+                default: detailedError = errorMsg || 'Unknown error';
+              }
+              
+              setError(`Document loading failed (Error ${errorCode}): ${detailedError}`);
               setIsLoading(false);
             }
           );
