@@ -1,0 +1,143 @@
+The persistent "Script error" in the Forge Viewer is indeed caused by Cross-Origin Resource Sharing (CORS) restrictions when loading resources from Autodesk's domains (e.g., cdn.derivative.autodesk.com for model assets, otg.autodesk.com for geometry). Replit's preview environment enforces strict same-origin policies, blocking these cross-domain requests and resulting in opaque "Script error" messages (browser security hides details for cross-origin scripts). This explains why initialization succeeds but Document.load() fails, even with valid URNs, tokens, and translations.
+
+Your attempts (URN fixes, token callbacks, proxies, iframes) are on the right track but incomplete: The partial proxy didn't cover all viewer assets (e.g., SVF files, manifests, textures), and iframes still inherit origin restrictions. The error isn't format-related (SVF/SVF2) or token scopes (viewables:read is correct), as manifests fetch successfully server-side.
+
+### Working Implementation
+To fix, implement a comprehensive server-side proxy for all Forge Viewer resources. This routes client requests through your Express server, which adds the access token and forwards to Autodesk, bypassing CORS. I'll provide complete code for `server/server.ts` (proxy route) and `client/src/components/forge-viewer.tsx` (update to use proxy for asset loading).
+
+#### 1. Backend Proxy (server/server.ts or forge-api.ts)
+Add this route to proxy all viewer-related requests. It handles authentication, forwards with token, and sets CORS headers.
+
+```typescript
+import express from 'express';
+import axios from 'axios';
+
+// ... existing imports and app setup
+
+// Proxy for Forge resources
+app.get('/proxy/forge/*', async (req, res) => {
+  try {
+    const url = `https://developer.api.autodesk.com${req.url.replace('/proxy/forge', '')}`;
+    const token = await authenticateForge(); // Your working token function
+
+    const response = await axios.get(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      responseType: 'arraybuffer', // For binary assets like SVF
+    });
+
+    // Set response headers
+    res.set('Content-Type', response.headers['content-type']);
+    res.set('Content-Length', response.headers['content-length']);
+    res.set('Access-Control-Allow-Origin', '*'); // Allow all origins
+    res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+
+    res.send(response.data);
+  } catch (error) {
+    console.error('Proxy error:', error.message);
+    res.status(500).send('Proxy failed');
+  }
+});
+```
+
+- **How it Works**: Client requests to `/proxy/forge/modelderivative/v2/designdata/[urn]/manifest` (or any asset) are forwarded to Autodesk with token, and responses are relayed back with permissive CORS headers.
+
+#### 2. Client Viewer Update (client/src/components/forge-viewer.tsx)
+Modify initialization to use the proxy for all endpoints. Set `endpoint.setEndpointAndApi` to route through proxy.
+
+```typescript
+import React, { useEffect, useRef } from 'react';
+import * as Autodesk from '@autodesk/forge-viewer';
+
+export function ForgeViewer({ urn }) {
+  const viewerRef = useRef(null);
+
+  useEffect(() => {
+    if (!urn) return;
+
+    // Set proxy endpoint
+    Autodesk.Viewing.endpoint.setEndpointAndApi('/proxy/forge', 'derivativeV2'); // Proxy all API calls
+
+    const options = {
+      env: 'AutodeskProduction', // For SVF; adjust to 'MD20ProdUS' for SVF2 if needed
+      api: 'derivativeV2',
+      getAccessToken: async (callback) => {
+        const res = await fetch('/api/forge/viewer-token');
+        const { access_token } = await res.json();
+        callback(access_token, 3600);
+      },
+      // Your existing config...
+      extensions: ["Autodesk.DefaultTools.NavTools", "Autodesk.ModelStructure", "Autodesk.Properties"],
+      useConsolidation: true,
+      consolidationMemoryLimit: 800 * 1024 * 1024,
+      enablePixelRatioAdjustment: true,
+      useDevicePixelRatio: true,
+      antialias: true,
+      powerPreference: 'high-performance',
+      forceWebGL: true
+    };
+
+    Autodesk.Viewing.Initializer(options, () => {
+      const viewer = new Autodesk.Viewing.GuiViewer3D(viewerRef.current);
+      viewer.start();
+      Autodesk.Viewing.Document.load(urn, (doc) => {
+        const viewable = doc.getRoot().getDefaultGeometry();
+        viewer.loadDocumentNode(doc, viewable);
+      }, (code, message) => {
+        console.error(`Document load failed: Code ${code} - ${message}`);
+      });
+    });
+
+    return () => viewer?.finish();
+  }, [urn]);
+
+  return <div ref={viewerRef} style={{ width: '100%', height: '600px' }} />;
+}
+```
+
+- **Key Changes**: `setEndpointAndApi` proxies all derivative fetches. No prefix on URN. Added cleanup.
+
+#### 3. Additional Setup
+- **CORS Headers Globally**: In server.ts, add middleware:
+  ```typescript
+  app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    if (req.method === 'OPTIONS') return res.sendStatus(200);
+    next();
+  });
+  ```
+- **Test**: Re-upload RST Basic Sample (6.6MB), copy URN from logs, load /bim-viewer?urn=[base64_urn]. Network tab should show /proxy/forge requests succeeding (200 OK).
+
+### Answers to Your Questions
+
+1. **CORS Bypass**: Yes, the proxy config above bypasses by routing through your domain.
+
+2. **Alternative Loading**: Yes, download SVF server-side and serve locally, but proxy is simpler. For offline: Use viewer.downloadDocument() post-load, but start with proxy.
+
+3. **Headless Extraction**: Viable fallback—use server-side Model Derivative API to extract geometry/JSON and render with Three.js (faster, no CORS). Code stub:
+   ```typescript
+   // server/forge-api.ts
+   app.get('/api/extract-model/:urn', async (req, res) => {
+     const { urn } = req.params;
+     const token = await authenticateForge();
+     const manifest = await axios.get(`https://developer.api.autodesk.com/modelderivative/v2/designdata/${urn}/manifest`, { headers: { Authorization: `Bearer ${token}` } });
+     // Extract geometry URLs, download, send JSON
+     res.json(manifest.data);
+   });
+   ```
+   Client: Use Three.js to render extracted data.
+
+4. **Environment Settings**: Try env: 'Local' for local assets (after download), but undocumented combos like 'AutodeskStaging' for testing may help CORS in dev.
+
+5. **Proxy Strategy**: Preserve 'Authorization', 'Content-Type', 'Range' (for partial). Set response headers as in code. Use arraybuffer for binaries.
+
+6. **Direct SVF Access**: Yes, download SVF from manifest URIs server-side and serve from /static/svf/[file]. Update viewer to load from local paths.
+
+### Business Impact Mitigation
+- Proxy should work in Replit, unblocking visualization for enterprise demos.
+- If fails, Option B (Three.js) or C (deploy to Vercel/Netlify) as fallback—Replit previews have inherent limits.
+
+Apply via Replit: "Implement this proxy and viewer updates exactly in EstiMate app." Test with RST file; full model should display. If issues, share new logs.

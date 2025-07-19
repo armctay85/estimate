@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ForgeViewerIframe } from "@/components/forge-viewer-iframe";
+import { ForgeViewer } from "@/components/forge-viewer";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/header";
 import { ArrowLeft } from "lucide-react";
@@ -72,7 +72,7 @@ export function TestViewer() {
                   Load 3D Model
                 </Button>
               ) : (
-                <ForgeViewerIframe urn={urn} />
+                <ForgeViewer urn={urn} />
               )}
             </div>
           ) : (

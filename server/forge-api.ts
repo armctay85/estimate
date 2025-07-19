@@ -456,6 +456,33 @@ export async function setupForgeRoutes(app: any) {
     }
   });
 
+  // Comprehensive proxy for all Forge resources to bypass CORS
+  app.get('/proxy/forge/*', async (req: Request, res: Response) => {
+    try {
+      const url = `https://developer.api.autodesk.com${req.url.replace('/proxy/forge', '')}`;
+      const token = await forgeApi.getAccessToken();
+
+      const response = await axios.get(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        responseType: 'arraybuffer', // For binary assets like SVF
+      });
+
+      // Set response headers
+      res.set('Content-Type', response.headers['content-type']);
+      res.set('Content-Length', response.headers['content-length']);
+      res.set('Access-Control-Allow-Origin', '*'); // Allow all origins
+      res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.set('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+
+      res.send(response.data);
+    } catch (error: any) {
+      console.error('Proxy error:', error.message);
+      res.status(error.response?.status || 500).send('Proxy failed');
+    }
+  });
+
   // Get manifest for debugging
   app.get('/api/forge/manifest/:urn', async (req: Request, res: Response) => {
     try {

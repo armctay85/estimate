@@ -201,6 +201,10 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
         window.Autodesk.Viewing.Private.Logger.setLevel(0);
       }
 
+      // Set proxy endpoint to route through our server and bypass CORS
+      window.Autodesk.Viewing.endpoint.setEndpointAndApi('/proxy/forge', 'derivativeV2');
+      console.log('Set proxy endpoint to bypass CORS issues');
+
       // Fixed options per Grok's analysis for SVF format
       const options = {
         env: 'AutodeskProduction',
