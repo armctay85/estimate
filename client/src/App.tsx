@@ -17,6 +17,7 @@ import NotFound from "@/pages/not-found";
 import { Sketch } from "@/pages/sketch";
 import { Regulations } from "@/pages/regulations";
 import { BIMViewerPage } from "@/pages/bim-viewer";
+import { TestViewer } from "@/pages/test-viewer";
 import { useState, useEffect } from "react";
 import { Moon, Sun } from "lucide-react";
 
@@ -35,6 +36,7 @@ function Router() {
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/regulations" component={Regulations} />
       <Route path="/bim-viewer" component={BIMViewerPage} />
+      <Route path="/test-viewer" component={TestViewer} />
       <Route component={NotFound} />
     </Switch>
   );
