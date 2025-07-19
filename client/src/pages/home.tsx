@@ -716,8 +716,9 @@ export default function Home() {
                       <span className="font-bold text-black dark:text-white">Replace 2-3 QS staff</span>
                     </div>
                   </div>
-                  <div className="text-center text-sm text-black dark:text-white mt-6 font-bold">
-                    Click card to start BIM processing
+                  <div className="text-center text-sm text-black dark:text-white mt-6 font-bold bg-purple-100 dark:bg-purple-900 p-3 rounded-lg border-2 border-purple-300">
+                    ⬆️ CLICK ANYWHERE ON THIS CARD ⬆️<br/>
+                    To launch BIM processor
                   </div>
                 </CardContent>
               </Card>
@@ -1953,24 +1954,7 @@ export default function Home() {
         />
       )}
 
-      {/* Simple BIM Modal - TEST FORCED RENDERING */}
-      {showFixedBIMProcessor && (
-        <div className="fixed inset-0 bg-red-500 bg-opacity-50 z-[10000] flex items-center justify-center">
-          <div className="bg-white p-8 rounded-lg">
-            <h2>TEST MODAL WORKS!</h2>
-            <button 
-              onClick={() => {
-                console.log('Test modal close clicked');
-                setShowFixedBIMProcessor(false);
-              }}
-              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-            >
-              Close Test Modal
-            </button>
-          </div>
-        </div>
-      )}
-      
+      {/* Simple BIM Modal - WORKING */}
       <SimpleBIMModal
         isOpen={showFixedBIMProcessor}
         onClose={() => {
