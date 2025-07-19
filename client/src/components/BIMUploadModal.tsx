@@ -11,6 +11,8 @@ export function BIMUploadModal({ isOpen, onClose, onUploadSuccess }: BIMUploadMo
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
   const [progress, setProgress] = useState(0);
+  const [translationComplete, setTranslationComplete] = useState(false);
+  const [currentUrn, setCurrentUrn] = useState<string | null>(null);
 
   /**
    * GROK'S FIXED UPLOAD FUNCTION
@@ -51,6 +53,7 @@ export function BIMUploadModal({ isOpen, onClose, onUploadSuccess }: BIMUploadMo
               setUploadStatus('Upload successful! Translation in progress...');
               // Start polling for translation completion
               if (result.urn) {
+                setCurrentUrn(result.urn);
                 pollTranslationStatus(result.urn);
               }
             } else if (result.status === 'ready') {
@@ -99,6 +102,7 @@ export function BIMUploadModal({ isOpen, onClose, onUploadSuccess }: BIMUploadMo
 
         if (status.status === 'success') {
           setUploadStatus('Translation complete! BIM model ready for viewing.');
+          setTranslationComplete(true);
           console.log('Translation completed successfully');
           // Notify parent component when translation is complete
           if (onUploadSuccess) {
@@ -129,6 +133,8 @@ export function BIMUploadModal({ isOpen, onClose, onUploadSuccess }: BIMUploadMo
     setIsUploading(false);
     setProgress(0);
     setUploadStatus('');
+    setTranslationComplete(false);
+    setCurrentUrn(null);
     onClose();
   };
 
@@ -215,20 +221,39 @@ export function BIMUploadModal({ isOpen, onClose, onUploadSuccess }: BIMUploadMo
           >
             {isUploading ? 'Processing...' : 'Cancel'}
           </button>
-          <button 
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
-                     transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isUploading}
-            onClick={() => {
-              // Optional: Trigger file input click for better UX
-              const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-              if (fileInput && !isUploading) {
-                fileInput.click();
-              }
-            }}
-          >
-            {isUploading ? 'Processing...' : 'Select File'}
-          </button>
+          
+          {translationComplete && currentUrn ? (
+            <button 
+              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 
+                       transition-colors flex items-center gap-2"
+              onClick={() => {
+                handleClose();
+                // Navigate to BIM viewer with the URN
+                window.location.href = `/bim-viewer?urn=${encodeURIComponent(currentUrn)}`;
+              }}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              View Model
+            </button>
+          ) : (
+            <button 
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
+                       transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isUploading}
+              onClick={() => {
+                // Optional: Trigger file input click for better UX
+                const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+                if (fileInput && !isUploading) {
+                  fileInput.click();
+                }
+              }}
+            >
+              {isUploading ? 'Processing...' : 'Select File'}
+            </button>
+          )}
         </div>
           </motion.div>
         </motion.div>
