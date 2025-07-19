@@ -75,3 +75,49 @@ Server held connection open for 20+ minutes during translation, causing 502 erro
 - ✅ $44.985M pipeline unblocked
 - ✅ Upload functionality fully restored
 - ✅ Platform stability improved
+
+## Issue 4: Navigation After Translation ✅ FIXED (January 19, 2025)
+
+### Root Cause
+No way to view model after translation completes - user stuck in upload modal.
+
+### Solution Implemented
+
+1. **Added View Model Button** (BIMUploadModal.tsx):
+   - Green button appears when translation completes
+   - Navigates to `/bim-viewer?urn={urn}`
+   - Closes modal and opens dedicated viewer page
+
+2. **Created BIM Viewer Page** (bim-viewer.tsx):
+   - New route at `/bim-viewer`
+   - Reads URN from URL parameters
+   - Displays ForgeViewer component
+   - Back to Dashboard navigation
+
+## Issue 5: Performance Optimizations ✅ IMPLEMENTED (January 19, 2025)
+
+### Based on Grok AI Recommendations
+Implemented safe optimizations that don't break existing functionality.
+
+### Solutions Implemented
+
+1. **API Translation Parameters** (server/forge-api.ts):
+   - Changed from `svf2` to `svf` format (faster translation)
+   - Limited views to only `3d` (skip 2D views)
+   - Disabled `generateMasterViews` (skip unnecessary processing)
+
+2. **User Guidance** (BIMUploadModal.tsx):
+   - Added pro tip for RVT optimization
+   - Recommends purging unused elements and auditing in Revit
+   - Can reduce file size by 30-40% before upload
+
+3. **Polling Interval** (BIMUploadModal.tsx):
+   - Reduced from 30 seconds to 15 seconds
+   - Faster feedback when translation completes
+   - Updated time calculations to match
+
+### Performance Impact
+- SVF format alone can reduce translation time significantly
+- Skipping 2D views and master views further reduces processing
+- User guidance helps reduce file size before upload
+- Faster polling provides better user experience
