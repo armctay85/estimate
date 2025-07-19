@@ -152,6 +152,21 @@ Provide the complete fixed code (no explanations, just the code):`;
   }
 });
 
+// Get chat history endpoint
+router.get('/grok/history', authenticate, async (req, res) => {
+  try {
+    const userId = jwt.decode(req.headers.authorization.split(' ')[1]).userId || 'admin';
+    db.all("SELECT * FROM chat_history WHERE userId = ? ORDER BY timestamp DESC LIMIT 50", [userId], (err, rows) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json(rows || []);
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // System status endpoint
 router.get('/grok/system-status', authenticate, async (req, res) => {
   try {

@@ -144,7 +144,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const { username, password } = req.body;
     
     if (username === 'admin' && password === 'pass') {
-      const jwt = require('jsonwebtoken');
       const token = jwt.sign({ user: 'admin' }, process.env.JWT_SECRET || 'estimate-secret-key-2025', { expiresIn: '24h' });
       res.json({ token });
     } else {
