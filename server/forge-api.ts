@@ -496,19 +496,24 @@ export async function setupForgeRoutes(app: any) {
       const objectId = await forgeApi.uploadFile(bucketKey, objectName, file.buffer);
       
       // Use the objectId as URN - it's already properly formatted
-      const urn = objectId;
+      const objectUrn = objectId;
       
       // Start translation for 3D viewing
-      await forgeApi.translateModel(urn);
+      await forgeApi.translateModel(objectUrn);
       
-      console.log(`Translation started for URN: ${urn}`);
+      // Convert to base64 URN for the viewer
+      const base64Urn = Buffer.from(objectUrn).toString('base64').replace(/=/g, '');
+      
+      console.log(`Translation started for URN: ${objectUrn}`);
+      console.log(`Base64 URN for viewer: ${base64Urn}`);
 
       // Return immediately with translation started status
-      console.log(`Translation initiated, returning URN for viewer: ${urn}`);
+      console.log(`Translation initiated, returning base64 URN for viewer: ${base64Urn}`);
       
       return res.json({ 
         success: true,
-        urn,
+        urn: base64Urn,  // Return base64 URN for viewer
+        objectUrn,        // Keep original for reference
         status: 'translating',
         fileName: file.originalname,
         fileSize: file.size,
@@ -528,8 +533,31 @@ export async function setupForgeRoutes(app: any) {
   // Check translation status
   app.get('/api/forge/status/:urn', async (req: Request, res: Response) => {
     try {
-      const status = await forgeApi.getTranslationStatus(req.params.urn);
-      res.json(status);
+      // The URN is already base64 encoded, decode it to get the object URN
+      const base64Urn = req.params.urn;
+      const objectUrn = Buffer.from(base64Urn, 'base64').toString('utf8');
+      
+      const manifest = await forgeApi.getTranslationStatus(objectUrn);
+      
+      // Check if translation is complete
+      let translationStatus = 'pending';
+      let progress = '0%';
+      
+      if (manifest.status === 'success') {
+        translationStatus = 'success';
+        progress = '100%';
+      } else if (manifest.status === 'failed') {
+        translationStatus = 'failed';
+        progress = '0%';
+      } else if (manifest.progress) {
+        progress = manifest.progress;
+      }
+      
+      res.json({
+        status: translationStatus,
+        progress,
+        manifest
+      });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
