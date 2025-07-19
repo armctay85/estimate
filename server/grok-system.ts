@@ -27,7 +27,7 @@ db.serialize(() => {
 
 const GROK_API_BASE = 'https://api.x.ai/v1/chat/completions';
 const API_KEY = process.env.XAI_API_KEY;
-const JWT_SECRET = process.env.JWT_SECRET || 'secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'estimate-secret-key-2025';
 
 if (!API_KEY) throw new Error('XAI_API_KEY missing');
 
@@ -38,67 +38,62 @@ const authenticate = (req, res, next) => {
   try {
     jwt.verify(token, JWT_SECRET);
     next();
-  } catch {
+  } catch (err) {
+    console.error('JWT verification error:', err.message);
     res.status(401).json({ error: 'Invalid token' });
   }
 };
 
-// Rate limit: 5 requests/min
-const limiter = rateLimit({ windowMs: 60 * 1000, max: 5 });
+// Rate limit: 5 requests/min with proper trust proxy settings
+const limiter = rateLimit({ 
+  windowMs: 60 * 1000, 
+  max: 5,
+  handler: (req, res) => {
+    res.status(429).json({ error: 'Too many requests' });
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 router.use(authenticate, limiter);
 
-// Chat endpoint: Streams Grok responses, saves history
+// Chat endpoint: Non-streaming for now to test basic functionality
 router.post('/grok/chat', async (req, res) => {
-  const { messages, model = 'grok-beta', maxTokens = 2048 } = req.body;
+  const { messages, model = 'grok-2-1212', maxTokens = 2048 } = req.body;
   if (!messages) return res.status(400).json({ error: 'Missing messages' });
 
   try {
+    logger.info('Attempting Grok API call with model:', model);
+    
     const response = await axios.post(GROK_API_BASE, { 
-      model, 
-      messages, 
+      model: model, 
+      messages: messages, 
       max_tokens: maxTokens, 
-      temperature: 0.7, 
-      stream: true 
+      temperature: 0.7
     }, {
       headers: { 
         'Authorization': `Bearer ${API_KEY}`, 
         'Content-Type': 'application/json' 
       },
-      responseType: 'stream',
       timeout: 60000
     });
 
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-
-    let fullResponse = '';
-    response.data.on('data', chunk => {
-      const lines = chunk.toString().split('\n');
-      lines.forEach(line => {
-        if (line.startsWith('data: ')) {
-          try {
-            const data = JSON.parse(line.slice(6));
-            const content = data.choices[0]?.delta?.content || '';
-            fullResponse += content;
-            res.write(`data: ${JSON.stringify({ content })}\n\n`);
-          } catch {}
-        }
-      });
-    });
-
-    response.data.on('end', () => {
-      res.end();
-      // Save history (userId from JWT)
-      const userId = jwt.decode(req.headers.authorization.split(' ')[1]).userId;
-      messages.forEach(msg => db.run("INSERT INTO chat_history (userId, message, role) VALUES (?, ?, ?)", userId, msg.content, msg.role));
-      db.run("INSERT INTO chat_history (userId, message, role) VALUES (?, ?, ?)", userId, fullResponse, 'assistant');
-    });
+    const content = response.data.choices[0]?.message?.content || '';
+    
+    // Save history (userId from JWT)
+    const userId = jwt.decode(req.headers.authorization.split(' ')[1])?.user || 'admin';
+    messages.forEach(msg => db.run("INSERT INTO chat_history (userId, message, role) VALUES (?, ?, ?)", userId, msg.content, msg.role));
+    db.run("INSERT INTO chat_history (userId, message, role) VALUES (?, ?, ?)", userId, content, 'assistant');
+    
+    res.json({ content });
 
   } catch (error) {
-    logger.error('Grok chat error:', error.message);
-    res.status(500).json({ error: error.message });
+    logger.error('Grok chat error:', error.response?.data || error.message);
+    if (error.response) {
+      logger.error('Response status:', error.response.status);
+      logger.error('Response data:', JSON.stringify(error.response.data));
+    }
+    res.status(500).json({ error: error.response?.data?.error || error.message });
   }
 });
 
@@ -183,4 +178,7 @@ router.get('/grok/system-status', authenticate, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
+
+// Re-export grokErrorHandler for compatibility
+export { grokErrorHandler };
