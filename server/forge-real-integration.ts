@@ -134,7 +134,7 @@ export class RealForgeAPI {
     }
   }
 
-  // Upload file to Forge OSS with proper bucket management  
+  // Upload file to Forge OSS with S3 signed URL approach  
   async uploadFile(objectName: string, fileBuffer: Buffer): Promise<string> {
     const token = await this.getAccessToken();
     
@@ -144,12 +144,33 @@ export class RealForgeAPI {
     try {
       console.log(`📤 Uploading ${objectName} (${(fileBuffer.length / 1024 / 1024).toFixed(2)} MB)`);
 
-      const response = await axios.put(
-        `${this.baseUrl}/oss/v2/buckets/${this.bucketKey}/objects/${encodeURIComponent(objectName)}`,
-        fileBuffer,
+      // Step 1: Request signed S3 upload URL
+      const signedUrlResponse = await axios.post(
+        `${this.baseUrl}/oss/v2/buckets/${this.bucketKey}/objects/${encodeURIComponent(objectName)}/signeds3`,
+        {
+          minutesExpiration: 60,  // URL expires in 60 minutes
+          singleUse: true  // For single-part upload
+        },
         {
           headers: {
             'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      const signedData = signedUrlResponse.data;
+      const signedUrl = signedData.signedUrl;
+      const uploadKey = signedData.uploadKey;
+
+      console.log(`✅ Signed S3 URL obtained for ${objectName}`);
+
+      // Step 2: Upload file to the signed S3 URL
+      const uploadResponse = await axios.put(
+        signedUrl,
+        fileBuffer,
+        {
+          headers: {
             'Content-Type': 'application/octet-stream',
             'Content-Length': fileBuffer.length.toString()
           },
@@ -159,9 +180,32 @@ export class RealForgeAPI {
         }
       );
 
-      // Create base64 URN from objectId (remove padding as per Grok's recommendation)
-      const urn = Buffer.from(response.data.objectId).toString('base64').replace(/=/g, '');
-      console.log(`✅ Upload successful, URN: ${urn}`);
+      if (uploadResponse.status !== 200) {
+        throw new Error(`S3 upload failed with status ${uploadResponse.status}`);
+      }
+
+      console.log('✅ File uploaded to S3 successfully');
+
+      // Step 3: Complete the upload by notifying APS
+      const completeResponse = await axios.post(
+        `${this.baseUrl}/oss/v2/buckets/${this.bucketKey}/objects/${encodeURIComponent(objectName)}/signeds3upload`,
+        {
+          uploadKey: uploadKey
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      console.log('✅ Upload completed:', completeResponse.data);
+      
+      // Create base64 URN from objectId (remove padding)
+      const objectId = completeResponse.data.objectId || completeResponse.data.objectKey;
+      const urn = Buffer.from(objectId).toString('base64').replace(/=/g, '');
+      console.log(`✅ URN generated: ${urn}`);
       
       return urn;
 

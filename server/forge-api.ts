@@ -104,20 +104,40 @@ export class ForgeAPI {
     }
   }
 
-  // Upload file to Forge with progress tracking - Updated to current API
+  // Upload file to Forge with S3 signed URL approach - Updated to fix deprecated endpoint
   async uploadFile(bucketKey: string, objectName: string, fileBuffer: Buffer): Promise<string> {
     const token = await this.getAccessToken();
     
     await this.ensureBucket(bucketKey);
 
     try {
-      // Use the current Forge API endpoint with proper multipart upload
-      const response = await axios.put(
-        `https://developer.api.autodesk.com/oss/v2/buckets/${bucketKey}/objects/${objectName}`,
-        fileBuffer,
+      // Step 1: Request signed S3 upload URL
+      const signedUrlResponse = await axios.post(
+        `https://developer.api.autodesk.com/oss/v2/buckets/${bucketKey}/objects/${objectName}/signeds3`,
+        {
+          minutesExpiration: 60,  // URL expires in 60 minutes
+          singleUse: true  // For single-part upload
+        },
         {
           headers: {
             'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      const signedData = signedUrlResponse.data;
+      const signedUrl = signedData.signedUrl;
+      const uploadKey = signedData.uploadKey;
+
+      console.log(`Signed S3 URL obtained for ${objectName}`);
+
+      // Step 2: Upload file to the signed S3 URL
+      const uploadResponse = await axios.put(
+        signedUrl,
+        fileBuffer,
+        {
+          headers: {
             'Content-Type': 'application/octet-stream',
             'Content-Length': fileBuffer.length.toString()
           },
@@ -127,8 +147,28 @@ export class ForgeAPI {
         }
       );
 
-      console.log(`File uploaded successfully: ${objectName}`);
-      return response.data.objectId;
+      if (uploadResponse.status !== 200) {
+        throw new Error(`S3 upload failed with status ${uploadResponse.status}`);
+      }
+
+      console.log('File uploaded to S3 successfully');
+
+      // Step 3: Complete the upload by notifying APS
+      const completeResponse = await axios.post(
+        `https://developer.api.autodesk.com/oss/v2/buckets/${bucketKey}/objects/${objectName}/signeds3upload`,
+        {
+          uploadKey: uploadKey
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      console.log('Upload completed:', completeResponse.data);
+      return completeResponse.data.objectId || completeResponse.data.objectKey;
     } catch (error: any) {
       console.error('File upload failed:', error.response?.data || error.message);
       throw new Error(`File upload failed: ${error.response?.data?.reason || error.message}`);

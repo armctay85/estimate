@@ -1,0 +1,83 @@
+/ Updated uploadFile method (replace the existing one)
+async function uploadFile(bucketKey, objectKey, fileBuffer) {
+  const token = await getAccessToken(); // Assuming your token function; already working per logs
+
+  // Step 1: Request signed S3 upload URL
+  const signedUrlResponse = await fetch(`https://developer.api.autodesk.com/oss/v2/buckets/${bucketKey}/objects/${objectKey}/signeds3`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      minutesExpiration: 60,  // URL expires in 60 minutes; adjust as needed
+      singleUse: true  // For single-part upload
+    })
+  });
+
+  if (!signedUrlResponse.ok) {
+    const errorText = await signedUrlResponse.text();
+    console.log('Signed URL request failed:', errorText);
+    throw new Error(`Signed URL request failed: ${errorText}`);
+  }
+
+  const signedData = await signedUrlResponse.json();
+  const signedUrl = signedData.signedUrl;
+  const uploadKey = signedData.uploadKey;  // Needed to complete the upload
+
+  console.log(`Signed S3 URL obtained: ${signedUrl}`);
+
+  // Step 2: Upload file to the signed S3 URL
+  const uploadResponse = await fetch(signedUrl, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/octet-stream',
+      'Content-Length': fileBuffer.length.toString()
+    },
+    body: fileBuffer
+  });
+
+  if (!uploadResponse.ok) {
+    const errorText = await uploadResponse.text();
+    console.log('S3 upload failed:', errorText);
+    throw new Error(`S3 upload failed: ${errorText}`);
+  }
+
+  console.log('File uploaded to S3 successfully');
+
+  // Step 3: Complete the upload by notifying APS
+  const completeResponse = await fetch(`https://developer.api.autodesk.com/oss/v2/buckets/${bucketKey}/objects/${objectKey}/signeds3upload`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      uploadKey: uploadKey
+    })
+  });
+
+  if (!completeResponse.ok) {
+    const errorText = await completeResponse.text();
+    console.log('Upload completion failed:', errorText);
+    throw new Error(`Upload completion failed: ${errorText}`);
+  }
+
+  const completeData = await completeResponse.json();
+  console.log('Upload completed:', completeData);
+
+  return completeData.objectId;  // Or URN/objectKey as needed for translation
+}
+Key Changes and Notes:
+Endpoints:
+POST /oss/v2/buckets/{bucketKey}/objects/{objectKey}/signeds3 to get the signed URL.
+PUT to the returned signedUrl (S3 endpoint) for the actual file upload—no auth needed here, as it's signed.
+POST /oss/v2/buckets/{bucketKey}/objects/{objectKey}/signeds3upload to finalize.
+Headers/Body: Minimal changes; no APS auth on the S3 PUT.
+Error Handling: Kept similar to your original, with logging for debugging.
+File Size: For files >100MB, modify to multi-part: Set "useAcceleration": true in the signed request body and handle chunks (e.g., 5-25MB each) with multiple PUTs to separate signed URLs. Add logic to request multi-part signed URLs via "chunks": N in the body.
+Testing:
+Ensure your APS app has the correct scopes (bucket:create bucket:read data:write—already in your auth per logs).
+If your app was created after Dec 10, 2024, this fix should work immediately. If it's an older app, the legacy PUT might still function, but migrate anyway for future-proofing.
+Retry the upload: The logs should now show "Signed S3 URL obtained" and "Upload completed" instead of the error.
+Performance: This method is faster for large files (direct to S3) and resolves the deprecation.
