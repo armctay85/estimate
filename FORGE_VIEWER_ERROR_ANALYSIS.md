@@ -1,10 +1,16 @@
 # Forge Viewer Error Analysis - January 19, 2025
 
-## Current Error
+## Current Error (PERSISTING)
 ```
 Document load error - Code: 7, Message: "Error: 0 ()"
-Failed to fetch resource: urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6ZXN0aW1hdGUtdXNlci1hbm9ueW1vdXMtMTc1MjkxNjg5NTA5My9yc3RiYXNpY3NhbXBsZXByb2plY3QucnZ0
+Failed to fetch resource: urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6ZXN0aW1hdGUtdXNlci1hbm9ueW1vdXMtMTc1MjkxNzY5MTkyOS9yc3RiYXNpY3NhbXBsZXByb2plY3QucnZ0
 ```
+
+## Latest Test Results (9:38 AM)
+- File uploaded successfully
+- Translation completed successfully  
+- Viewer initialized properly
+- **ERROR PERSISTS**: Same Code 7 error when loading document with "urn:" prefix
 
 ## Error Code 7 Meaning
 According to the Forge Viewer documentation, error code 7 means "File type not supported". However, this is misleading because we're uploading a valid .rvt file.
@@ -47,5 +53,35 @@ window.Autodesk.Viewing.Document.load(urn, ...);
 - The translation is complete
 - Only the document loading step fails due to URN format
 
+## Updated Analysis After Testing
+
+### Test Results Show Error Persists
+Even with the "urn:" prefix added (which was our attempted fix), the error continues:
+- Same error code 7
+- Same "Failed to fetch resource" message
+- Document.load() is still failing
+
+### This Indicates a Different Root Cause
+Since the error persists regardless of URN format, the issue is likely:
+
+1. **Access Token Scope Issue**: The viewer token might not have the correct scope for viewing translated models
+2. **Translation Format Mismatch**: The viewer might be trying to load SVF2 format when translation created SVF (or vice versa)
+3. **CORS/Network Issue**: The Forge CDN might be blocking requests from Replit's domain
+4. **Bucket Permissions**: The bucket might not have the correct permissions for viewer access
+
+### Evidence from Latest Logs
+```
+1752917886044.0 - ["Formatted URN for document load:","urn:dXJu..."]
+1752917931079.0 - ["Failed to fetch resource: urn:dXJu..."]
+1752917931079.0 - ["Document load error - Code:",7,"Message:","Error: 0 ()"]
+```
+
+### Next Debugging Steps Needed
+1. Check network tab for actual HTTP response codes (401, 403, 404?)
+2. Verify access token has "viewables:read" scope
+3. Test with both URN formats (with and without "urn:" prefix)
+4. Check if translation output format matches viewer configuration
+5. Verify the viewer token endpoint returns proper scope
+
 ## Conclusion
-The fix is simple: remove the URN prefix logic and pass the base64 URN directly to Document.load(). The Forge API expects the base64 string as-is, without any "urn:" prefix.
+The URN prefix is likely NOT the root cause. The error persists with both formats, suggesting an authentication, permission, or format mismatch issue that needs deeper investigation.
