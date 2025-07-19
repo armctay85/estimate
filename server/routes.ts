@@ -15,6 +15,7 @@ import { setupRealForgeRoutes } from "./forge-real-integration";
 import { setupFastUpload } from "./fast-upload";
 import { setupDataProcessing } from "./data-processor";
 import { setupInstantUpload } from "./instant-upload";
+import { setupBIMUploadFix } from "./bim-upload-fix";
 import { predictConstructionCost, analyzeBIMFile, generateQSReport } from "./xai-service";
 import { multiAI } from "./multi-ai-service";
 import { register, login, logout, getCurrentUser, isAuthenticated, requireTier } from "./auth";
@@ -920,6 +921,9 @@ Return JSON: { "areas": [{ "roomType": string, "label": string, "x": number, "y"
   
   // Set up REAL Forge API routes for authentic BIM processing
   setupRealForgeRoutes(app);
+  
+  // Set up GROK'S FIXED BIM upload routes (resolves multer conflicts)
+  setupBIMUploadFix(app);
   
   // Set up fast upload routes for instant uploads
   setupFastUpload(app);

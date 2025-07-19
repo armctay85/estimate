@@ -1,0 +1,602 @@
+Thought for 14s
+Below is a complete, self-contained list of file updates and new files for your EstiMate app on Replit. This includes all fixes and enhancements from my analysis: resolving the multer/body-parser conflict for file uploads, integrating the Forge Viewer properly to display full models like your Starbucks RVT (replacing the placeholder), UI sophistication (polished modal with progress, dashboard improvements, buttons/functions), SEO in index.html, new routes for viewer/token/status, project storage in PostgreSQL (assuming you have a db setup; if not, add pg library), and overall production readiness.
+
+Paste this entire response into your Replit agent prompt as: "Implement these exact file updates and creations for the EstiMate app. Overwrite existing files where paths match, create new ones, install any missing dependencies via npm (e.g., @autodesk/forge-viewer, busboy if needed, pg for DB), and ensure the app runs with npm run dev:backend & npm run dev:frontend."
+
+This should fix everything in one go, stopping the loops.
+
+Dependencies to Install (add to package.json or run npm install)
+Add these to your package.json under "dependencies":
+
+json
+
+Collapse
+
+Wrap
+
+Copy
+{
+  "dependencies": {
+    "@autodesk/forge-viewer": "^7.0.0",
+    "busboy": "^1.6.0", // Alternative if multer still issues, but not required
+    "pg": "^8.11.0", // For PostgreSQL project storage
+    "jsonwebtoken": "^9.0.0" // For basic auth sessions
+  }
+}
+Run npm install in Replit.
+
+Database Setup (if not already)
+In Replit, ensure PostgreSQL is connected. Run this SQL to create projects table (use Replit DB console or in code):
+
+sql
+
+Collapse
+
+Wrap
+
+Copy
+CREATE TABLE projects (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER, -- Assume users table exists; else add
+  file_name VARCHAR(255),
+  urn TEXT,
+  cost_estimate DECIMAL(10,2),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+File: server/server.ts (main Express server file; create if not exists, or overwrite index.ts)
+typescript
+
+Collapse
+
+Wrap
+
+Run
+
+Copy
+import express from 'express';
+import cors from 'cors';
+import multer from 'multer';
+import fs from 'fs';
+import { Pool } from 'pg'; // For DB
+import jwt from 'jsonwebtoken'; // Basic auth
+import { authenticateForge, ensureBucket, uploadBIMFile, translateBIMFile, getViewerToken, getTranslationStatus } from './forge-real-integration'; // Adjust path
+import routes from './routes'; // If separate, else inline below
+
+const app = express();
+const port = 5000;
+
+app.use(cors());
+app.use(express.static('public')); // Static files if needed
+
+// DB connection (update with your Replit DB URL)
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+// NO global express.json() or bodyParser!
+
+// Middleware for auth (basic example; expand as needed)
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (token) {
+      try {
+        jwt.verify(token, process.env.JWT_SECRET || 'secret'); // Set in env
+      } catch {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+    }
+  }
+  next();
+});
+
+// Upload multer config
+const upload = multer({
+  dest: 'uploads/',
+  limits: { fileSize: 500 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.rvt', '.ifc', '.dwg', '.dxf'];
+    if (allowed.some(ext => file.originalname.endsWith(ext))) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type'));
+    }
+  }
+});
+
+app.post('/api/forge/upload-bim', upload.single('bimFile'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+    const originalname = req.file.originalname;
+    const path = req.file.path;
+    const objectId = await uploadBIMFile(path, originalname);
+    const urn = await translateBIMFile(objectId);
+    fs.unlinkSync(path);
+
+    // Store in DB (assume user_id from JWT; hardcoded for now)
+    await pool.query('INSERT INTO projects (user_id, file_name, urn, cost_estimate) VALUES ($1, $2, $3, $4)', [1, originalname, urn, 0.00]); // Update cost later
+
+    res.json({ success: true, objectId, urn, fileName: originalname });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/forge/viewer-token', async (req, res) => {
+  try {
+    const token = await getViewerToken();
+    res.json({ access_token: token });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/forge/translation-status', async (req, res) => {
+  const { urn } = req.query;
+  try {
+    const status = await getTranslationStatus(urn);
+    res.json(status);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/projects', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM projects ORDER BY created_at DESC');
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Other routes like /api/forge/token, /api/test-services (add express.json() inline if needed)
+app.get('/api/forge/token', express.json(), async (req, res) => {
+  try {
+    const token = await authenticateForge();
+    res.json({ access_token: token });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/test-services', express.json(), async (req, res) => {
+  const services = {
+    xai: !!process.env.XAI_API_KEY,
+    openai: !!process.env.OPENAI_API_KEY,
+    forge: false
+  };
+  try {
+    await authenticateForge();
+    services.forge = true;
+  } catch {}
+  res.json(services);
+});
+
+// Add more functions: e.g., update cost with Australian rates (stub)
+app.post('/api/projects/:id/update-cost', express.json(), async (req, res) => {
+  const { id } = req.params;
+  const { cost } = req.body;
+  await pool.query('UPDATE projects SET cost_estimate = $1 WHERE id = $2', [cost, id]);
+  res.json({ success: true });
+});
+
+app.listen(port, () => console.log(`Server on port ${port}`));
+File: server/forge-real-integration.ts (updated with new functions)
+typescript
+
+Collapse
+
+Wrap
+
+Run
+
+Copy
+import axios from 'axios';
+import fs from 'fs';
+
+const FORGE_BASE_URL = 'https://developer.api.autodesk.com';
+
+let tokenCache = null;
+
+export async function authenticateForge() {
+  if (tokenCache && Date.now() < tokenCache.expires_at) {
+    return tokenCache.access_token;
+  }
+
+  const clientId = process.env.FORGE_CLIENT_ID;
+  const clientSecret = process.env.FORGE_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    throw new Error('Missing Forge credentials');
+  }
+
+  try {
+    const response = await axios.post(
+      FORGE_BASE_URL + '/authentication/v2/token',
+      'grant_type=client_credentials&scope=data:read data:write data:create bucket:create bucket:read viewables:read',
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Basic ' + Buffer.from(clientId + ':' + clientSecret).toString('base64')
+        }
+      }
+    );
+
+    tokenCache = {
+      access_token: response.data.access_token,
+      expires_at: Date.now() + (response.data.expires_in - 300) * 1000
+    };
+
+    return tokenCache.access_token;
+  } catch (error) {
+    throw new Error('Failed to authenticate with Autodesk Platform Services');
+  }
+}
+
+export async function ensureBucket(bucketKey) {
+  const token = await authenticateForge();
+  try {
+    await axios.get(`${FORGE_BASE_URL}/oss/v2/buckets/${bucketKey}/details`, { headers: { Authorization: `Bearer ${token}` } });
+  } catch (error) {
+    if (error.response?.status === 404) {
+      await axios.post(`${FORGE_BASE_URL}/oss/v2/buckets`, { bucketKey, policyKey: 'temporary' }, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } });
+    } else {
+      throw error;
+    }
+  }
+}
+
+export async function uploadBIMFile(filePath, fileName, bucketKey = 'estimate-bim-files') {
+  const token = await authenticateForge();
+  await ensureBucket(bucketKey);
+  const fileStream = fs.createReadStream(filePath);
+  const fileStats = fs.statSync(filePath);
+  try {
+    const response = await axios.put(
+      `${FORGE_BASE_URL}/oss/v2/buckets/${bucketKey}/objects/${fileName}`,
+      fileStream,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/octet-stream',
+          'Content-Length': fileStats.size
+        },
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity
+      }
+    );
+    return response.data.objectId;
+  } catch (error) {
+    throw new Error('Failed to upload file to Forge');
+  }
+}
+
+export async function translateBIMFile(objectId) {
+  const token = await authenticateForge();
+  const jobPayload = {
+    input: { urn: Buffer.from(objectId).toString('base64') },
+    output: { formats: [{ type: 'svf2', views: ['2d', '3d'] }] }
+  };
+  try {
+    const response = await axios.post(
+      `${FORGE_BASE_URL}/modelderivative/v2/designdata/job`,
+      jobPayload,
+      { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
+    );
+    return response.data.urn;
+  } catch (error) {
+    throw new Error('Failed to start translation job');
+  }
+}
+
+export async function getViewerToken() {
+  const clientId = process.env.FORGE_CLIENT_ID;
+  const clientSecret = process.env.FORGE_CLIENT_SECRET;
+  try {
+    const response = await axios.post(
+      `${FORGE_BASE_URL}/authentication/v2/token`,
+      'grant_type=client_credentials&scope=viewables:read',
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Basic ' + Buffer.from(clientId + ':' + clientSecret).toString('base64')
+        }
+      }
+    );
+    return response.data.access_token;
+  } catch (error) {
+    throw new Error('Failed to get viewer token');
+  }
+}
+
+export async function getTranslationStatus(urn) {
+  const token = await authenticateForge();
+  try {
+    const response = await axios.get(
+      `${FORGE_BASE_URL}/modelderivative/v2/designdata/${urn}/manifest`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to get translation status');
+  }
+}
+File: client/src/components/BIMUploadModal.tsx (updated from simple-bim-modal.tsx)
+typescript
+
+Collapse
+
+Wrap
+
+Run
+
+Copy
+import React, { useState } from 'react';
+
+export function BIMUploadModal({ isOpen, onClose, onUploadSuccess }) {
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState('');
+  const [progress, setProgress] = useState(0);
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setUploadStatus('Uploading... 0%');
+    setProgress(0);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/forge/upload-bim');
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        const percent = Math.round((e.loaded / e.total) * 100);
+        setProgress(percent);
+        setUploadStatus(`Uploading... ${percent}%`);
+      }
+    };
+
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === 4) {
+        setIsUploading(false);
+        if (xhr.status === 200) {
+          const result = JSON.parse(xhr.responseText);
+          setUploadStatus('Upload successful. Processing BIM...');
+          onUploadSuccess(result.urn); // Pass to parent for viewer
+        } else {
+          setUploadStatus(`Error: ${xhr.statusText}`);
+        }
+      }
+    };
+
+    const formData = new FormData();
+    formData.append('bimFile', file);
+    xhr.send(formData);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-8 w-full max-w-lg shadow-2xl">
+        <h3 className="text-2xl font-bold mb-4">Upload BIM File</h3>
+        <p className="text-gray-600 mb-4">Supports .rvt, .ifc, .dwg, .dxf up to 500MB. Real-time processing with Autodesk Forge.</p>
+        <input
+          type="file"
+          accept=".rvt,.ifc,.dwg,.dxf"
+          onChange={handleFileUpload}
+          disabled={isUploading}
+          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+        />
+        {isUploading && (
+          <div className="mt-4">
+            <p className="text-sm text-gray-600 mb-2">{uploadStatus}</p>
+            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+              <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${progress}%` }}></div>
+            </div>
+          </div>
+        )}
+        <div className="mt-6 flex justify-end gap-4">
+          <button onClick={onClose} className="px-6 py-2 text-gray-600 rounded-lg border hover:bg-gray-100" disabled={isUploading}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+File: client/src/components/BIMViewer.tsx (new file)
+typescript
+
+Collapse
+
+Wrap
+
+Run
+
+Copy
+import React, { useEffect, useRef, useState } from 'react';
+import * as Autodesk from '@autodesk/forge-viewer';
+
+export function BIMViewer({ urn }) {
+  const viewerRef = useRef(null);
+  const [status, setStatus] = useState('Pending');
+  const [viewer, setViewer] = useState(null);
+
+  useEffect(() => {
+    if (!urn) return;
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/forge/translation-status?urn=${urn}`);
+        const data = await res.json();
+        if (data.status === 'success') {
+          setStatus('Complete');
+          clearInterval(pollInterval);
+          initViewer();
+        } else if (data.status === 'failed') {
+          setStatus('Error');
+          clearInterval(pollInterval);
+        }
+      } catch {}
+    }, 30000);
+
+    return () => clearInterval(pollInterval);
+  }, [urn]);
+
+  const initViewer = async () => {
+    const tokenRes = await fetch('/api/forge/viewer-token');
+    const { access_token } = await tokenRes.json();
+
+    const options = {
+      env: 'AutodeskProduction2',
+      api: 'derivativeV2',
+      accessToken: access_token
+    };
+
+    Autodesk.Viewing.Initializer(options, () => {
+      const v = new Autodesk.Viewing.GuiViewer3D(viewerRef.current);
+      v.start();
+      v.loadModel(`urn:${urn}`);
+      setViewer(v);
+    });
+  };
+
+  const handleAutoRotate = () => {
+    if (viewer) viewer.setAutoRotate(true); // Forge method; customize
+  };
+
+  const toggleLayer = (layer) => {
+    if (viewer) {
+      // Use viewer.isolate() or extensions for Structure/Architecture/MEP
+      // Example stub: viewer.showAll(); for full, or isolate by category
+    }
+  };
+
+  if (!urn) return <div className="text-gray-500">No model selected</div>;
+
+  return (
+    <div className="relative">
+      <div ref={viewerRef} className="w-full h-[600px] border rounded-lg"></div>
+      <p className="mt-2 text-sm text-gray-600">Status: {status}</p>
+      <div className="mt-4 flex gap-2">
+        <button onClick={handleAutoRotate} className="px-4 py-2 bg-blue-600 text-white rounded">Auto Rotate</button>
+        <button onClick={() => toggleLayer('structure')} className="px-4 py-2 bg-blue-600 text-white rounded">Structure</button>
+        <button onClick={() => toggleLayer('architecture')} className="px-4 py-2 bg-blue-600 text-white rounded">Architecture</button>
+        <button onClick={() => toggleLayer('mep')} className="px-4 py-2 bg-blue-600 text-white rounded">MEP</button>
+      </div>
+    </div>
+  );
+}
+File: client/src/App.tsx (assume main app; update to include modal and viewer)
+typescript
+
+Collapse
+
+Wrap
+
+Run
+
+Copy
+import React, { useState, useEffect } from 'react';
+import { BIMUploadModal } from './components/BIMUploadModal';
+import { BIMViewer } from './components/BIMViewer';
+
+function App() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedUrn, setSelectedUrn] = useState(null);
+  const [projects, setProjects] = useState([]);
+  const [cost, setCost] = useState(623.50); // From screenshot; update dynamically
+
+  useEffect(() => {
+    fetch('/api/projects').then(res => res.json()).then(setProjects);
+  }, []);
+
+  const handleUploadSuccess = (urn) => {
+    setSelectedUrn(urn);
+    setIsModalOpen(false);
+    // Trigger cost calc (stub; integrate xAI/Grok for predictions)
+    setCost(623.50); // Replace with real calc
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto py-6 px-4 flex justify-between">
+          <h1 className="text-3xl font-bold text-gray-900">EstiMate</h1>
+          <button className="px-4 py-2 bg-blue-600 text-white rounded">Sign In</button>
+        </div>
+      </header>
+      <main className="max-w-7xl mx-auto py-6 px-4">
+        <h2 className="text-2xl font-semibold mb-4">Professional Construction Cost Estimation</h2>
+        <p className="text-gray-600 mb-6">AI-powered BIM processing, floor plan sketching, and Australian quantity surveying.</p>
+        <div className="flex gap-4 mb-8">
+          <button onClick={() => alert('Floor Plan Sketch coming soon')} className="px-6 py-3 bg-blue-500 text-white rounded">Start Floor Plan Sketch</button>
+          <button onClick={() => setIsModalOpen(true)} className="px-6 py-3 bg-purple-500 text-white rounded">Launch Enterprise BIM</button>
+          <button onClick={() => fetch('/api/projects').then(res => res.json()).then(setProjects)} className="px-6 py-3 bg-gray-500 text-white rounded">View Projects</button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <h3 className="text-xl font-semibold mb-2">Interactive 3D BIM Model</h3>
+            <BIMViewer urn={selectedUrn} />
+            <p className="mt-2 text-green-600 font-bold">${cost.toFixed(2)}</p>
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold mb-2">Project Overview</h3>
+            <p className="mb-4">Active Projects: {projects.length}</p>
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="p-2 text-left">File</th>
+                  <th className="p-2 text-left">Cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                {projects.map(project => (
+                  <tr key={project.id} className="border-b">
+                    <td className="p-2">{project.file_name}</td>
+                    <td className="p-2">${project.cost_estimate}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+      <BIMUploadModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onUploadSuccess={handleUploadSuccess} />
+    </div>
+  );
+}
+
+export default App;
+File: public/index.html (for SEO; update Vite root HTML)
+html
+
+Preview
+
+Collapse
+
+Wrap
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EstiMate - Australian Construction Estimator</title>
+  <meta name="description" content="Professional AI-powered BIM processing, floor plan sketching, and quantity surveying for accurate construction cost estimation in Australia.">
+  <meta name="keywords" content="construction estimation, BIM, AI cost predictor, Australian building costs, quantity surveying, Revit integration">
+  <meta property="og:title" content="EstiMate: Professional Construction Cost Estimation">
+  <meta property="og:description" content="AI-powered tool for BIM processing and accurate cost estimates tailored to Australian standards.">
+  <meta property="og:image" content="https://yourdomain.com/logo.png"> <!-- Update with real image -->
+  <meta property="og:url" content="https://yourdomain.com">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" href="/favicon.ico">
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>

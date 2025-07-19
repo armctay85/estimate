@@ -552,3 +552,59 @@ export function setupRealForgeRoutes(app: express.Application) {
 
   console.log('✅ Real Forge API routes configured successfully');
 }
+
+// Standalone functions for Grok's solution
+export async function authenticateForge(): Promise<string> {
+  const realForgeAPI = new RealForgeAPI();
+  return await realForgeAPI.getAccessToken();
+}
+
+export async function ensureBucket(bucketKey: string): Promise<void> {
+  const realForgeAPI = new RealForgeAPI();
+  const token = await realForgeAPI.getAccessToken();
+  await realForgeAPI.ensureBucket(token);
+}
+
+export async function uploadBIMFile(filePath: string, fileName: string, bucketKey?: string): Promise<string> {
+  const realForgeAPI = new RealForgeAPI();
+  const fileBuffer = fs.readFileSync(filePath);
+  return await realForgeAPI.uploadFile(fileName, fileBuffer);
+}
+
+export async function translateBIMFile(objectId: string): Promise<string> {
+  const realForgeAPI = new RealForgeAPI();
+  await realForgeAPI.translateModel(objectId);
+  return objectId; // Return URN
+}
+
+export async function getTranslationStatus(urn: string): Promise<any> {
+  const realForgeAPI = new RealForgeAPI();
+  return await realForgeAPI.getTranslationStatus(urn);
+}
+
+export async function getViewerToken(): Promise<string> {
+  const clientId = process.env.FORGE_CLIENT_ID;
+  const clientSecret = process.env.FORGE_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    throw new Error('Missing Forge credentials');
+  }
+
+  try {
+    const response = await axios.post(
+      `https://developer.api.autodesk.com/authentication/v2/token`,
+      'grant_type=client_credentials&scope=viewables:read',
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`
+        }
+      }
+    );
+
+    return response.data.access_token;
+  } catch (error: any) {
+    console.error('Viewer token failed:', error.response?.data || error.message);
+    throw new Error('Failed to get viewer token');
+  }
+}

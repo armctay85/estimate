@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/header";
-import { SimpleBIMModal } from "@/components/simple-bim-modal";
+import { BIMUploadModal } from "@/components/BIMUploadModal";
 import { Interactive3DModel } from "@/components/interactive-3d-model";
 import { 
   PenTool, 
@@ -271,13 +271,18 @@ export function Home() {
         </div>
       </div>
 
-      {/* BIM Modal */}
-      {showFixedBIMProcessor && (
-        <SimpleBIMModal
-          isOpen={showFixedBIMProcessor}
-          onClose={() => setShowFixedBIMProcessor(false)}
-        />
-      )}
+      {/* BIM Upload Modal - Grok's Fixed Version */}
+      <BIMUploadModal
+        isOpen={showFixedBIMProcessor}
+        onClose={() => setShowFixedBIMProcessor(false)}
+        onUploadSuccess={(urn) => {
+          console.log('BIM upload successful, URN:', urn);
+          toast({
+            title: "BIM Upload Successful",
+            description: "File uploaded and translation started successfully",
+          });
+        }}
+      />
     </div>
   );
 }
