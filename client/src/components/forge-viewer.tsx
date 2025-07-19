@@ -302,8 +302,12 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
           console.log('Loading document with URN:', urn);
           
           // Enhanced document loading with better error handling per Grok
+          // Ensure URN is properly formatted with "urn:" prefix
+          const formattedUrn = urn.startsWith('urn:') ? urn : `urn:${urn}`;
+          console.log('Formatted URN for document load:', formattedUrn);
+          
           window.Autodesk.Viewing.Document.load(
-            urn,
+            formattedUrn,
             (doc) => {
               console.log('Document loaded successfully:', doc);
               

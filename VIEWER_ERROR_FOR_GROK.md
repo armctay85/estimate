@@ -143,3 +143,30 @@ setUrn(decodedUrn);
 - ✅ Base64 validation added
 - ✅ Debug logging for troubleshooting
 - ✅ Ready for testing with uploaded models
+
+## ADDITIONAL RUNTIME ERROR FIX ✅
+
+### Runtime Error Identified (January 19, 2025)
+The viewer was experiencing a runtime error when loading documents due to missing "urn:" prefix.
+
+### Root Cause
+- Autodesk.Viewing.Document.load() requires URNs to have the "urn:" prefix
+- Base64 URNs from server don't include this prefix
+- Without the prefix, document loading fails with a script error
+
+### Solution Implemented ✅
+Updated `client/src/components/forge-viewer.tsx` to ensure proper URN formatting:
+
+```javascript
+// Ensure URN is properly formatted with "urn:" prefix
+const formattedUrn = urn.startsWith('urn:') ? urn : `urn:${urn}`;
+console.log('Formatted URN for document load:', formattedUrn);
+
+window.Autodesk.Viewing.Document.load(formattedUrn, ...);
+```
+
+### Complete Fix Summary
+1. ✅ Server returns base64-encoded URN
+2. ✅ Client decodes URL parameters properly
+3. ✅ Viewer adds "urn:" prefix before loading
+4. ✅ Document loads without runtime errors
