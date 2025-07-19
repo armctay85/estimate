@@ -136,6 +136,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Mount Grok system routes
   app.use('/api', grokSystemRouter);
+  
+  // Direct Grok passthrough
+  const directGrokRoutes = await import('./direct-grok');
+  app.use(directGrokRoutes.default);
 
   // Serve static HTML files for demos
   app.get('/standalone', (req, res) => {
