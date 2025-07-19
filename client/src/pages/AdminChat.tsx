@@ -34,11 +34,28 @@ const AdminChat: React.FC = () => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchHistory();
+    fetchPreviewUrl();
   }, []);
+
+  const fetchPreviewUrl = async () => {
+    try {
+      const res = await fetch('/api/grok/preview', { 
+        headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` } 
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPreviewUrl(data.previewUrl);
+      }
+    } catch (err) {
+      console.error('Failed to fetch preview URL:', err);
+    }
+  };
 
   const fetchHistory = async () => {
     try {
@@ -126,20 +143,33 @@ const AdminChat: React.FC = () => {
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-screen bg-gray-900 text-white">
-      <header className="p-4 bg-gradient-to-r from-blue-900 to-purple-900 flex justify-between items-center">
-        <div>
-          <h1 className="text-xl font-bold">Grok Admin Console</h1>
-          <p className="text-sm text-gray-300">Self-Healing & Development System</p>
-        </div>
-        <button 
-          onClick={fetchHistory} 
-          className="p-2 hover:bg-white/10 rounded transition-colors"
-          title="Refresh history"
-        >
-          <FontAwesomeIcon icon={faHistory} />
-        </button>
-      </header>
+    <div className={`flex ${showPreview ? '' : 'flex-col'} h-screen bg-gray-900 text-white`}>
+      {/* Main Chat Section */}
+      <div className={`flex flex-col ${showPreview ? 'w-1/2' : 'w-full'}`}>
+        <header className="p-4 bg-gradient-to-r from-blue-900 to-purple-900 flex justify-between items-center">
+          <div>
+            <h1 className="text-xl font-bold">Grok Admin Console</h1>
+            <p className="text-sm text-gray-300">Self-Healing & Development System</p>
+          </div>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setShowPreview(!showPreview)} 
+              className={`px-3 py-1 rounded transition-colors ${
+                showPreview ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-700 hover:bg-gray-600'
+              }`}
+              title="Toggle preview"
+            >
+              {showPreview ? 'Hide Preview' : 'Show Preview'}
+            </button>
+            <button 
+              onClick={fetchHistory} 
+              className="p-2 hover:bg-white/10 rounded transition-colors"
+              title="Refresh history"
+            >
+              <FontAwesomeIcon icon={faHistory} />
+            </button>
+          </div>
+        </header>
       
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg, idx) => (
@@ -214,7 +244,34 @@ const AdminChat: React.FC = () => {
             )}
           </button>
         </div>
+        </div>
       </div>
+      
+      {/* Preview Section */}
+      {showPreview && (
+        <div className="w-1/2 border-l border-gray-700">
+          <div className="h-full flex flex-col">
+            <div className="p-4 bg-gray-800 border-b border-gray-700">
+              <h2 className="text-lg font-semibold">Live Preview</h2>
+              <p className="text-sm text-gray-400">Shows current development state</p>
+            </div>
+            <div className="flex-1">
+              {previewUrl ? (
+                <iframe 
+                  src={previewUrl}
+                  className="w-full h-full bg-white"
+                  title="App Preview"
+                  sandbox="allow-same-origin allow-scripts allow-forms"
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  Loading preview...
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -122,12 +122,30 @@ You have FULL development access. No restrictions on what you can build or modif
 });
 
 // Amendment endpoint: Auto-fixes code files
+// Preview endpoint - Shows current app state without deployment
+router.get('/grok/preview', authenticate, async (req, res) => {
+  try {
+    // Return iframe-able preview URL
+    const previewUrl = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:5000' 
+      : `https://${req.hostname}`;
+    
+    res.json({ 
+      previewUrl,
+      status: 'live',
+      message: 'Preview shows current development state'
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.post('/grok/amend', async (req, res) => {
   const { filePath, errorMessage } = req.body;
   if (!filePath || !errorMessage) return res.status(400).json({ error: 'Missing filePath or errorMessage' });
 
   try {
-    const fullPath = path.resolve(__dirname, filePath);
+    const fullPath = path.resolve(process.cwd(), filePath);
     const code = await fs.readFile(fullPath, 'utf-8');
     
     // Create backup
