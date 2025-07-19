@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 // import { AuthProvider } from "./hooks/use-auth";
-import Home from "@/pages/home";
+import { Home } from "@/pages/home";
 import Auth from "@/pages/auth";
 import Subscribe from "@/pages/subscribe";
 import Projects from "@/pages/projects";
@@ -14,11 +14,13 @@ import Settings from "@/pages/settings";
 import ThreeDProcessor from "@/pages/3d-processor";
 import AdminDashboard from "@/pages/admin";
 import NotFound from "@/pages/not-found";
+import { Sketch } from "@/pages/sketch";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/sketch" component={Sketch} />
       <Route path="/auth" component={Auth} />
       <Route path="/subscribe" component={Subscribe} />
       <Route path="/projects" component={Projects} />
