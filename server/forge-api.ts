@@ -457,29 +457,80 @@ export async function setupForgeRoutes(app: any) {
   });
 
   // Comprehensive proxy for all Forge resources to bypass CORS
-  app.get('/proxy/forge/*', async (req: Request, res: Response) => {
+  app.all('/proxy/forge/*', async (req: Request, res: Response) => {
     try {
-      const url = `https://developer.api.autodesk.com${req.url.replace('/proxy/forge', '')}`;
+      const targetPath = req.params[0];
+      const targetUrl = `https://developer.api.autodesk.com/${targetPath}`;
+      
+      console.log(`Proxying ${req.method} request to: ${targetUrl}`);
+      
       const token = await forgeApi.getAccessToken();
+      
+      // Build headers
+      const headers: any = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': req.headers['content-type'] || 'application/json',
+        'Accept': req.headers['accept'] || '*/*',
+        'Accept-Encoding': 'gzip, deflate, br'
+      };
 
-      const response = await axios.get(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        responseType: 'arraybuffer', // For binary assets like SVF
+      // Forward any custom headers
+      if (req.headers['if-none-match']) headers['If-None-Match'] = req.headers['if-none-match'];
+      if (req.headers['if-modified-since']) headers['If-Modified-Since'] = req.headers['if-modified-since'];
+
+      const axiosConfig: AxiosRequestConfig = {
+        method: req.method as any,
+        url: targetUrl,
+        headers,
+        params: req.query,
+        data: req.body,
+        // Use arraybuffer for binary files
+        responseType: targetPath.includes('.svf') || 
+                      targetPath.includes('/meshes/') || 
+                      targetPath.includes('/materials/') ||
+                      targetPath.includes('/textures/') ||
+                      targetPath.includes('/images/')
+                      ? 'arraybuffer' 
+                      : 'json',
+        maxRedirects: 5,
+        validateStatus: () => true, // Accept any status code
+        timeout: 60000 // 60 second timeout
+      };
+
+      const response = await axios(axiosConfig);
+      
+      // Set CORS headers
+      res.set({
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+        'Access-Control-Expose-Headers': 'Content-Length, Content-Type, Location',
+        'Content-Type': response.headers['content-type'] || 'application/json'
       });
-
-      // Set response headers
-      res.set('Content-Type', response.headers['content-type']);
-      res.set('Content-Length', response.headers['content-length']);
-      res.set('Access-Control-Allow-Origin', '*'); // Allow all origins
-      res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      res.set('Access-Control-Allow-Headers', 'Authorization, Content-Type');
-
-      res.send(response.data);
+      
+      // Forward other important headers
+      if (response.headers['content-length']) res.set('Content-Length', response.headers['content-length']);
+      if (response.headers['etag']) res.set('ETag', response.headers['etag']);
+      if (response.headers['last-modified']) res.set('Last-Modified', response.headers['last-modified']);
+      if (response.headers['cache-control']) res.set('Cache-Control', response.headers['cache-control']);
+      
+      // Handle redirects
+      if (response.headers['location']) {
+        res.set('Location', response.headers['location']);
+      }
+      
+      res.status(response.status).send(response.data);
     } catch (error: any) {
-      console.error('Proxy error:', error.message);
-      res.status(error.response?.status || 500).send('Proxy failed');
+      console.error('Forge proxy error:', error.message);
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+      }
+      res.status(error.response?.status || 500).json({ 
+        error: 'Proxy request failed',
+        message: error.message,
+        details: error.response?.data
+      });
     }
   });
 
