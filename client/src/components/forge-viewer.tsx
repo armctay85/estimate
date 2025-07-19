@@ -148,6 +148,26 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
         viewer.current.addEventListener(window.Autodesk.Viewing.ERROR_EVENT, (evt: any) => {
           setError(`Viewer error: ${evt.message}`);
           console.error('Viewer error event:', evt);
+          
+          // Trigger Grok auto-fix for viewer errors
+          if (evt.message && (evt.message.includes('Script') || evt.message.includes('load') || evt.message.includes('viewer'))) {
+            console.log('Attempting Grok auto-fix for viewer error...');
+            fetch('/api/grok/fix', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                file: 'client/src/components/forge-viewer.tsx', 
+                error: evt.message 
+              })
+            })
+            .then(res => res.json())
+            .then(data => {
+              if (data.success) {
+                console.log('Grok fix applied successfully');
+              }
+            })
+            .catch(fixErr => console.error('Grok fix failed:', fixErr));
+          }
         });
 
         const startResult = viewer.current.start();

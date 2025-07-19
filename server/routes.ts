@@ -21,6 +21,8 @@ import { multiAI } from "./multi-ai-service";
 import { register, login, logout, getCurrentUser, isAuthenticated, requireTier } from "./auth";
 import { createSubscription, createPaymentIntent, handleWebhook, createBillingPortalSession } from "./stripe-service";
 import { setupRegulationsRoutes } from "./aus-regulations-service";
+import { amendCode } from './grok-api-client';
+import { setupGrokErrorHandler } from './error-handler';
 import PDFDocument from "pdfkit";
 import NodeCache from "node-cache";
 
@@ -1153,6 +1155,33 @@ Return JSON: { "areas": [{ "roomType": string, "label": string, "x": number, "y"
       });
     });
   });
+
+  // Grok API endpoint for manual/live code fixes
+  app.post('/api/grok/fix', async (req, res) => {
+    const { file, error } = req.body;
+    
+    if (!file || !error) {
+      return res.status(400).json({ error: 'Missing file or error parameters' });
+    }
+    
+    try {
+      const amended = await amendCode(file, error);
+      res.json({ 
+        success: true,
+        amendedCode: amended,
+        message: `Successfully amended ${file}` 
+      });
+    } catch (err: any) {
+      console.error('Grok fix error:', err);
+      res.status(500).json({ 
+        success: false,
+        error: err.message 
+      });
+    }
+  });
+
+  // Setup Grok error handler (must be last middleware)
+  setupGrokErrorHandler(app);
 
   const httpServer = createServer(app);
   return httpServer;
