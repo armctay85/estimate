@@ -678,32 +678,16 @@ export default function Home() {
                       <Zap className="w-8 h-8 text-purple-700 dark:text-purple-300" />
                     </div>
                     <Badge className="bg-purple-200 dark:bg-purple-800 text-purple-900 dark:text-purple-100 mb-2 font-bold border border-purple-300 dark:border-purple-600">Enterprise - $2,999/month</Badge>
-                    {/* Preview graphic - Live 3D Model */}
+                    {/* Preview graphic - Static Image */}
                     <div className="mt-4 rounded-lg overflow-hidden">
-                      <div className="h-48 relative rounded-lg bg-gray-900">
-                        <Enhanced3DViewer 
-                          isOpen={true}
-                          elements={[
-                            { id: '1', name: 'Structural Frame', category: 'structural', color: '#ef4444', cost: 125000, 
-                              x: 0, y: -30, z: 0, width: 100, height: 150, depth: 80 },
-                            { id: '2', name: 'Floor Slab', category: 'structural', color: '#6b7280', cost: 85000,
-                              x: 0, y: -90, z: 0, width: 120, height: 10, depth: 100 },
-                            { id: '3', name: 'Walls', category: 'architectural', color: '#f59e0b', cost: 65000,
-                              x: 0, y: 20, z: 0, width: 110, height: 60, depth: 90 },
-                            { id: '4', name: 'Roof', category: 'architectural', color: '#10b981', cost: 95000,
-                              x: 0, y: 80, z: 0, width: 130, height: 20, depth: 110 },
-                            { id: '5', name: 'MEP Services', category: 'mep', color: '#3b82f6', cost: 120000,
-                              x: 0, y: 0, z: 0, width: 80, height: 100, depth: 5 },
-                            { id: '6', name: 'External Works', category: 'external', color: '#8b5cf6', cost: 48500,
-                              x: 60, y: -90, z: 0, width: 40, height: 5, depth: 100 }
-                          ]}
-                          showControls={false}
-                          autoRotate={true}
-                          showCostOverlay={false}
-                          containerHeight="h-48"
-                        />
+                      <div className="h-48 relative rounded-lg bg-gray-900 flex items-center justify-center">
+                        <div className="text-center">
+                          <Building className="w-16 h-16 mx-auto text-purple-400 mb-2" />
+                          <p className="text-purple-300 font-bold">3D BIM Visualization</p>
+                          <p className="text-purple-400 text-sm">Click to open processor</p>
+                        </div>
                       </div>
-                      <div className="text-xs text-center mt-2 text-black dark:text-white font-bold">Live 3D Model Preview</div>
+                      <div className="text-xs text-center mt-2 text-black dark:text-white font-bold">BIM Auto-Takeoff Preview</div>
                     </div>
                   </div>
                   <h3 className="text-2xl font-bold mb-3 text-black dark:text-white">Professional 3D Viewer</h3>
@@ -1981,9 +1965,9 @@ export default function Home() {
         />
       )}
 
-      {/* Simple BIM Modal - Force Visible for Testing */}
+      {/* Simple BIM Modal - Controlled by State */}
       <SimpleBIMModal
-        isOpen={true}
+        isOpen={showFixedBIMProcessor}
         onClose={() => {
           console.log('SimpleBIMModal onClose called - should close now');
           setShowFixedBIMProcessor(false);
