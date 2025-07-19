@@ -7,10 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Canvas } from "@/components/canvas";
 import { MaterialSelector } from "@/components/material-selector";
-import ShapeSelector from "@/components/shape-selector";
+import { ShapeSelector } from "@/components/shape-selector";
 import { Header } from "@/components/header";
 // import ServiceStatusDashboard from "@/components/service-status-dashboard";
-import SimpleBIMModal from "@/components/simple-bim-modal";
+import { SimpleBIMModal } from "@/components/simple-bim-modal";
 // import AIAssistant from "@/components/ai-assistant";
 import { 
   Layers, 
