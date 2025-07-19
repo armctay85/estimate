@@ -15,7 +15,7 @@ import { ServiceStatusDashboard } from "@/components/service-status-dashboard";
 import { BIMProcessor } from "@/components/bim-processor";
 import { IntelligentAssistant } from "@/components/intelligent-assistant";
 import { Simple3DViewer } from "@/components/simple-3d-viewer";
-import { Enhanced3DViewer } from "@/components/enhanced-3d-viewer";
+// import { Enhanced3DViewer } from "@/components/enhanced-3d-viewer"; // DISABLED due to Dialog errors
 import { Realistic3DViewer } from "@/components/realistic-3d-viewer";
 import { PhotoRenovationTool } from "@/components/photo-renovation-tool";
 import { ProjectScheduler } from "@/components/project-scheduler";
@@ -1844,20 +1844,8 @@ export default function Home() {
 
       <IntelligentAssistant />
       
-      {/* 3D Wireframe Viewer - Only show in workspace mode */}
-      {!showDashboard && (
-        <Enhanced3DViewer
-          isOpen={show3DWireframe}
-          onClose={() => setShow3DWireframe(false)}
-          fileName="Current Project 3D Model"
-          projectData={{
-            name: "Current Project",
-            totalCost: totalCost,
-            rooms: rooms,
-            projectType: projectType
-          }}
-        />
-      )}
+      {/* 3D Wireframe Viewer - DISABLED (causing Dialog errors) */}
+      {/* Enhanced3DViewer removed due to Dialog context errors */}
       
       {/* Photo Renovation Tool */}
       <PhotoRenovationTool
