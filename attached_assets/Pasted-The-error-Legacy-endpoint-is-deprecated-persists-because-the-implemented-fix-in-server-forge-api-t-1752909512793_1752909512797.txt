@@ -1,0 +1,108 @@
+The error "Legacy endpoint is deprecated" persists because the implemented fix in server/forge-api.ts (and possibly forge-real-integration.ts) incorrectly uses a POST method to request the signed S3 URL. Autodesk Platform Services (APS) OSS v2 requires a GET request to /oss/v2/buckets/{bucketKey}/objects/{objectKey}/signeds3upload with query parameters (e.g., ?parts=1&minutesExpiration=60) to obtain the signed URL(s). The subsequent PUT to S3 and POST to complete the upload are correct in concept, but the initial request method mismatch causes the deprecation fallback or failure.
+
+Your authentication (token generation) and bucket creation work fine, as per logs. The client progress reaches 100% because it tracks the file POST to your Express server, but the server-side APS upload fails afterward, returning 500.
+
+To resolve, update the upload logic in server/forge-api.ts (around line 109-134) to use the correct GET for signed URL request, with multi-part handling for your 94MB file (chunk to 5MB parts for reliability). I've adapted the official Node.js example from APS docs/blog to your fetch-based setup (no new dependencies needed). Replace the upload section with this:
+
+typescript
+
+Collapse
+
+Wrap
+
+Run
+
+Copy
+// Updated uploadBIMFile or uploadFile function
+export async function uploadBIMFile(filePath, fileName, bucketKey = 'estimate-bim-files') {
+  const token = await authenticateForge(); // Assuming your working token function
+  await ensureBucket(bucketKey); // Already working
+
+  const fileBuffer = fs.readFileSync(filePath); // Or use stream if preferred
+  const objectKey = encodeURIComponent(fileName); // Ensure safe
+
+  const ChunkSize = 5 * 1024 * 1024; // 5MB min for multi-part (except last)
+  const MaxBatches = 25; // Max parts per request
+  const totalParts = Math.ceil(fileBuffer.length / ChunkSize);
+  let partsUploaded = 0;
+  let uploadUrls = [];
+  let uploadKey;
+
+  while (partsUploaded < totalParts) {
+    const partsToRequest = Math.min(totalParts - partsUploaded, MaxBatches);
+    let endpoint = `https://developer.api.autodesk.com/oss/v2/buckets/${bucketKey}/objects/${objectKey}/signeds3upload?parts=${partsToRequest}&firstPart=${partsUploaded + 1}&minutesExpiration=60`;
+    if (uploadKey) {
+      endpoint += `&uploadKey=${uploadKey}`;
+    }
+
+    // Step 1: GET signed URL(s)
+    const signedResponse = await fetch(endpoint, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!signedResponse.ok) {
+      const errorText = await signedResponse.text();
+      console.log('Signed URL request failed:', errorText);
+      throw new Error(`Signed URL request failed: ${errorText}`);
+    }
+
+    const signedData = await signedResponse.json();
+    uploadUrls = signedData.urls || [signedData.signedUrl]; // Array for multi-part
+    uploadKey = signedData.uploadKey;
+
+    // Step 2: Upload each part to S3
+    for (let i = 0; i < uploadUrls.length; i++) {
+      const start = (partsUploaded + i) * ChunkSize;
+      const end = Math.min(start + ChunkSize, fileBuffer.length);
+      const chunk = fileBuffer.slice(start, end);
+
+      const uploadResponse = await fetch(uploadUrls[i], {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/octet-stream',
+          'Content-Length': chunk.length.toString()
+        },
+        body: chunk
+      });
+
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        console.log('S3 upload failed:', errorText);
+        throw new Error(`S3 upload failed: ${errorText}`);
+      }
+    }
+
+    partsUploaded += partsToRequest;
+  }
+
+  // Step 3: Complete the upload
+  const completeEndpoint = `https://developer.api.autodesk.com/oss/v2/buckets/${bucketKey}/objects/${objectKey}/signeds3upload`;
+  const completeResponse = await fetch(completeEndpoint, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ uploadKey })
+  });
+
+  if (!completeResponse.ok) {
+    const errorText = await completeResponse.text();
+    console.log('Upload completion failed:', errorText);
+    throw new Error(`Upload completion failed: ${errorText}`);
+  }
+
+  const completeData = await completeResponse.json();
+  return completeData.objectId; // Use for translation URN
+}
+Key Notes on This Fix
+Scopes: Ensure your authentication includes data:write (add to grant_type scopes if missing: 'data:write bucket:create bucket:read').
+Multi-Part for 94MB: Automatically chunks to 5MB (APS min size except last part), handling up to 25 at a time—re-requests URLs as needed.
+Error Handling: Throws on failures; logs for debugging. Retries can be added for 403 (expired URL) by re-requesting signed URLs.
+Testing: Restart Replit server, re-upload the 90MB RVT. Logs should show "Signed URL request" success, per-part uploads, and completion. Translation should proceed, rendering full model.
+If Fails: Check APS app date (if pre-Dec 2024, legacy might work temporarily; migrate anyway). For very large files, add useAcceleration=true query param on GET for faster S3.
+This should fully resolve the issue and enable proper RVT rendering.

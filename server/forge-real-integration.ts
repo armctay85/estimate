@@ -134,7 +134,7 @@ export class RealForgeAPI {
     }
   }
 
-  // Upload file to Forge OSS with S3 signed URL approach  
+  // Upload file to Forge OSS with S3 multi-part signed URL approach - Fixed with GET request
   async uploadFile(objectName: string, fileBuffer: Buffer): Promise<string> {
     const token = await this.getAccessToken();
     
@@ -142,56 +142,71 @@ export class RealForgeAPI {
     await this.ensureBucket(token);
     
     try {
-      console.log(`📤 Uploading ${objectName} (${(fileBuffer.length / 1024 / 1024).toFixed(2)} MB)`);
+      const ChunkSize = 5 * 1024 * 1024; // 5MB chunks for multi-part
+      const MaxBatches = 25; // Max parts per request
+      const totalParts = Math.ceil(fileBuffer.length / ChunkSize);
+      let partsUploaded = 0;
+      let uploadUrls: string[] = [];
+      let uploadKey: string | undefined;
 
-      // Step 1: Request signed S3 upload URL
-      const signedUrlResponse = await axios.post(
-        `${this.baseUrl}/oss/v2/buckets/${this.bucketKey}/objects/${encodeURIComponent(objectName)}/signeds3`,
-        {
-          minutesExpiration: 60,  // URL expires in 60 minutes
-          singleUse: true  // For single-part upload
-        },
-        {
+      console.log(`📤 Starting multi-part upload for ${objectName} (${(fileBuffer.length / 1024 / 1024).toFixed(2)} MB, ${totalParts} parts)`);
+
+      while (partsUploaded < totalParts) {
+        const partsToRequest = Math.min(totalParts - partsUploaded, MaxBatches);
+        
+        // Step 1: GET signed URL(s) - CORRECT METHOD
+        let endpoint = `${this.baseUrl}/oss/v2/buckets/${this.bucketKey}/objects/${encodeURIComponent(objectName)}/signeds3upload?parts=${partsToRequest}&firstPart=${partsUploaded + 1}&minutesExpiration=60`;
+        if (uploadKey) {
+          endpoint += `&uploadKey=${uploadKey}`;
+        }
+
+        const signedResponse = await axios.get(endpoint, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
+        });
+
+        const signedData = signedResponse.data;
+        uploadUrls = signedData.urls || [signedData.signedUrl];
+        uploadKey = signedData.uploadKey;
+
+        console.log(`✅ Got ${uploadUrls.length} signed URLs for parts ${partsUploaded + 1}-${partsUploaded + uploadUrls.length}`);
+
+        // Step 2: Upload each part to S3
+        for (let i = 0; i < uploadUrls.length; i++) {
+          const start = (partsUploaded + i) * ChunkSize;
+          const end = Math.min(start + ChunkSize, fileBuffer.length);
+          const chunk = fileBuffer.slice(start, end);
+
+          const uploadResponse = await axios.put(
+            uploadUrls[i],
+            chunk,
+            {
+              headers: {
+                'Content-Type': 'application/octet-stream',
+                'Content-Length': chunk.length.toString()
+              },
+              timeout: 300000,
+              maxContentLength: 500 * 1024 * 1024,
+              maxBodyLength: 500 * 1024 * 1024
+            }
+          );
+
+          if (uploadResponse.status !== 200) {
+            throw new Error(`S3 upload failed for part ${partsUploaded + i + 1} with status ${uploadResponse.status}`);
+          }
+          
+          console.log(`✅ Uploaded part ${partsUploaded + i + 1}/${totalParts} (${(chunk.length / 1024 / 1024).toFixed(2)} MB)`);
         }
-      );
 
-      const signedData = signedUrlResponse.data;
-      const signedUrl = signedData.signedUrl;
-      const uploadKey = signedData.uploadKey;
-
-      console.log(`✅ Signed S3 URL obtained for ${objectName}`);
-
-      // Step 2: Upload file to the signed S3 URL
-      const uploadResponse = await axios.put(
-        signedUrl,
-        fileBuffer,
-        {
-          headers: {
-            'Content-Type': 'application/octet-stream',
-            'Content-Length': fileBuffer.length.toString()
-          },
-          timeout: 300000, // 5 minutes for uploads
-          maxContentLength: 500 * 1024 * 1024, // 500MB max
-          maxBodyLength: 500 * 1024 * 1024
-        }
-      );
-
-      if (uploadResponse.status !== 200) {
-        throw new Error(`S3 upload failed with status ${uploadResponse.status}`);
+        partsUploaded += partsToRequest;
       }
 
-      console.log('✅ File uploaded to S3 successfully');
-
-      // Step 3: Complete the upload by notifying APS
+      // Step 3: Complete the upload
       const completeResponse = await axios.post(
         `${this.baseUrl}/oss/v2/buckets/${this.bucketKey}/objects/${encodeURIComponent(objectName)}/signeds3upload`,
-        {
-          uploadKey: uploadKey
-        },
+        { uploadKey },
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -200,7 +215,7 @@ export class RealForgeAPI {
         }
       );
 
-      console.log('✅ Upload completed:', completeResponse.data);
+      console.log('✅ Upload completed successfully:', completeResponse.data);
       
       // Create base64 URN from objectId (remove padding)
       const objectId = completeResponse.data.objectId || completeResponse.data.objectKey;

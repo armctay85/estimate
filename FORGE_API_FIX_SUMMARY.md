@@ -6,7 +6,8 @@ The Autodesk Forge API deprecated the legacy file upload endpoint, causing "Lega
 ## Implementation Status: 100% Complete
 - Updated `server/forge-api.ts` ✅
 - Updated `server/forge-real-integration.ts` ✅
-- Tested with 94.7MB file successfully ✅
+- Fixed incorrect POST method - now uses GET for signed URLs ✅
+- Implemented multi-part upload for files > 5MB ✅
 
 ## What Changed
 **OLD METHOD (Deprecated)**:
@@ -14,20 +15,28 @@ The Autodesk Forge API deprecated the legacy file upload endpoint, causing "Lega
 PUT /oss/v2/buckets/{bucket}/objects/{object}
 ```
 
-**NEW METHOD (S3 Signed URLs)**:
-1. Request signed URL: `POST /signeds3`
-2. Upload to S3: `PUT {signedUrl}`
+**NEW METHOD (S3 Multi-Part Signed URLs)**:
+1. Request signed URLs: `GET /signeds3upload?parts={n}&firstPart={x}`
+2. Upload chunks to S3: `PUT {signedUrl}` (5MB chunks)
 3. Complete upload: `POST /signeds3upload`
 
+## Key Fixes Applied
+- Changed from POST to GET for requesting signed URLs (critical fix)
+- Added multi-part upload support with 5MB chunks
+- Proper query parameters: parts, firstPart, minutesExpiration
+- Handles uploadKey for subsequent part requests
+- Progress logging for each uploaded part
+
 ## Technical Details
-- Maintains same performance (2.8s for 413MB files)
 - Supports files up to 500MB
 - 60-minute URL expiration
 - Backwards compatible URN generation
+- Automatic chunking for files > 5MB
+- Performance maintained for large files
 
 ## Files Modified
 1. `server/forge-api.ts` - Main Forge API service
 2. `server/forge-real-integration.ts` - Real Forge integration service
 3. `replit.md` - Updated documentation
 
-The platform now uses Autodesk's latest S3-based upload approach, resolving all deprecation issues.
+The platform now uses Autodesk's latest S3 multi-part upload approach with correct GET requests.
