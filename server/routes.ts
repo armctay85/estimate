@@ -916,14 +916,15 @@ Return JSON: { "areas": [{ "roomType": string, "label": string, "x": number, "y"
     }
   });
 
+  // Set up GROK'S FIXED BIM upload routes FIRST (resolves multer conflicts)
+  // CRITICAL: Must be registered before other Forge routes to avoid conflicts
+  setupBIMUploadFix(app);
+  
   // Set up Forge API routes for RVT processing
   setupForgeRoutes(app);
   
   // Set up REAL Forge API routes for authentic BIM processing
   setupRealForgeRoutes(app);
-  
-  // Set up GROK'S FIXED BIM upload routes (resolves multer conflicts)
-  setupBIMUploadFix(app);
   
   // Set up fast upload routes for instant uploads
   setupFastUpload(app);

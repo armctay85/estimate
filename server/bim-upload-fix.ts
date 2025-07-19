@@ -44,7 +44,7 @@ export function setupBIMUploadFix(app: Express) {
    * 3. File cleanup after processing
    * 4. No global express.json() interference
    */
-  app.post('/api/forge/upload-bim', bimUpload.single('bimFile'), async (req: Request, res: Response) => {
+  app.post('/api/forge/upload-bim', bimUpload.single('file'), async (req: Request, res: Response) => {
     try {
       console.log('BIM upload endpoint hit');
       console.log('Request file:', req.file ? 'File received' : 'No file');

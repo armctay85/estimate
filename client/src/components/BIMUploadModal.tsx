@@ -75,7 +75,7 @@ export function BIMUploadModal({ isOpen, onClose, onUploadSuccess }: BIMUploadMo
 
     // Create FormData with correct field name matching backend
     const formData = new FormData();
-    formData.append('bimFile', file); // Matches Grok's backend fix
+    formData.append('file', file); // Matches Grok's backend implementation
     
     console.log('Starting upload with XMLHttpRequest...');
     xhr.send(formData);
