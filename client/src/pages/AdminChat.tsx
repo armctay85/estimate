@@ -76,7 +76,7 @@ const AdminChat: React.FC = () => {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json', 
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}` 
         },
         body: JSON.stringify({ 
           messages: [...messages, userMessage] 
@@ -85,28 +85,10 @@ const AdminChat: React.FC = () => {
 
       if (!response.ok) throw new Error('Chat request failed');
 
-      const reader = response.body!.getReader();
-      const decoder = new TextDecoder();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
-        
-        for (const line of lines) {
-          if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-            try {
-              const data = JSON.parse(line.slice(6));
-              if (data.content) {
-                dispatch({ type: 'update', content: data.content });
-              }
-            } catch (e) {
-              // Skip parse errors
-            }
-          }
-        }
+      // Handle non-streaming JSON response
+      const data = await response.json();
+      if (data.content) {
+        dispatch({ type: 'update', content: data.content });
       }
     } catch (err: any) {
       setError(err.message);
@@ -122,7 +104,7 @@ const AdminChat: React.FC = () => {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json', 
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}` 
         },
         body: JSON.stringify({ filePath: file, errorMessage: issue })
       });
