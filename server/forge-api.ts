@@ -456,6 +456,31 @@ export async function setupForgeRoutes(app: any) {
     }
   });
 
+  // Get manifest for debugging
+  app.get('/api/forge/manifest/:urn', async (req: Request, res: Response) => {
+    try {
+      const { urn } = req.params;
+      const token = await forgeApi.getAccessToken();
+      
+      const response = await axios.get(
+        `https://developer.api.autodesk.com/modelderivative/v2/designdata/${urn}/manifest`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        }
+      );
+      
+      res.json(response.data);
+    } catch (error: any) {
+      console.error('Manifest fetch error:', error.response?.data || error.message);
+      res.status(error.response?.status || 500).json({
+        error: error.response?.data || { message: error.message }
+      });
+    }
+  });
+
   // Use dynamic import for multer in ES6 module
   const multer = await import('multer');
   const bimUpload = multer.default({

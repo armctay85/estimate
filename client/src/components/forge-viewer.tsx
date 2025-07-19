@@ -307,10 +307,22 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
           // Pass URN directly without any prefix as per Grok's analysis
           console.log('Using URN directly without prefix:', urn);
           
-          window.Autodesk.Viewing.Document.load(
-            urn,
-            (doc) => {
-              console.log('Document loaded successfully:', doc);
+          // Add more detailed error handling for document load
+          try {
+            // First check if we can fetch the manifest
+            console.log('Checking manifest accessibility...');
+            const manifestResponse = await fetch(`/api/forge/manifest/${urn}`);
+            const manifestData = await manifestResponse.json();
+            console.log('Manifest check response:', manifestData);
+            
+            if (!manifestResponse.ok) {
+              throw new Error(`Manifest not accessible: ${JSON.stringify(manifestData)}`);
+            }
+            
+            window.Autodesk.Viewing.Document.load(
+              urn,
+              (doc) => {
+                console.log('Document loaded successfully:', doc);
               
               // Enhanced geometry selection with multiple fallbacks
               let viewables = doc.getRoot().getDefaultGeometry();
@@ -403,7 +415,12 @@ export function ForgeViewer({ urn, fileName, onClose }: ForgeViewerProps) {
               setIsLoading(false);
             }
           );
-        } catch (initError) {
+          } catch (loadError: any) {
+            console.error('Document.load error caught:', loadError);
+            setError(`Document load error: ${loadError.message || 'Unknown error'}`);
+            setIsLoading(false);
+          }
+        } catch (initError: any) {
           console.error('Viewer initialization error:', initError);
           setError(`Viewer initialization failed: ${initError.message}`);
           setIsLoading(false);
