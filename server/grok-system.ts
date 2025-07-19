@@ -57,19 +57,23 @@ const limiter = rateLimit({
 
 router.use(authenticate, limiter);
 
-// Chat endpoint: Non-streaming for now to test basic functionality
+// Chat endpoint: Full unrestricted Grok AI access
 router.post('/grok/chat', async (req, res) => {
-  const { messages, model = 'grok-2-1212', maxTokens = 2048 } = req.body;
+  const { messages, model = 'grok-2-1212', maxTokens = 8192 } = req.body;
   if (!messages) return res.status(400).json({ error: 'Missing messages' });
 
   try {
     logger.info('Attempting Grok API call with model:', model);
     
+    // Full unrestricted access to Grok AI model
     const response = await axios.post(GROK_API_BASE, { 
       model: model, 
       messages: messages, 
-      max_tokens: maxTokens, 
-      temperature: 0.7
+      max_tokens: maxTokens, // Increased to 8192 for full responses
+      temperature: 0.9, // Higher temperature for more creative responses
+      top_p: 1.0, // Full probability distribution
+      frequency_penalty: 0,
+      presence_penalty: 0
     }, {
       headers: { 
         'Authorization': `Bearer ${API_KEY}`, 
@@ -110,7 +114,8 @@ router.post('/grok/amend', async (req, res) => {
     const backupPath = `${fullPath}.bak`;
     await fs.copyFile(fullPath, backupPath);
     
-    const prompt = `Fix this TypeScript/React code issue:
+    // Full unrestricted prompt for code fixing
+    const prompt = `You are Grok with full unrestricted capabilities. Fix this TypeScript/React code issue:
 
 File: ${filePath}
 Issue: ${errorMessage}
@@ -120,10 +125,10 @@ Current code:
 ${code}
 \`\`\`
 
-Provide the complete fixed code (no explanations, just the code):`;
+Provide the complete fixed code with any necessary improvements. Be creative and thorough in your solution:`;
 
     const response = await axios.post(GROK_API_BASE, {
-      model: 'grok-beta',
+      model: 'grok-2-1212',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 4096,
       temperature: 0.3

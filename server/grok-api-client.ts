@@ -13,15 +13,18 @@ if (!API_KEY) {
   throw new Error('XAI_API_KEY missing in env');
 }
 
-export async function callGrok(prompt: string, model = 'grok-beta', maxTokens = 2048) {
+export async function callGrok(prompt: string, model = 'grok-2-1212', maxTokens = 8192) {
   try {
     const response = await axios.post(
       `${GROK_API_BASE}/chat/completions`,
       {
         model,
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: maxTokens,
-        temperature: 0.7, // Balanced creativity
+        max_tokens: maxTokens, // Full 8192 tokens for complete responses
+        temperature: 0.9, // Full creative capability
+        top_p: 1.0, // No nucleus sampling restrictions
+        frequency_penalty: 0, // No repetition penalties
+        presence_penalty: 0, // No topic penalties
         stream: false // Set true for streaming if needed
       },
       {
