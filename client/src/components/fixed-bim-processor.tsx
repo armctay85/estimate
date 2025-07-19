@@ -227,7 +227,16 @@ export function FixedBIMProcessor({ isOpen, onClose }: FixedBIMProcessorProps) {
   return (
     <>
       {/* Fixed Modal with proper close functionality */}
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div 
+        className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4"
+        onClick={(e) => {
+          // Close when clicking backdrop
+          if (e.target === e.currentTarget) {
+            console.log('Backdrop clicked - closing FixedBIMProcessor');
+            handleClose();
+          }
+        }}
+      >
         <Card className="w-full max-w-6xl max-h-[90vh] overflow-y-auto">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -236,7 +245,14 @@ export function FixedBIMProcessor({ isOpen, onClose }: FixedBIMProcessorProps) {
                 Real BIM Auto-Takeoff Processor
                 <Badge variant="outline">Powered by Autodesk Platform Services</Badge>
               </CardTitle>
-              <Button variant="ghost" size="sm" onClick={handleClose}>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  console.log('Close button clicked - closing FixedBIMProcessor');
+                  handleClose();
+                }}
+              >
                 <X className="w-5 h-5" />
               </Button>
             </div>
