@@ -104,6 +104,11 @@ export default function Home() {
   const [showWorkingBIMDialog, setShowWorkingBIMDialog] = useState(false);
   const [showFixedBIMProcessor, setShowFixedBIMProcessor] = useState(false);
   
+  // Debug logging for Fixed BIM Processor
+  useEffect(() => {
+    console.log('showFixedBIMProcessor state changed:', showFixedBIMProcessor);
+  }, [showFixedBIMProcessor]);
+  
   // Debug logging for showProfessional3D
   useEffect(() => {
     console.log('showProfessional3D state changed:', showProfessional3D);
@@ -662,7 +667,9 @@ export default function Home() {
               <Card className="h-full hover:shadow-2xl transition-all duration-300 cursor-pointer group border-2 border-purple-300 hover:border-purple-400"
                     onClick={() => {
                       console.log('Enterprise BIM card clicked - opening FIXED BIM processor');
+                      console.log('Current showFixedBIMProcessor state:', showFixedBIMProcessor);
                       setShowFixedBIMProcessor(true);
+                      console.log('Setting showFixedBIMProcessor to true');
                     }}>
                 <CardContent className="p-8">
                   <div className="mb-6">
@@ -1978,6 +1985,13 @@ export default function Home() {
         isOpen={showFixedBIMProcessor}
         onClose={() => setShowFixedBIMProcessor(false)}
       />
+      
+      {/* DEBUG: Show Fixed BIM Processor state */}
+      {showFixedBIMProcessor && (
+        <div className="fixed top-4 right-4 z-[9999] bg-green-500 text-white p-2 rounded">
+          DEBUG: showFixedBIMProcessor is TRUE
+        </div>
+      )}
 
       {/* REAL AUTODESK FORGE VIEWER - DISABLED */}
     </motion.div>

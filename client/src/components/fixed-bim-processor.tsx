@@ -31,6 +31,7 @@ interface FixedBIMProcessorProps {
 }
 
 export function FixedBIMProcessor({ isOpen, onClose }: FixedBIMProcessorProps) {
+  console.log('FixedBIMProcessor render - isOpen:', isOpen);
   const [jobs, setJobs] = useState<ProcessingJob[]>([]);
   const [showViewer, setShowViewer] = useState(false);
   const [currentUrn, setCurrentUrn] = useState<string | undefined>();
@@ -216,7 +217,12 @@ export function FixedBIMProcessor({ isOpen, onClose }: FixedBIMProcessorProps) {
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    console.log('FixedBIMProcessor not rendering - isOpen is false');
+    return null;
+  }
+  
+  console.log('FixedBIMProcessor IS RENDERING - modal should be visible');
 
   return (
     <>
