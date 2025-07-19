@@ -48,16 +48,21 @@ export function ForgeViewerIframe({ urn }: ForgeViewerIframeProps) {
   }, [urn]);
 
   const handleIframeLoad = () => {
-    setIsLoading(false);
+    // Keep loading state for a bit to ensure viewer is fully initialized
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
   };
 
   return (
     <div className="w-full h-full relative bg-gray-100">
       {isLoading && (
-        <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-            <p className="text-sm text-gray-600">Loading 3D model...</p>
+        <div className="absolute inset-0 bg-white/90 flex items-center justify-center z-10">
+          <div className="text-center bg-white p-6 rounded-lg shadow-lg">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-blue-600" />
+            <p className="text-lg font-medium text-gray-800 mb-2">Loading 3D Model</p>
+            <p className="text-sm text-gray-600">Initializing Forge Viewer...</p>
+            <p className="text-xs text-gray-500 mt-2">This may take a few seconds</p>
           </div>
         </div>
       )}
