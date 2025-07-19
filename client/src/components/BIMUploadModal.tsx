@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface BIMUploadModalProps {
   isOpen: boolean;
@@ -127,8 +128,21 @@ export function BIMUploadModal({ isOpen, onClose, onUploadSuccess }: BIMUploadMo
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-8 w-full max-w-lg shadow-2xl">
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+        >
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.2 }}
+            className="bg-white dark:bg-gray-800 rounded-xl p-8 w-full max-w-lg shadow-2xl"
+          >
         <div className="mb-6">
           <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
             Upload BIM File
@@ -209,7 +223,9 @@ export function BIMUploadModal({ isOpen, onClose, onUploadSuccess }: BIMUploadMo
             {isUploading ? 'Processing...' : 'Select File'}
           </button>
         </div>
-      </div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Maximize2, Minimize2, RotateCw, Layers } from "lucide-react";
+import { Loader2, Maximize2, Minimize2, RotateCw, Layers, FileDown } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface BIMViewerProps {
   urn: string;
@@ -26,6 +27,7 @@ export function BIMViewer({ urn, status, darkMode }: BIMViewerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showMeasure, setShowMeasure] = useState(false);
   const [showSection, setShowSection] = useState(false);
+  const { toast } = useToast();
 
   // Initialize Forge Viewer
   useEffect(() => {
@@ -135,6 +137,41 @@ export function BIMViewer({ urn, status, darkMode }: BIMViewerProps) {
     viewer.fitToView();
   };
 
+  const exportPDF = async () => {
+    try {
+      const response = await fetch(`/api/export/report?urn=${urn}`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('PDF export failed');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `EstiMate-Report-${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Report Exported",
+        description: "Your PDF report has been downloaded successfully.",
+      });
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to export PDF report. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Calculate total cost
   const totalCost = elements.reduce((sum, el) => sum + el.total, 0);
 
@@ -199,9 +236,20 @@ export function BIMViewer({ urn, status, darkMode }: BIMViewerProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Cost Breakdown</CardTitle>
-            <Badge variant="secondary" className="text-lg px-3 py-1">
-              Total: ${totalCost.toLocaleString()} AUD
-            </Badge>
+            <div className="flex items-center gap-3">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={exportPDF}
+                className="flex items-center gap-2"
+              >
+                <FileDown className="w-4 h-4" />
+                Export PDF
+              </Button>
+              <Badge variant="secondary" className="text-lg px-3 py-1">
+                Total: ${totalCost.toLocaleString()} AUD
+              </Badge>
+            </div>
           </div>
         </CardHeader>
         <CardContent>

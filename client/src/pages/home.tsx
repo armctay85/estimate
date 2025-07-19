@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/header";
 import { BIMUploadModal } from "@/components/BIMUploadModal";
 import { Interactive3DModel } from "@/components/interactive-3d-model";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHome, faFileUpload, faPenRuler, faCalculator, faCamera, faShield, faFileAlt, faChartLine } from '@fortawesome/free-solid-svg-icons';
 import { 
   PenTool, 
   Building2, 
@@ -126,16 +128,17 @@ export function Home() {
               <CardContent className="space-y-3">
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start"
+                  className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200"
                   onClick={() => navigate("/sketch")}
+                  title="Create floor plan sketches"
                 >
-                  <PenTool className="w-4 h-4 mr-2" />
+                  <FontAwesomeIcon icon={faPenRuler} className="w-4 h-4 mr-2" />
                   Floor Plan Sketch
                 </Button>
                 
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start"
+                  className="w-full justify-start hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200"
                   onClick={() => {
                     if (canAccessFeature('pro-tools')) {
                       toast({ title: "Coming Soon", description: "AI Cost Predictor launching soon!" });
@@ -143,15 +146,16 @@ export function Home() {
                       handleUpgradePrompt('pro-tools');
                     }
                   }}
+                  title="AI-powered cost predictions"
                 >
-                  <Calculator className="w-4 h-4 mr-2" />
+                  <FontAwesomeIcon icon={faCalculator} className="w-4 h-4 mr-2" />
                   AI Cost Predictor
                   {!canAccessFeature('pro-tools') && <Crown className="w-3 h-3 ml-auto" />}
                 </Button>
                 
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start"
+                  className="w-full justify-start hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all duration-200"
                   onClick={() => {
                     if (canAccessFeature('pro-tools')) {
                       toast({ title: "Coming Soon", description: "Photo Renovation AI launching soon!" });
@@ -159,27 +163,30 @@ export function Home() {
                       handleUpgradePrompt('pro-tools');
                     }
                   }}
+                  title="AI renovation from photos"
                 >
-                  <Camera className="w-4 h-4 mr-2" />
+                  <FontAwesomeIcon icon={faCamera} className="w-4 h-4 mr-2" />
                   Photo Renovation AI
                   {!canAccessFeature('pro-tools') && <Crown className="w-3 h-3 ml-auto" />}
                 </Button>
                 
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start"
+                  className="w-full justify-start hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200"
                   onClick={() => navigate("/projects")}
+                  title="View your recent projects"
                 >
-                  <FileText className="w-4 h-4 mr-2" />
+                  <FontAwesomeIcon icon={faFileAlt} className="w-4 h-4 mr-2" />
                   Recent Projects
                 </Button>
                 
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start"
+                  className="w-full justify-start hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all duration-200"
                   onClick={() => navigate("/regulations")}
+                  title="Australian building regulations database"
                 >
-                  <Shield className="w-4 h-4 mr-2" />
+                  <FontAwesomeIcon icon={faShield} className="w-4 h-4 mr-2" />
                   Building Regulations
                   <Badge className="ml-auto" variant="secondary">AU</Badge>
                 </Button>

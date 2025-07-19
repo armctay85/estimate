@@ -1,0 +1,164 @@
+To further elevate the app's quality (focusing on UI/look for professionalism, usability, and modern aesthetics, plus functional depth), here are additional enhancements. Each includes specific code updates (snippets to add/replace in existing files). These build on the verified implementation, integrating with regulations, viewer, and dashboard.
+
+UI Enhancement: Add Customizable Dashboard Widgets for Regulations and Costs
+Allows users to rearrange/resize widgets (e.g., regulations search, cost summary) for a more personalized, enterprise-grade look.
+File Update: client/src/App.tsx (Add widget container using React Grid Layout; install npm install react-grid-layout)
+typescript
+
+
+
+
+import GridLayout from 'react-grid-layout';
+import '/node_modules/react-grid-layout/css/styles.css'; // Add styles
+
+// In main return, replace grid div:
+<GridLayout className="layout" cols={12} rowHeight={30} width={1200}>
+  <div key="viewer" data-grid={{x: 0, y: 0, w: 6, h: 20}}>
+    <BIMViewer urn={selectedUrn} />
+  </div>
+  <div key="costs" data-grid={{x: 6, y: 0, w: 6, h: 10}}>
+    {/* Cost table from BIMViewer */}
+  </div>
+  <div key="regulations" data-grid={{x: 0, y: 20, w: 12, h: 10}}>
+    <h3 className="text-xl font-semibold mb-2">Australian Regulations Quick Search</h3>
+    <input type="text" placeholder="Search regulations..." className="w-full p-2 border rounded" onChange={(e) => /* Fetch /api/regulations/search?q=${e.target.value} */ } />
+  </div>
+</GridLayout>
+Feature: Integrate Real-Time Compliance Checker in Viewer
+Highlights non-compliant elements in the 3D viewer (e.g., color-code based on regulations) for better architectural review.
+Backend Update: server/server.ts (Enhance compliance endpoint to return viewer-compatible data)
+typescript
+
+
+
+
+app.post('/api/regulations/compliance-check', express.json(), async (req, res) => {
+  const { urn, state = 'NSW' } = req.body;
+  // Stub: Integrate with extraction
+  const issues = [
+    { elementId: 123, issue: 'Fire rating below standard', regulation: 'NCC Section J' },
+    // Real: Cross-check extracted elements with DB
+  ];
+  res.json({ issues });
+});
+Frontend Update: client/src/components/BIMViewer.tsx (Add highlighting on load)
+typescript
+
+
+
+
+const [issues, setIssues] = useState([]);
+
+useEffect(() => {
+  if (status === 'Complete') {
+    fetch('/api/regulations/compliance-check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ urn })
+    }).then(res => res.json()).then(data => setIssues(data.issues));
+  }
+}, [status]);
+
+// In initViewer, after loadModel:
+v.addEventListener(Autodesk.Viewing.GEOMETRY_LOADED_EVENT, () => {
+  issues.forEach(issue => {
+    v.isolate([issue.elementId]); // Or color: v.setThemingColor(issue.elementId, new THREE.Vector4(1, 0, 0, 1));
+  });
+});
+
+// Add UI:
+<div className="mt-4">
+  <h3 className="text-lg font-semibold">Compliance Issues</h3>
+  <ul>
+    {issues.map((issue, i) => <li key={i} className="text-red-600">{issue.issue} ({issue.regulation})</li>)}
+  </ul>
+</div>
+UI Enhancement: Modern Animations and Loading Spinners
+Adds smooth transitions (e.g., fade-in for modal/viewer) for a polished, high-end feel.
+File Update: client/src/components/BIMUploadModal.tsx (Add Framer Motion; install npm install framer-motion)
+typescript
+
+
+
+
+import { motion } from 'framer-motion';
+
+// Wrap modal div:
+<motion.div 
+  initial={{ opacity: 0, scale: 0.9 }} 
+  animate={{ opacity: 1, scale: 1 }} 
+  exit={{ opacity: 0, scale: 0.9 }}
+  className="bg-white rounded-xl p-8 w-full max-w-lg shadow-2xl"
+>
+  {/* Existing content */}
+</motion.div>
+File Update: client/src/components/BIMViewer.tsx (Add spinner during loading)
+typescript
+
+
+
+
+if (status === 'Pending') {
+  return <div className="flex justify-center items-center h-[600px]"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div></div>;
+}
+Feature: Export Reports (PDF/CSV) for Costs and Regulations
+Generates downloadable reports for enterprise sharing.
+Backend Update: server/server.ts (New endpoint using pdfkit; install npm install pdfkit)
+typescript
+
+
+
+
+import PDFDocument from 'pdfkit';
+
+app.get('/api/export/report', async (req, res) => {
+  const { urn } = req.query;
+  // Fetch elements/issues
+  const doc = new PDFDocument();
+  res.setHeader('Content-Type', 'application/pdf');
+  doc.pipe(res);
+  doc.fontSize(25).text('EstiMate Report');
+  doc.text('Total Cost: $310,000'); // From data
+  doc.end();
+});
+Frontend Update: client/src/App.tsx (Add button)
+typescript
+
+
+
+
+<button onClick={() => window.open(`/api/export/report?urn=${selectedUrn}`)} className="px-4 py-2 bg-green-600 text-white rounded">Export PDF Report</button>
+UI Enhancement: Icon-Based Navigation and Tooltips
+Uses icons (e.g., Font Awesome) for buttons and adds tooltips for better UX/aesthetics.
+Global Update: Install npm install @fortawesome/react-fontawesome @fortawesome/free-solid-svg-icons
+File Update: client/src/App.tsx (Update buttons)
+typescript
+
+
+
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHome, faFileUpload } from '@fortawesome/free-solid-svg-icons';
+
+// Example button:
+<button onClick={() => setIsModalOpen(true)} className="px-6 py-3 bg-purple-500 text-white rounded" title="Upload BIM File">
+  <FontAwesomeIcon icon={faFileUpload} className="mr-2" /> Launch Enterprise BIM
+</button>
+Performance Enhancement: Caching for Regulations and Viewer Tokens
+Reduces API calls for frequent data.
+Backend Update: server/forge-real-integration.ts (Enhance token caching)
+typescript
+
+
+
+
+// Already cached; extend for regulations in server.ts
+import NodeCache from 'node-cache'; // Install npm install node-cache
+const cache = new NodeCache({ stdTTL: 600 }); // 10min
+
+app.get('/api/regulations/search', (req, res) => {
+  const { q, state } = req.query;
+  const key = `reg_${q}_${state}`;
+  if (cache.has(key)) return res.json(cache.get(key));
+  // Query DB, then cache.set(key, results);
+});
