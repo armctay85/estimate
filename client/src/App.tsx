@@ -25,7 +25,7 @@ import { useState, useEffect } from "react";
 import { Moon, Sun } from "lucide-react";
 
 function Router() {
-  const isAuthenticated = () => !!localStorage.getItem('authToken');
+  const isAuthenticated = () => !!localStorage.getItem('adminToken');
 
   return (
     <Switch>
