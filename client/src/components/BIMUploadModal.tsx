@@ -113,9 +113,9 @@ export function BIMUploadModal({ isOpen, onClose, onUploadSuccess }: BIMUploadMo
           console.error('Translation failed:', status);
         } else if (attempts < maxAttempts) {
           attempts++;
-          const remainingTime = Math.round((maxAttempts - attempts) * 0.5); // 30 second intervals
+          const remainingTime = Math.round((maxAttempts - attempts) * 0.25); // 15 second intervals
           setUploadStatus(`Processing BIM file... ${attempts}/${maxAttempts} (${remainingTime}min remaining)`);
-          setTimeout(poll, 30000); // Check every 30 seconds
+          setTimeout(poll, 15000); // Check every 15 seconds for faster updates
         } else {
           setUploadStatus('Translation timeout. The file may still be processing.');
           console.warn('Translation polling timed out');
@@ -166,6 +166,11 @@ export function BIMUploadModal({ isOpen, onClose, onUploadSuccess }: BIMUploadMo
           <p className="text-sm text-gray-500 dark:text-gray-500">
             Supports: Revit (.rvt), IFC (.ifc), AutoCAD (.dwg), DXF (.dxf) up to 500MB
           </p>
+          <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <p className="text-sm text-blue-700 dark:text-blue-400">
+              💡 <strong>Pro tip:</strong> Optimize your RVT in Revit (purge unused elements, audit model) to speed up translation by up to 50%
+            </p>
+          </div>
         </div>
         
         {/* Enhanced file input with better styling */}

@@ -210,10 +210,10 @@ export class ForgeAPI {
           output: {
             formats: [
               {
-                type: 'svf2',
-                views: ['2d', '3d'],
+                type: 'svf',  // Changed from svf2 to svf for faster translation
+                views: ['3d'],  // Skip 2D views for speed
                 advanced: {
-                  generateMasterViews: true
+                  generateMasterViews: false  // Skip master views unless needed
                 }
               }
             ]
