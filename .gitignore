@@ -4,3 +4,11 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Environment files with secrets
+.env
+.env.extracted
+.env.local
+
+# Extraction script
+extract-env.mjs
