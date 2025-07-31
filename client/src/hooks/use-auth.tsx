@@ -36,12 +36,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginMutation = useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      const response = await apiRequest("POST", "/api/login", { email, password });
+      const response = await apiRequest("POST", "/api/auth/login", { username: email, password });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/me'] });
-      setLocation("/");
+    onSuccess: (data) => {
+      if (data.token) {
+        // Admin JWT login
+        localStorage.setItem('adminToken', data.token);
+        localStorage.setItem('isAdmin', 'true');
+        localStorage.setItem('userRole', 'admin');
+        localStorage.setItem('subscriptionTier', 'enterprise');
+        setLocation("/admin");
+      } else {
+        // Regular user login
+        queryClient.invalidateQueries({ queryKey: ['/api/me'] });
+        setLocation("/");
+      }
       toast({
         title: "Welcome back!",
         description: "You have been logged in successfully.",

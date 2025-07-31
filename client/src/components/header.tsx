@@ -13,10 +13,7 @@ import { Compass, Crown, ChevronDown, LogOut, Settings, FolderOpen, FileBarChart
 import { useLocation } from "wouter";
 
 export function Header() {
-  // Bypass auth for demo mode
-  const user = null;
-  const logout = () => {};
-  // const { user, logout } = useAuth();
+  const { user, logout } = useAuth();
   const [, navigate] = useLocation();
 
   const getSubscriptionBadge = () => {

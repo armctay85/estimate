@@ -47,6 +47,24 @@ passport.deserializeUser(async (id: number, done) => {
   }
 });
 
+// JWT verification middleware for admin access
+export const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+  if (!token) {
+    return res.status(401).json({ message: 'Access token required' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'estimate-secret-key-2025');
+    (req as any).user = decoded;
+    next();
+  } catch (error) {
+    res.status(403).json({ message: 'Invalid or expired token' });
+  }
+};
+
 // Middleware to check if user is authenticated
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   if (req.isAuthenticated()) {
@@ -133,8 +151,12 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
       return res.json({ token });
     }
 
-    // Regular login flow
-    const validatedData = loginSchema.parse(req.body);
+    // Handle both username and email login
+    const loginData = req.body.username ? 
+      { email: req.body.username, password: req.body.password } : 
+      { email: req.body.email, password: req.body.password };
+      
+    const validatedData = loginSchema.parse(loginData);
     
     passport.authenticate('local', (err: any, user: any, info: any) => {
       if (err) {
