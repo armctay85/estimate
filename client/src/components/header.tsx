@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Compass, Crown, ChevronDown, LogOut, Settings, FolderOpen, FileBarChart } from "lucide-react";
 import { useLocation } from "wouter";
+import { useAuth } from "../hooks/use-auth";
 
 export function Header() {
   const { user, logout } = useAuth();
