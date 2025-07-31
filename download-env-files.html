@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Environment Files</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+        .file-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .file-list h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .file-list ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .file-list li {
+            margin: 5px 0;
+            color: #6c757d;
+        }
+        .download-btn {
+            background: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            display: inline-block;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .download-btn:hover {
+            background: #0056b3;
+        }
+        .security-note {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #495057;
+        }
+        code {
+            background: #f8f9fa;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Environment Files Download</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Security Warning:</strong> The downloaded ZIP file contains sensitive API keys and secrets. Handle with extreme care and never share publicly or commit to version control.
+        </div>
+        
+        <div class="file-list">
+            <h3>📦 Files included in environment-files.zip:</h3>
+            <ul>
+                <li><code>.env.template</code> - Safe template file (no actual secrets)</li>
+                <li><code>.env.extracted</code> - <strong>Contains actual API keys and secrets!</strong></li>
+                <li><code>.env.README.md</code> - Documentation and usage instructions</li>
+                <li><code>extract-env.mjs</code> - Script to extract environment variables</li>
+            </ul>
+        </div>
+        
+        <a href="/environment-files.zip" class="download-btn" download>
+            📥 Download environment-files.zip
+        </a>
+        
+        <div class="security-note">
+            <strong>Security Best Practices:</strong>
+            <ul>
+                <li>Store the ZIP file in a secure location</li>
+                <li>Use encrypted channels when sharing with team members</li>
+                <li>Delete the file after extracting if not needed</li>
+                <li>Never upload to public repositories or cloud storage</li>
+                <li>Rotate secrets regularly for enhanced security</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
