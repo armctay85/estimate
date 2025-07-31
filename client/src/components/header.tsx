@@ -22,7 +22,7 @@ export function Header() {
     const isAdmin = localStorage.getItem('isAdmin') === 'true';
     const userRole = localStorage.getItem('userRole');
     const subscriptionTier = localStorage.getItem('subscriptionTier');
-    
+
     if (isAdmin || userRole === 'admin' || subscriptionTier === 'enterprise') {
       return (
         <Badge className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-0">
@@ -31,9 +31,9 @@ export function Header() {
         </Badge>
       );
     }
-    
+
     if (!user) return null;
-    
+
     const tierConfig = {
       free: { label: "Free", variant: "secondary" as const },
       pro: { label: "Pro Plan", variant: "default" as const },
@@ -41,7 +41,7 @@ export function Header() {
     };
 
     const config = tierConfig[user.subscriptionTier as keyof typeof tierConfig] || tierConfig.free;
-    
+
     return (
       <Badge variant={config.variant} className="bg-green-100 text-green-800 hover:bg-green-200">
         {config.label === "Pro Plan" && <Crown className="w-3 h-3 mr-1" />}
@@ -100,10 +100,10 @@ export function Header() {
               <p className="text-xs text-gray-600 dark:text-gray-300 font-medium">Australian Construction Estimator</p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             {getSubscriptionBadge()}
-            
+
             {user.subscriptionTier === 'free' && 
              localStorage.getItem('isAdmin') !== 'true' && 
              localStorage.getItem('subscriptionTier') !== 'enterprise' && (
@@ -117,7 +117,7 @@ export function Header() {
                 Upgrade
               </Button>
             )}
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center space-x-2 hover:bg-gray-50 rounded-lg p-2">
                 <Avatar className="w-8 h-8">
@@ -128,7 +128,7 @@ export function Header() {
                 <span className="text-sm font-medium text-gray-700">{user.username}</span>
                 <ChevronDown className="w-4 h-4 text-gray-400" />
               </DropdownMenuTrigger>
-              
+
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem onClick={() => navigate("/projects")}>
                   <FolderOpen className="w-4 h-4 mr-2" />

@@ -49,6 +49,7 @@ function Router() {
       <Route path="/bim-viewer" component={BIMViewerPage} />
       <Route path="/test-viewer" component={TestViewer} />
       <Route path="/test-forge" component={TestForge} />
+      <Route path="/admin-dashboard" component={AdminDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
