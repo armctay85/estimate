@@ -18,7 +18,7 @@ const LoginPage: React.FC = () => {
     setError('');
     
     try {
-      const res = await fetch('/api/auth/admin-login', {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
@@ -65,7 +65,7 @@ const LoginPage: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full p-3 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:border-blue-500"
-              placeholder="••••"
+              placeholder="pass"
               required
             />
           </div>
