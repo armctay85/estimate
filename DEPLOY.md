@@ -1,68 +1,59 @@
-# Vercel Deployment Setup
+# Vercel Deployment
 
-## Option 1: GitHub Integration (Recommended)
+## Quick Deploy (One-Time Setup)
 
-1. Go to https://vercel.com/dashboard
-2. Click "Add New Project"
-3. Select "Import Git Repository"
-4. Choose `armctay85/estimate`
-5. Configure:
-   - Framework Preset: `Other`
-   - Build Command: `npm run build`
-   - Output Directory: `dist/public`
-   - Install Command: `npm ci`
-6. Add Environment Variables:
-   - `DATABASE_URL`
-   - `JWT_SECRET`
-   - `STRIPE_SECRET_KEY`
-   - `STRIPE_PUBLISHABLE_KEY`
-7. Click Deploy
+Since the GitHub Actions workflow needs Vercel secrets, here's the fastest way:
 
-## Option 2: Vercel CLI (Manual)
+### Option 1: Vercel Dashboard (2 minutes)
+
+1. Go to https://vercel.com/new
+2. Import from GitHub: `armctay85/estimate`
+3. Configure:
+   - **Framework Preset:** `Other`
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `dist/public`
+   - **Install Command:** `npm ci`
+4. Add Environment Variables:
+   ```
+   DATABASE_URL=your_neon_postgres_url
+   JWT_SECRET=random_64_char_string
+   SESSION_SECRET=random_64_char_string
+   STRIPE_SECRET_KEY=sk_live_...
+   STRIPE_PUBLISHABLE_KEY=pk_live_...
+   ```
+5. Click **Deploy**
+
+### Option 2: Vercel CLI
 
 ```bash
-# Install Vercel CLI
+# Install Vercel CLI globally
 npm i -g vercel
 
 # Login (opens browser)
 vercel login
 
-# Link project
-vercel link
-
-# Deploy
+# Link and deploy
 vercel --prod
 ```
 
-## Option 3: GitHub Actions (Auto-deploy)
+## Current Status
 
-1. Get Vercel token:
-   ```bash
-   vercel tokens create
-   ```
+- ✅ Build passing locally
+- ✅ All files in `dist/public/`
+- ✅ GitHub Actions builds on push (tests only, no auto-deploy)
 
-2. Add secrets to GitHub repository:
-   - Go to https://github.com/armctay85/estimate/settings/secrets/actions
-   - Add `VERCEL_TOKEN`
-   - Add `VERCEL_ORG_ID` (from `vercel teams list`)
-   - Add `VERCEL_PROJECT_ID` (from `.vercel/project.json`)
+## Build Verification
 
-3. Push to main branch — auto-deploys
-
-## Current Build Status
-
-- ✅ Frontend: 2MB bundle (optimized)
-- ✅ Server: 243KB
-- ✅ Build passing
-- ✅ Ready for deployment
-
-## Environment Variables Required
-
+```bash
+cd /root/.openclaw/workspace/estimate
+npm run build
+# Output: dist/public/ with assets/
 ```
-DATABASE_URL=postgresql://...
-JWT_SECRET=your-secret
-SESSION_SECRET=your-session-secret
-STRIPE_SECRET_KEY=sk_...
-STRIPE_PUBLISHABLE_KEY=pk_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-```
+
+## Troubleshooting
+
+If build fails on Vercel:
+1. Check Node.js version is 18+ in Vercel settings
+2. Verify `dist/public` exists after build
+3. Check environment variables are set
+4. View build logs in Vercel dashboard
