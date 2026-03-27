@@ -6,8 +6,10 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUsersByTier(tier: string): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
   updateUserSubscription(id: number, tier: string, stripeCustomerId?: string, stripeSubscriptionId?: string): Promise<User>;
+  updateUserPassword(id: number, hashedPassword: string): Promise<User>;
   incrementUserProjects(id: number): Promise<void>;
   resetUserProjectsIfNeeded(id: number): Promise<void>;
   
@@ -55,6 +57,10 @@ export class MemStorage implements IStorage {
     return Array.from(this.users.values()).find(user => user.username === username);
   }
 
+  async getUsersByTier(tier: string): Promise<User[]> {
+    return Array.from(this.users.values()).filter(user => user.subscriptionTier === tier);
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
     const hashedPassword = await bcrypt.hash(insertUser.password, 10);
     const id = this.currentUserId++;
@@ -82,6 +88,18 @@ export class MemStorage implements IStorage {
       subscriptionTier: tier,
       stripeCustomerId: stripeCustomerId || user.stripeCustomerId,
       stripeSubscriptionId: stripeSubscriptionId || user.stripeSubscriptionId,
+    };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  async updateUserPassword(id: number, hashedPassword: string): Promise<User> {
+    const user = this.users.get(id);
+    if (!user) throw new Error("User not found");
+    
+    const updatedUser: User = {
+      ...user,
+      password: hashedPassword,
     };
     this.users.set(id, updatedUser);
     return updatedUser;
@@ -211,6 +229,10 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
+  async getUsersByTier(tier: string): Promise<User[]> {
+    return await db.select().from(schema.users).where(eq(schema.users.subscriptionTier, tier));
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db
       .insert(schema.users)
@@ -226,6 +248,17 @@ export class DatabaseStorage implements IStorage {
         subscriptionTier: tier,
         stripeCustomerId,
         stripeSubscriptionId,
+      })
+      .where(eq(schema.users.id, id))
+      .returning();
+    return user;
+  }
+
+  async updateUserPassword(id: number, hashedPassword: string): Promise<User> {
+    const [user] = await db
+      .update(schema.users)
+      .set({
+        password: hashedPassword,
       })
       .where(eq(schema.users.id, id))
       .returning();

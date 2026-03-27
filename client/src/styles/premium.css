@@ -1,0 +1,639 @@
+/* Premium Design System - Estimate Platform */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   DESIGN TOKENS - Premium Color System
+   ============================================ */
+:root {
+  /* Primary Palette - Deep Ocean Blue */
+  --primary-50: 239 246 255;
+  --primary-100: 219 234 254;
+  --primary-200: 191 219 254;
+  --primary-300: 147 197 253;
+  --primary-400: 96 165 250;
+  --primary-500: 59 130 246;
+  --primary-600: 37 99 235;
+  --primary-700: 29 78 216;
+  --primary-800: 30 64 175;
+  --primary-900: 30 58 138;
+  --primary-950: 23 37 84;
+
+  /* Construction Orange - Accent */
+  --accent-orange: 255 107 0;
+  --accent-orange-light: 255 138 51;
+  --accent-orange-dark: 230 85 0;
+
+  /* Neutral Scale */
+  --gray-50: 249 250 251;
+  --gray-100: 243 244 246;
+  --gray-200: 229 231 235;
+  --gray-300: 209 213 219;
+  --gray-400: 156 163 175;
+  --gray-500: 107 114 128;
+  --gray-600: 75 85 99;
+  --gray-700: 55 65 81;
+  --gray-800: 31 41 55;
+  --gray-900: 17 24 39;
+  --gray-950: 3 7 18;
+
+  /* Semantic Colors */
+  --success: 34 197 94;
+  --success-light: 134 239 172;
+  --warning: 251 191 36;
+  --warning-light: 253 230 138;
+  --error: 239 68 68;
+  --error-light: 252 165 165;
+  --info: 59 130 246;
+
+  /* Background & Surface */
+  --background: 255 255 255;
+  --foreground: 3 7 18;
+  --surface: 255 255 255;
+  --surface-elevated: 255 255 255;
+  --surface-sunken: 249 250 251;
+
+  /* Shadcn Theme Mapping */
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 217 91% 60%;
+  --radius: 0.625rem;
+}
+
+.dark {
+  --background: 3 7 18;
+  --foreground: 249 250 251;
+  --surface: 17 24 39;
+  --surface-elevated: 31 41 55;
+  --surface-sunken: 3 7 18;
+
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 224.3 76.3% 48%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    letter-spacing: -0.02em;
+    line-height: 1.5;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Typography Scale - Premium */
+  h1 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+  }
+
+  h2 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+  }
+
+  h3 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  h4 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+  }
+
+  h5, h6 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer components {
+  /* ============================================
+     Premium Card Styles
+     ============================================ */
+  .card-premium {
+    @apply bg-white dark:bg-gray-900 rounded-xl;
+    box-shadow: 
+      0 0 0 1px rgba(0, 0, 0, 0.03),
+      0 1px 3px rgba(0, 0, 0, 0.05),
+      0 4px 12px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-premium:hover {
+    box-shadow: 
+      0 0 0 1px rgba(0, 0, 0, 0.04),
+      0 2px 8px rgba(0, 0, 0, 0.06),
+      0 12px 24px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .card-elevated {
+    @apply bg-white dark:bg-gray-900 rounded-2xl;
+    box-shadow: 
+      0 0 0 1px rgba(0, 0, 0, 0.04),
+      0 4px 6px rgba(0, 0, 0, 0.02),
+      0 12px 24px rgba(0, 0, 0, 0.08),
+      0 24px 48px rgba(0, 0, 0, 0.06);
+  }
+
+  .card-glass {
+    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-xl;
+    box-shadow: 
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      0 4px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  /* ============================================
+     Button Styles - Premium
+     ============================================ */
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg font-medium text-white;
+    background: linear-gradient(135deg, #0066FF 0%, #0052CC 100%);
+    box-shadow: 0 1px 3px rgba(0, 102, 255, 0.3), 0 4px 12px rgba(0, 102, 255, 0.2);
+    transition: all 0.15s ease-out;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 102, 255, 0.4), 0 8px 20px rgba(0, 102, 255, 0.25);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg font-medium;
+    @apply bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100;
+    @apply border border-gray-200 dark:border-gray-700;
+    transition: all 0.15s ease-out;
+  }
+
+  .btn-secondary:hover {
+    @apply bg-gray-200 dark:bg-gray-700;
+    transform: translateY(-1px);
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium;
+    @apply text-gray-600 dark:text-gray-400;
+    transition: all 0.15s ease-out;
+  }
+
+  .btn-ghost:hover {
+    @apply bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100;
+  }
+
+  /* ============================================
+     Gradient Text & Backgrounds
+     ============================================ */
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #0066FF 0%, #00D4FF 100%);
+  }
+
+  .text-gradient-orange {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #FF6B00 0%, #FFB347 100%);
+  }
+
+  .bg-gradient-premium {
+    background: linear-gradient(135deg, #0066FF 0%, #0052CC 100%);
+  }
+
+  .bg-gradient-hero {
+    background: radial-gradient(ellipse at top, rgba(0, 102, 255, 0.08) 0%, transparent 50%),
+                linear-gradient(180deg, #FAFBFC 0%, #F0F4F8 100%);
+  }
+
+  .bg-gradient-hero-dark {
+    background: radial-gradient(ellipse at top, rgba(0, 102, 255, 0.15) 0%, transparent 50%),
+                linear-gradient(180deg, #0A0F1C 0%, #0D1320 100%);
+  }
+
+  /* ============================================
+     Input Styles - Premium
+     ============================================ */
+  .input-premium {
+    @apply w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-900;
+    @apply border border-gray-200 dark:border-gray-700;
+    @apply text-gray-900 dark:text-gray-100;
+    @apply placeholder:text-gray-400 dark:placeholder:text-gray-600;
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500;
+    transition: all 0.15s ease-out;
+  }
+
+  .input-premium:hover {
+    @apply border-gray-300 dark:border-gray-600;
+  }
+
+  /* ============================================
+     Badge Styles
+     ============================================ */
+  .badge-premium {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-blue {
+    @apply badge-premium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300;
+  }
+
+  .badge-green {
+    @apply badge-premium bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300;
+  }
+
+  .badge-orange {
+    @apply badge-premium bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300;
+  }
+
+  .badge-purple {
+    @apply badge-premium bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300;
+  }
+
+  /* ============================================
+     Number Display - Monospace
+     ============================================ */
+  .number-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .currency-large {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  /* ============================================
+     Animation Utilities
+     ============================================ */
+  .animate-in {
+    animation: animateIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .animate-fade-up {
+    animation: fadeUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  /* ============================================
+     Skeleton Loading
+     ============================================ */
+  .skeleton {
+    @apply animate-pulse bg-gray-200 dark:bg-gray-700 rounded;
+  }
+
+  .skeleton-shimmer {
+    @apply relative overflow-hidden;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* ============================================
+     Progress Bar Styles
+     ============================================ */
+  .progress-premium {
+    @apply h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden;
+  }
+
+  .progress-bar {
+    @apply h-full rounded-full transition-all duration-500 ease-out;
+    background: linear-gradient(90deg, #0066FF 0%, #00D4FF 100%);
+  }
+
+  /* ============================================
+     Tooltip & Popover
+     ============================================ */
+  .tooltip {
+    @apply px-3 py-1.5 rounded-lg text-sm font-medium;
+    @apply bg-gray-900 dark:bg-white text-white dark:text-gray-900;
+    @apply shadow-lg;
+  }
+
+  /* ============================================
+     Navigation
+     ============================================ */
+  .nav-link {
+    @apply px-4 py-2 rounded-lg text-sm font-medium;
+    @apply text-gray-600 dark:text-gray-400;
+    @apply hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100;
+    transition: all 0.15s ease-out;
+  }
+
+  .nav-link-active {
+    @apply nav-link bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400;
+  }
+
+  /* ============================================
+     Sidebar Navigation
+     ============================================ */
+  .sidebar-nav-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium;
+    @apply text-gray-600 dark:text-gray-400;
+    @apply hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100;
+    transition: all 0.15s ease-out;
+  }
+
+  .sidebar-nav-item-active {
+    @apply sidebar-nav-item bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  /* ============================================
+     Section Styles
+     ============================================ */
+  .section-padding {
+    @apply px-4 sm:px-6 lg:px-8 xl:px-12;
+  }
+
+  .container-premium {
+    @apply max-w-7xl mx-auto section-padding;
+  }
+
+  .container-wide {
+    @apply max-w-[1600px] mx-auto section-padding;
+  }
+
+  /* ============================================
+     Status Indicators
+     ============================================ */
+  .status-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+
+  .status-active { @apply status-dot bg-green-500; }
+  .status-pending { @apply status-dot bg-yellow-500; }
+  .status-error { @apply status-dot bg-red-500; }
+  .status-info { @apply status-dot bg-blue-500; }
+
+  /* ============================================
+     Chart Styles
+     ============================================ */
+  .chart-container {
+    @apply rounded-xl border border-gray-200 dark:border-gray-700;
+    @apply bg-white dark:bg-gray-900;
+  }
+}
+
+@layer utilities {
+  /* ============================================
+     Spacing Utilities
+     ============================================ */
+  .gap-safe {
+    gap: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  /* ============================================
+     Text Utilities
+     ============================================ */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* ============================================
+     Scrollbar
+     ============================================ */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-gray-100 dark:bg-gray-800 rounded-full;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-gray-500;
+  }
+
+  /* ============================================
+     Backdrop Effects
+     ============================================ */
+  .backdrop-blur-premium {
+    backdrop-filter: blur(20px) saturate(180%);
+  }
+
+  /* ============================================
+     Transform Utilities
+     ============================================ */
+  .translate-z-0 {
+    transform: translateZ(0);
+  }
+
+  /* ============================================
+     Focus Styles
+     ============================================ */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500;
+  }
+}
+
+/* ============================================
+   Keyframes
+   ============================================ */
+@keyframes animateIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   Motion Classes
+   ============================================ */
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+/* ============================================
+   Canvas & Grid Backgrounds
+   ============================================ */
+.bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.bg-grid-pattern-dark {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ============================================
+   Selection Styles
+   ============================================ */
+::selection {
+  background: rgba(0, 102, 255, 0.2);
+  color: inherit;
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

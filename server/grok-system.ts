@@ -13,6 +13,8 @@ import { exec } from 'child_process';
 import util from 'util';
 import sqlite3 from 'sqlite3'; // For chat history DB
 
+import securityConfig from './config/security';
+
 const router = express.Router();
 const logger = winston.createLogger({ 
   level: 'info', 
@@ -27,7 +29,7 @@ db.serialize(() => {
 
 const GROK_API_BASE = 'https://api.x.ai/v1/chat/completions';
 const API_KEY = process.env.XAI_API_KEY;
-const JWT_SECRET = process.env.JWT_SECRET || 'estimate-secret-key-2025';
+const JWT_SECRET = securityConfig.jwt.secret;
 
 if (!API_KEY) throw new Error('XAI_API_KEY missing');
 

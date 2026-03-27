@@ -220,3 +220,6 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: hsl(207, 90%, 54%);
 }
+
+/* Import Premium Design System */
+@import './styles/premium.css';

@@ -1,3 +1,14 @@
+/**
+ * Application Routes
+ * 
+ * Security-hardened routes with:
+ * - Proper environment validation
+ * - Rate limiting
+ * - XSS protection
+ * - Secure session configuration
+ * - No hardcoded credentials
+ */
+
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import path from "path";
@@ -6,8 +17,6 @@ import passport from "passport";
 import Stripe from "stripe";
 import multer from "multer";
 import OpenAI from "openai";
-import helmet from "helmet";
-import rateLimit from "express-rate-limit";
 import { storage } from "./storage";
 import { insertUserSchema, insertProjectSchema, insertRoomSchema, MATERIALS } from "@shared/schema";
 import { setupForgeRoutes } from "./forge-api";
@@ -18,15 +27,34 @@ import { setupInstantUpload } from "./instant-upload";
 import { setupBIMUploadFix } from "./bim-upload-fix";
 import { predictConstructionCost, analyzeBIMFile, generateQSReport } from "./xai-service";
 import { multiAI } from "./multi-ai-service";
-import { register, login, logout, getCurrentUser, isAuthenticated, requireTier } from "./auth";
+import { 
+  register, login, logout, getCurrentUser, isAuthenticated, requireTier, 
+  adminJWTLogin, setupAdmin, requireAdmin, changePassword 
+} from "./auth";
 import { createSubscription, createPaymentIntent, handleWebhook, createBillingPortalSession } from "./stripe-service";
 import { setupRegulationsRoutes } from "./aus-regulations-service";
 import { amendCode } from './grok-api-client';
 import { setupGrokErrorHandler } from './error-handler';
 import grokSystemRouter, { grokErrorHandler } from './grok-system';
+import { setupQuoteRoutes } from './quote-routes';
+import costDatabaseRoutes from './routes/cost-database';
 import PDFDocument from "pdfkit";
 import NodeCache from "node-cache";
-import jwt from "jsonwebtoken";
+
+// Import security configuration
+import securityConfig from "./config/security";
+import { 
+  applySecurityMiddleware, 
+  createLoginLimiter, 
+  createApiLimiter, 
+  createUploadLimiter,
+  xssProtection,
+  prototypeProtection,
+  suspiciousActivityDetection,
+  corsMiddleware
+} from "./middleware/security";
+import { z } from "zod";
+import bcrypt from "bcryptjs";
 
 // Initialize Stripe only if the secret is available
 let stripe: Stripe | null = null;
@@ -58,81 +86,39 @@ declare global {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Global CORS Middleware - Allow all origins, methods, headers for maximum compatibility in Replit
-  app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, HEAD');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Range, If-None-Match, If-Modified-Since');
-    res.header('Access-Control-Expose-Headers', 'Content-Length, Content-Range, ETag, Last-Modified');
-    if (req.method === 'OPTIONS') {
-      return res.sendStatus(200);
-    }
-    next();
-  });
+  // Apply comprehensive security middleware
+  const { loginLimiter, apiLimiter, uploadLimiter } = applySecurityMiddleware(app);
 
-  // Security middleware with Tailwind CDN allowed
-  app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "js.stripe.com", "aps.autodesk.com", "developer.api.autodesk.com", "cdn.tailwindcss.com"],
-        styleSrc: ["'self'", "'unsafe-inline'", "fonts.googleapis.com", "developer.api.autodesk.com", "cdn.tailwindcss.com"],
-        imgSrc: ["'self'", "data:", "https:"],
-        connectSrc: ["'self'", "api.stripe.com", "api.x.ai", "developer.api.autodesk.com"],
-        fontSrc: ["'self'", "fonts.gstatic.com", "fonts.googleapis.com"],
-        objectSrc: ["'none'"],
-        mediaSrc: ["'self'"],
-        frameSrc: ["'self'", "js.stripe.com"],
-        baseUri: ["'self'"],
-        formAction: ["'self'"],
-        frameAncestors: ["'self'"],
-        scriptSrcAttr: ["'none'"],
-        upgradeInsecureRequests: []
-      }
-    },
-    crossOriginEmbedderPolicy: false // Allow Forge viewer
-  }));
-
-  // REMOVED RATE LIMITING - Full unrestricted API access
-  // Rate limiting removed per user request for maximum functionality
-  
-  // Auth endpoints also unrestricted
-  const authLimiter = (req: Request, res: Response, next: NextFunction) => next();
-
-  // Session configuration must come before passport
+  // Session configuration - uses validated SESSION_SECRET
   app.use(session({
-    secret: process.env.SESSION_SECRET!,
+    secret: securityConfig.session.secret,
     resave: false,
     saveUninitialized: false,
     cookie: { 
-      secure: process.env.NODE_ENV === 'production', 
-      httpOnly: true, 
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000 
-    }
+      secure: securityConfig.session.secure, 
+      httpOnly: securityConfig.session.httpOnly, 
+      sameSite: securityConfig.session.sameSite,
+      maxAge: securityConfig.session.maxAge 
+    },
+    name: 'sessionId', // Don't use default 'connect.sid'
   }));
 
   // Initialize Passport
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Authentication routes
-  app.post('/api/auth/register', authLimiter, register);
-  app.post('/api/auth/login', authLimiter, login);
+  // Authentication routes with rate limiting
+  app.post('/api/auth/register', loginLimiter, register);
+  app.post('/api/auth/login', loginLimiter, login);
   app.post('/api/auth/logout', logout);
   app.get('/api/auth/user', getCurrentUser);
+  app.post('/api/auth/change-password', isAuthenticated, changePassword);
   
-  // Admin JWT login endpoint for Grok system (separate route)
-  app.post('/api/auth/admin-login', authLimiter, async (req, res) => {
-    const { username, password } = req.body;
-    
-    if (username === 'admin' && password === 'pass') {
-      const token = jwt.sign({ user: 'admin' }, process.env.JWT_SECRET || 'estimate-secret-key-2025', { expiresIn: '24h' });
-      res.json({ token });
-    } else {
-      res.status(401).json({ error: 'Invalid credentials' });
-    }
-  });
+  // Admin setup route (first-time admin creation)
+  app.post('/api/auth/admin-setup', loginLimiter, setupAdmin);
+  
+  // Admin JWT login - uses database authentication, no hardcoded credentials
+  app.post('/api/auth/admin-login', loginLimiter, adminJWTLogin);
   
   // Mount Grok system routes
   app.use('/api', grokSystemRouter);
@@ -194,6 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.setHeader('Content-Type', 'text/plain');
     res.sendFile('robots.txt', { root: '.' });
   });
+
   // Configure multer for file uploads
   const upload = multer({
     storage: multer.memoryStorage(),
@@ -323,6 +310,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Health check endpoint
+  app.get('/health', (req, res) => {
+    res.json({ 
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      environment: securityConfig.env.NODE_ENV
+    });
+  });
+
   // Protected API routes
   app.get('/api/projects', isAuthenticated, async (req, res) => {
     try {
@@ -348,7 +344,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get('/api/me', async (req, res) => {
-    const isDevelopment = process.env.NODE_ENV === 'development';
+    const isDevelopment = securityConfig.isDevelopment;
     
     if (req.isAuthenticated()) {
       res.json({ user: req.user });
@@ -372,7 +368,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Project routes
   app.get('/api/projects', async (req, res) => {
     // Testing bypass - allow unauthenticated access in development
-    const isDevelopment = process.env.NODE_ENV === 'development';
+    const isDevelopment = securityConfig.isDevelopment;
     const testUserId = 1; // Default test user ID
     
     if (!isDevelopment && !req.isAuthenticated()) {
@@ -556,8 +552,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(MATERIALS);
   });
 
-  // File upload route for background images
-  app.post('/api/upload-background', upload.single('file'), async (req, res) => {
+  // File upload route for background images with upload rate limiting
+  app.post('/api/upload-background', uploadLimiter, upload.single('file'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: 'No file uploaded' });
@@ -804,7 +800,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Photo Renovation Analysis endpoint
-  app.post('/api/ai/analyze-photo', upload.single('photo'), async (req, res) => {
+  app.post('/api/ai/analyze-photo', uploadLimiter, upload.single('photo'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No photo uploaded' });
@@ -1101,7 +1097,7 @@ Return JSON: { "areas": [{ "roomType": string, "label": string, "x": number, "y"
   setupInstantUpload(app);
 
   // BIM file upload route with Forge integration
-  app.post('/api/forge/upload', bimUpload.single('file'), async (req, res) => {
+  app.post('/api/forge/upload', uploadLimiter, bimUpload.single('file'), async (req, res) => {
     try {
       const file = req.file;
       if (!file) {
@@ -1148,7 +1144,7 @@ Return JSON: { "areas": [{ "roomType": string, "label": string, "x": number, "y"
   });
 
   // Admin routes for design library uploads - OPTIMIZED FOR SPEED
-  app.post("/api/admin/upload-design", (req, res, next) => {
+  app.post("/api/admin/upload-design", requireAdmin, uploadLimiter, (req, res, next) => {
     // Set immediate response for speed
     const startTime = Date.now();
     
@@ -1207,6 +1203,12 @@ Return JSON: { "areas": [{ "roomType": string, "label": string, "x": number, "y"
   app.get('/admin-login.html', (req, res) => {
     res.sendFile(path.resolve('admin-login.html'));
   });
+
+  // Setup Quote Validator routes
+  setupQuoteRoutes(app);
+
+  // Setup Cost Database routes
+  app.use('/api', costDatabaseRoutes);
 
   // Setup Grok error handler (must be last middleware)
   setupGrokErrorHandler(app);

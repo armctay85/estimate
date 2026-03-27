@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { BIMUploadModal } from "@/components/BIMUploadModal";
-import { ForgeViewer } from "@/components/forge-viewer";
+import { BIMViewer } from "@/components/BIMViewer";
 
 export function TestForge() {
   const { toast } = useToast();
@@ -94,7 +94,7 @@ export function TestForge() {
           <div className="border rounded-lg p-4">
             <h2 className="text-xl font-semibold mb-4">3D Model Viewer</h2>
             <div style={{ height: '600px' }}>
-              <ForgeViewer urn={urn} />
+              <BIMViewer urn={urn} status="Complete" />
             </div>
           </div>
         )}

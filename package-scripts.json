@@ -1,0 +1,21 @@
+{
+  "name": "estimate-app",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "tsx server/index.ts",
+    "build": "vite build && tsc -p tsconfig.server.json",
+    "start": "node dist/index.js",
+    "db:push": "drizzle-kit push",
+    "db:migrate": "tsx server/db/migrate.ts",
+    "db:seed": "tsx server/seed/kmart-seed.ts",
+    "db:reset": "npm run db:migrate && npm run db:seed",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "typecheck": "tsc --noEmit",
+    "deploy:staging": "./scripts/deploy.sh staging",
+    "deploy:prod": "./scripts/deploy.sh production",
+    "analyze": "vite-bundle-analyzer dist/public"
+  }
+}

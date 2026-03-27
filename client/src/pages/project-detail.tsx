@@ -6,12 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { QuoteValidator } from "@/components/quote-validator";
 import { 
   ArrowLeft, Download, FileText, DollarSign, Calendar, Users, 
   Building, Layers, TrendingUp, Clock, AlertCircle, CheckCircle,
-  BarChart3, FileSpreadsheet, Hammer, Box, Eye
+  BarChart3, FileSpreadsheet, Hammer, Box, Eye, Image as ImageIcon,
+  Shield
 } from "lucide-react";
-import { Simple3DViewer } from "@/components/simple-3d-viewer";
+import { BIMViewer } from "@/components/BIMViewer";
+import { PDFTakeoffPanel } from "@/components/pdf-takeoff-panel";
 
 // Mock project data with comprehensive details
 const getProjectData = (id: string) => {
@@ -334,12 +337,20 @@ export default function ProjectDetail() {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="cost-breakdown">Cost Breakdown</TabsTrigger>
             <TabsTrigger value="schedule">Schedule</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
+            <TabsTrigger value="takeoffs" className="flex items-center gap-1">
+              <ImageIcon className="w-3 h-3" />
+              Takeoffs
+            </TabsTrigger>
+            <TabsTrigger value="quote-validator" className="flex items-center gap-1">
+              <Shield className="w-3 h-3" />
+              Quote Check
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -539,15 +550,21 @@ export default function ProjectDetail() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="takeoffs">
+            <PDFTakeoffPanel projectId={parseInt(params?.id || "0") || 1} />
+          </TabsContent>
+
+          <TabsContent value="quote-validator">
+            <QuoteValidator projectId={parseInt(params?.id || "0") || 1} />
+          </TabsContent>
         </Tabs>
       </div>
       
       {/* 3D Wireframe Viewer */}
-      <Simple3DViewer
-        isOpen={show3DView}
-        onClose={() => setShow3DView(false)}
-        fileName={`${project.name} - 3D Model`}
-        projectData={project}
+      <BIMViewer
+        urn="demo"
+        status="Complete"
       />
     </div>
   );

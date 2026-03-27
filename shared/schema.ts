@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, real, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { relations } from "drizzle-orm";
 import { z } from "zod";
@@ -39,6 +39,36 @@ export const rooms = pgTable("rooms", {
   positionY: real("position_y").notNull(),
 });
 
+// PDF Takeoff table for architectural drawings
+export const pdfTakeoffs = pgTable("pdf_takeoffs", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull(),
+  fileName: text("file_name").notNull(),
+  fileUrl: text("file_url").notNull(),
+  fileKey: text("file_key").notNull(), // Storage key for the original PDF
+  pageCount: integer("page_count").notNull().default(1),
+  scaleRatio: real("scale_ratio"), // pixels per meter (calibrated)
+  scaleCalibration: json("scale_calibration").$type<{
+    pixelDistance: number;
+    realDistance: number;
+    unit: 'm' | 'mm' | 'ft';
+  }>(),
+  measurements: json("measurements").$type<{
+    id: string;
+    type: 'area' | 'length';
+    points: { x: number; y: number }[];
+    value: number;
+    unit: 'm2' | 'm' | 'mm' | 'ft2' | 'ft';
+    label: string;
+    elementType: 'floor' | 'wall' | 'ceiling' | 'opening' | 'structural' | 'other';
+    pageNumber: number;
+    color?: string;
+    createdAt: string;
+  }[]>().notNull().default([]),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -58,12 +88,34 @@ export const insertRoomSchema = createInsertSchema(rooms).omit({
   id: true,
 });
 
+export const insertPdfTakeoffSchema = createInsertSchema(pdfTakeoffs).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = typeof projects.$inferSelect;
 export type InsertRoom = z.infer<typeof insertRoomSchema>;
 export type Room = typeof rooms.$inferSelect;
+export type InsertPdfTakeoff = z.infer<typeof insertPdfTakeoffSchema>;
+export type PdfTakeoff = typeof pdfTakeoffs.$inferSelect;
+
+// Measurement type for frontend use
+export interface Measurement {
+  id: string;
+  type: 'area' | 'length';
+  points: { x: number; y: number }[];
+  value: number;
+  unit: 'm2' | 'm' | 'mm' | 'ft2' | 'ft';
+  label: string;
+  elementType: 'floor' | 'wall' | 'ceiling' | 'opening' | 'structural' | 'other';
+  pageNumber: number;
+  color?: string;
+  createdAt: string;
+}
 
 // Material types for type safety
 export const MATERIALS = {
@@ -498,8 +550,174 @@ export const PARAMETRIC_ASSEMBLIES: ParametricAssembly[] = [
 ];
 
 // Relations
+
+// Elemental Cost Database Tables
+export const elementCategories = pgTable("element_categories", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description"),
+  sortOrder: integer("sort_order").default(0),
+});
+
+export const buildingTypes = pgTable("building_types", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description"),
+  typicalHeight: real("typical_height"),
+  typicalComplexity: text("typical_complexity"),
+});
+
+export const qualityLevels = pgTable("quality_levels", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description"),
+  multiplier: real("multiplier").default(1.0),
+});
+
+export const elements = pgTable("elements", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  category: text("category").notNull(),
+  subcategory: text("subcategory"),
+  name: text("name").notNull(),
+  description: text("description"),
+  unit: text("unit").notNull(),
+  measurementRules: text("measurement_rules"),
+  exclusions: text("exclusions"),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const costRates = pgTable("cost_rates", {
+  id: serial("id").primaryKey(),
+  elementId: integer("element_id").notNull(),
+  region: text("region").notNull(),
+  buildingType: text("building_type").notNull().default("residential"),
+  quality: text("quality").notNull().default("standard"),
+  lowRate: real("low_rate").notNull(),
+  medianRate: real("median_rate").notNull(),
+  highRate: real("high_rate").notNull(),
+  sampleSize: integer("sample_size").default(1),
+  source: text("source"),
+  dataQuality: text("data_quality").default("medium"),
+  confidenceScore: real("confidence_score").default(0.7),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const costSubmissions = pgTable("cost_submissions", {
+  id: serial("id").primaryKey(),
+  elementId: integer("element_id").notNull(),
+  userId: integer("user_id").notNull(),
+  region: text("region").notNull(),
+  buildingType: text("building_type").notNull().default("residential"),
+  quality: text("quality").notNull().default("standard"),
+  rate: real("rate").notNull(),
+  projectName: text("project_name"),
+  hasDocumentation: boolean("has_documentation").default(false),
+  status: text("status").default("pending"),
+  verified: boolean("verified").default(false),
+  verifiedBy: integer("verified_by"),
+  isQsSubmitted: boolean("is_qs_submitted").default(false),
+  notes: text("notes"),
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const regionalFactors = pgTable("regional_factors", {
+  id: serial("id").primaryKey(),
+  region: text("region").notNull().unique(),
+  regionName: text("region_name").notNull(),
+  factor: real("factor").notNull().default(1.0),
+  description: text("description"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const costIndexHistory = pgTable("cost_index_history", {
+  id: serial("id").primaryKey(),
+  year: integer("year").notNull(),
+  month: integer("month").notNull(),
+  index: real("index").notNull(),
+  changePercent: real("change_percent"),
+  source: text("source"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Insert Schemas for Cost Database
+export const insertElementCategorySchema = createInsertSchema(elementCategories).omit({ id: true });
+export const insertBuildingTypeSchema = createInsertSchema(buildingTypes).omit({ id: true });
+export const insertQualityLevelSchema = createInsertSchema(qualityLevels).omit({ id: true });
+export const insertElementSchema = createInsertSchema(elements).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertCostRateSchema = createInsertSchema(costRates).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertCostSubmissionSchema = createInsertSchema(costSubmissions).omit({ id: true, createdAt: true, updatedAt: true, submittedAt: true });
+export const insertRegionalFactorSchema = createInsertSchema(regionalFactors).omit({ id: true, updatedAt: true });
+export const insertCostIndexHistorySchema = createInsertSchema(costIndexHistory).omit({ id: true, createdAt: true });
+
+// Types for Cost Database
+export type InsertElementCategory = z.infer<typeof insertElementCategorySchema>;
+export type ElementCategory = typeof elementCategories.$inferSelect;
+export type InsertBuildingType = z.infer<typeof insertBuildingTypeSchema>;
+export type BuildingType = typeof buildingTypes.$inferSelect;
+export type InsertQualityLevel = z.infer<typeof insertQualityLevelSchema>;
+export type QualityLevel = typeof qualityLevels.$inferSelect;
+export type InsertElement = z.infer<typeof insertElementSchema>;
+export type Element = typeof elements.$inferSelect;
+export type InsertCostRate = z.infer<typeof insertCostRateSchema>;
+export type CostRate = typeof costRates.$inferSelect;
+export type InsertCostSubmission = z.infer<typeof insertCostSubmissionSchema>;
+export type CostSubmission = typeof costSubmissions.$inferSelect;
+export type InsertRegionalFactor = z.infer<typeof insertRegionalFactorSchema>;
+export type RegionalFactor = typeof regionalFactors.$inferSelect;
+export type InsertCostIndexHistory = z.infer<typeof insertCostIndexHistorySchema>;
+export type CostIndexHistory = typeof costIndexHistory.$inferSelect;
+
+// Relations for Cost Database
+export const elementsRelations = relations(elements, ({ many }) => ({
+  costRates: many(costRates),
+  costSubmissions: many(costSubmissions),
+}));
+
+export const costRatesRelations = relations(costRates, ({ one }) => ({
+  element: one(elements, {
+    fields: [costRates.elementId],
+    references: [elements.id],
+  }),
+}));
+
+export const costSubmissionsRelations = relations(costSubmissions, ({ one }) => ({
+  element: one(elements, {
+    fields: [costSubmissions.elementId],
+    references: [elements.id],
+  }),
+  user: one(users, {
+    fields: [costSubmissions.userId],
+    references: [users.id],
+  }),
+}));
+
+// Constants
+export const REGIONS = [
+  "sydney_nsw", "melbourne_vic", "brisbane_qld", "perth_wa", "adelaide_sa",
+  "gold_coast_qld", "newcastle_nsw", "canberra_act", "darwin_nt", "gladstone_qld"
+] as const;
+
+export const BUILDING_TYPES = [
+  "residential", "commercial", "industrial", "healthcare", "education", "retail_fitout"
+] as const;
+
+export const QUALITY_LEVELS = [
+  "basic", "standard", "premium", "luxury"
+] as const;
+
 export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
+  costSubmissions: many(costSubmissions),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -508,11 +726,19 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
     references: [users.id],
   }),
   rooms: many(rooms),
+  pdfTakeoffs: many(pdfTakeoffs),
 }));
 
 export const roomsRelations = relations(rooms, ({ one }) => ({
   project: one(projects, {
     fields: [rooms.projectId],
+    references: [projects.id],
+  }),
+}));
+
+export const pdfTakeoffsRelations = relations(pdfTakeoffs, ({ one }) => ({
+  project: one(projects, {
+    fields: [pdfTakeoffs.projectId],
     references: [projects.id],
   }),
 }));

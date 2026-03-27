@@ -4,15 +4,15 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 // import { AuthProvider } from "./hooks/use-auth";
-import { Home } from "@/pages/home";
+import HomePremium from "@/pages/home-premium";
+import ProjectsPremium from "@/pages/projects-premium";
+import ProjectDetailPremium from "@/pages/project-detail-premium";
 import Auth from "@/pages/auth";
 import Subscribe from "@/pages/subscribe";
-import Projects from "@/pages/projects";
-import ProjectDetail from "@/pages/project-detail";
 import Reports from "@/pages/reports";
 import Settings from "@/pages/settings";
 import ThreeDProcessor from "@/pages/3d-processor";
-import AdminDashboard from "@/pages/admin";
+import AdminDashboard from "@/pages/AdminDashboard";
 import NotFound from "@/pages/not-found";
 import { Sketch } from "@/pages/sketch";
 import { Regulations } from "@/pages/regulations";
@@ -34,12 +34,12 @@ function AdminRoute() {
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/" component={HomePremium} />
       <Route path="/sketch" component={Sketch} />
       <Route path="/auth" component={Auth} />
       <Route path="/subscribe" component={Subscribe} />
-      <Route path="/projects" component={Projects} />
-      <Route path="/project/:id" component={ProjectDetail} />
+      <Route path="/projects" component={ProjectsPremium} />
+      <Route path="/project/:id" component={ProjectDetailPremium} />
       <Route path="/reports" component={Reports} />
       <Route path="/settings" component={Settings} />
       <Route path="/3d-processor" component={ThreeDProcessor} />

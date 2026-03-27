@@ -15,7 +15,7 @@ import {
   Search,
   Filter
 } from 'lucide-react';
-import { ForgeViewer } from './forge-viewer';
+import { BIMViewer } from './BIMViewer';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -246,10 +246,9 @@ export function ModelLibrary() {
               </div>
             </DialogHeader>
             <div className="h-[70vh]">
-              <ForgeViewer
+              <BIMViewer
                 urn={selectedModel.urn}
-                fileName={selectedModel.fileName}
-                onClose={() => setViewerOpen(false)}
+                status={selectedModel.status === 'complete' ? 'Complete' : 'Pending'}
               />
             </div>
           </DialogContent>

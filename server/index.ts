@@ -1,64 +1,31 @@
+/**
+ * EstiMate Server Entry Point
+ * 
+ * Security-hardened Express server with comprehensive
+ * protection against common web vulnerabilities.
+ */
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import helmet from "helmet";
+
+// Import security configuration FIRST - validates environment variables
+// This will exit if required security variables are not set
+import securityConfig from "./config/security";
 
 const app = express();
-
-// Security hardening with Helmet middleware - Updated for Stripe.js and Google Fonts
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: [
-        "'self'", 
-        "'unsafe-inline'", 
-        "js.stripe.com",
-        "aps.autodesk.com", 
-        "developer.api.autodesk.com"
-      ],
-      styleSrc: [
-        "'self'", 
-        "'unsafe-inline'", 
-        "fonts.googleapis.com",
-        "developer.api.autodesk.com"
-      ],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: [
-        "'self'", 
-        "api.stripe.com",
-        "api.x.ai", 
-        "developer.api.autodesk.com"
-      ],
-      fontSrc: [
-        "'self'", 
-        "fonts.gstatic.com",
-        "fonts.googleapis.com"
-      ],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: [
-        "'self'",
-        "js.stripe.com"
-      ],
-    },
-  },
-  crossOriginEmbedderPolicy: false, // Disable COEP for Stripe compatibility
-  crossOriginOpenerPolicy: { policy: 'same-origin' },
-  crossOriginResourcePolicy: { policy: 'cross-origin' },
-  referrerPolicy: { policy: 'no-referrer' }
-}));
 
 // Trust proxy for Replit environment
 app.set('trust proxy', true);
 
-// HTTPS enforcement middleware
+// HTTPS enforcement middleware (production only)
 app.use((req, res, next) => {
-  if (req.header('x-forwarded-proto') !== 'https' && process.env.NODE_ENV === 'production') {
+  if (req.header('x-forwarded-proto') !== 'https' && securityConfig.isProduction) {
     return res.redirect(`https://${req.get('host')}${req.url}`);
   }
   next();
 });
+
 // Optimize for high-speed uploads
 app.use(express.json({ limit: '500mb' }));
 app.use(express.urlencoded({ limit: '500mb', extended: true, parameterLimit: 50000 }));
@@ -73,6 +40,7 @@ app.use((req, res, next) => {
   next();
 });
 
+// Request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -108,19 +76,25 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Register routes - security middleware is applied inside registerRoutes
   const server = await registerRoutes(app);
 
+  // Global error handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    
+    // Don't leak internal error details in production
+    const message = securityConfig.isProduction 
+      ? "Internal Server Error" 
+      : (err.message || "Internal Server Error");
+
+    // Log the error for debugging
+    console.error('Error:', err);
 
     res.status(status).json({ message });
-    throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
+  // Setup Vite in development, serve static files in production
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
@@ -136,6 +110,8 @@ app.use((req, res, next) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    log(`🔐 Security-hardened server serving on port ${port}`);
+    log(`📊 Environment: ${securityConfig.env.NODE_ENV}`);
+    log(`🔑 JWT configured: ${securityConfig.jwt.secret ? 'Yes' : 'No'}`);
   });
 })();

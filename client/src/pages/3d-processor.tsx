@@ -30,7 +30,7 @@ export default function ThreeDProcessor() {
             </p>
           </div>
 
-          <Enhanced3DProcessor />
+          <BIMProcessor isOpen={true} onClose={() => navigate("/")} />
         </div>
       </div>
     </div>

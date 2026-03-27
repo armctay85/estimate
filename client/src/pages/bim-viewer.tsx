@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ForgeViewer } from '@/components/forge-viewer';
+import { BIMViewer } from '@/components/BIMViewer';
 import { Link } from 'wouter';
 import { ArrowLeft } from 'lucide-react';
 import { Header } from '@/components/header';
@@ -58,10 +58,9 @@ export function BIMViewerPage() {
             
             {urn ? (
               <div className="relative h-[600px] bg-gray-100 dark:bg-gray-900 rounded-lg overflow-hidden">
-                <ForgeViewer 
-                  urn={urn} 
-                  fileName={fileName}
-                  onClose={() => window.location.href = '/'}
+                <BIMViewer 
+                  urn={urn}
+                  status="Complete"
                 />
               </div>
             ) : (

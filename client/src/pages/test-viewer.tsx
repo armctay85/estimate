@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ForgeViewer } from "@/components/forge-viewer";
+import { BIMViewer } from "@/components/BIMViewer";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/header";
 import { ArrowLeft } from "lucide-react";
@@ -72,7 +72,7 @@ export function TestViewer() {
                   Load 3D Model
                 </Button>
               ) : (
-                <ForgeViewer urn={urn} />
+                <BIMViewer urn={urn} status="Complete" />
               )}
             </div>
           ) : (

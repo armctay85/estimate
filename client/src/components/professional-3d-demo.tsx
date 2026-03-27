@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ForgeViewer } from './forge-viewer';
+import { BIMViewer } from './BIMViewer';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Play, 
@@ -254,9 +254,9 @@ export function Professional3DDemo({ isOpen = true, onClose }: Professional3DDem
           <div className="flex-1 flex flex-col">
             {currentUrn ? (
               <div className="flex-1">
-                <ForgeViewer 
+                <BIMViewer 
                   urn={currentUrn}
-                  fileName={currentFileName}
+                  status="Complete"
                 />
               </div>
             ) : (
