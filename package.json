@@ -9,7 +9,10 @@
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc",
     "db:push": "drizzle-kit push",
-    "setup:admin": "tsx scripts/setup-admin.ts"
+    "setup:admin": "tsx scripts/setup-admin.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
