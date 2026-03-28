@@ -1218,50 +1218,93 @@ Return JSON: { "areas": [{ "roomType": string, "label": string, "x": number, "y"
     res.json({ status: 'ok', time: new Date().toISOString() });
   });
 
-  // Autonomous Database Migration Endpoint
+  // Autonomous Database Migration Endpoint - Uses Supabase REST API (serverless-compatible)
   app.post('/api/migrate', async (req, res) => {
     const authHeader = req.headers.authorization;
     if (authHeader !== `Bearer ${process.env.MIGRATE_SECRET}`) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // Check if DATABASE_URL is set
-    if (!process.env.DATABASE_URL) {
+    // Parse database URL to get connection params
+    const dbUrl = process.env.DATABASE_URL;
+    if (!dbUrl) {
       return res.status(500).json({ error: 'DATABASE_URL not configured' });
     }
 
+    // Extract project ref from pooler URL
+    // Format: postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:5432/postgres
+    const projectRefMatch = dbUrl.match(/postgres\.([^.]+)/);
+    const projectRef = projectRefMatch ? projectRefMatch[1] : null;
+    
+    if (!projectRef) {
+      return res.status(500).json({ error: 'Could not parse project ref from DATABASE_URL' });
+    }
+
+    const supabaseUrl = `https://${projectRef}.supabase.co`;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+    
+    if (!supabaseServiceKey) {
+      return res.status(500).json({ 
+        error: 'SUPABASE_SERVICE_KEY not configured',
+        message: 'Add SUPABASE_SERVICE_KEY to Vercel environment variables'
+      });
+    }
+
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
     const { readFileSync, readdirSync } = await import('fs');
     const { join } = await import('path');
-    
-    // Dynamically import db only when needed
-    let pool;
-    try {
-      const db = await import('./db');
-      pool = db.pool;
-    } catch (err) {
-      return res.status(500).json({ error: 'Database module failed to load', details: err.message });
-    }
 
     const results = [];
-    let client;
-    try {
-      client = await pool.connect();
-    } catch (err) {
-      return res.status(500).json({ error: 'Database connection failed', details: err.message });
-    }
     
     try {
-      await client.query(`
-        CREATE TABLE IF NOT EXISTS _migrations (
-          id SERIAL PRIMARY KEY,
-          filename TEXT UNIQUE NOT NULL,
-          applied_at TIMESTAMP DEFAULT NOW()
-        )
-      `);
+      // Create migrations tracking table via RPC
+      const { error: createError } = await supabase.rpc('exec_sql', {
+        sql: `
+          CREATE TABLE IF NOT EXISTS _migrations (
+            id SERIAL PRIMARY KEY,
+            filename TEXT UNIQUE NOT NULL,
+            applied_at TIMESTAMP DEFAULT NOW()
+          )
+        `
+      });
 
-      const { rows: appliedRows } = await client.query('SELECT filename FROM _migrations');
-      const applied = new Set(appliedRows.map(r => r.filename));
+      if (createError) {
+        // Try direct SQL execution via REST
+        const response = await fetch(`${supabaseUrl}/rest/v1/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseServiceKey}`,
+            'apikey': supabaseServiceKey,
+            'Prefer': 'resolution=merge-duplicates'
+          },
+          body: JSON.stringify({
+            query: `CREATE TABLE IF NOT EXISTS _migrations (id SERIAL PRIMARY KEY, filename TEXT UNIQUE NOT NULL, applied_at TIMESTAMP DEFAULT NOW())`
+          })
+        });
+        
+        if (!response.ok) {
+          return res.status(500).json({ 
+            error: 'Failed to create migrations table',
+            details: createError?.message || await response.text()
+          });
+        }
+      }
 
+      // Get applied migrations
+      const { data: appliedRows, error: selectError } = await supabase
+        .from('_migrations')
+        .select('filename');
+
+      if (selectError) {
+        return res.status(500).json({ error: 'Failed to read migrations', details: selectError.message });
+      }
+
+      const applied = new Set((appliedRows || []).map(r => r.filename));
+
+      // Get migration files
       const migrationsDir = join(process.cwd(), 'migrations');
       let files = [];
       try {
@@ -1278,13 +1321,28 @@ Return JSON: { "areas": [{ "roomType": string, "label": string, "x": number, "y"
 
         try {
           const sql = readFileSync(join(migrationsDir, file), 'utf8');
-          await client.query('BEGIN');
-          await client.query(sql);
-          await client.query('COMMIT');
-          await client.query('INSERT INTO _migrations (filename) VALUES ($1)', [file]);
+          
+          // Execute migration via Supabase REST
+          const response = await fetch(`${supabaseUrl}/rest/v1/rpc/exec_sql`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseServiceKey}`,
+              'apikey': supabaseServiceKey
+            },
+            body: JSON.stringify({ sql })
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            results.push({ file, status: 'failed', error: errorText });
+            break;
+          }
+
+          // Record migration
+          await supabase.from('_migrations').insert({ filename: file });
           results.push({ file, status: 'applied' });
         } catch (err: any) {
-          await client.query('ROLLBACK');
           results.push({ file, status: 'failed', error: err.message });
           break;
         }
@@ -1299,14 +1357,6 @@ Return JSON: { "areas": [{ "roomType": string, "label": string, "x": number, "y"
       });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
-    } finally {
-      if (client) {
-        try {
-          client.release();
-        } catch (e) {
-          // Ignore release errors
-        }
-      }
     }
   });
 
