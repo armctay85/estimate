@@ -1213,6 +1213,11 @@ Return JSON: { "areas": [{ "roomType": string, "label": string, "x": number, "y"
   // Setup Cost Database routes
   app.use('/api', costDatabaseRoutes);
 
+  // Health check - no DB required
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', time: new Date().toISOString() });
+  });
+
   // Autonomous Database Migration Endpoint
   app.post('/api/migrate', async (req, res) => {
     const authHeader = req.headers.authorization;
@@ -1220,12 +1225,30 @@ Return JSON: { "areas": [{ "roomType": string, "label": string, "x": number, "y"
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
+    // Check if DATABASE_URL is set
+    if (!process.env.DATABASE_URL) {
+      return res.status(500).json({ error: 'DATABASE_URL not configured' });
+    }
+
     const { readFileSync, readdirSync } = await import('fs');
     const { join } = await import('path');
-    const { pool } = await import('./db');
+    
+    // Dynamically import db only when needed
+    let pool;
+    try {
+      const db = await import('./db');
+      pool = db.pool;
+    } catch (err) {
+      return res.status(500).json({ error: 'Database module failed to load', details: err.message });
+    }
 
     const results = [];
-    const client = await pool.connect();
+    let client;
+    try {
+      client = await pool.connect();
+    } catch (err) {
+      return res.status(500).json({ error: 'Database connection failed', details: err.message });
+    }
     
     try {
       await client.query(`
@@ -1277,7 +1300,13 @@ Return JSON: { "areas": [{ "roomType": string, "label": string, "x": number, "y"
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     } finally {
-      client.release();
+      if (client) {
+        try {
+          client.release();
+        } catch (e) {
+          // Ignore release errors
+        }
+      }
     }
   });
 
