@@ -55,9 +55,6 @@ const envSchema = z.object({
 // Parse and validate environment variables
 let env: z.infer<typeof envSchema>;
 
-// In Vercel serverless, don't exit on validation failure - throw instead
-const isVercel = process.env.VERCEL || process.env.VERCEL_ENV;
-
 try {
   env = envSchema.parse(process.env);
 } catch (error) {
@@ -76,12 +73,8 @@ try {
     console.error('DATABASE_URL=postgresql://user:pass@localhost:5432/dbname');
     console.error('');
   }
-  
-  // In Vercel serverless, throw instead of exit so error is returned
-  if (isVercel) {
-    throw error;
-  }
-  process.exit(1);
+  // Always throw instead of exit - works for both serverless and traditional
+  throw error;
 }
 
 // CORS allowed origins
