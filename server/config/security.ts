@@ -55,6 +55,9 @@ const envSchema = z.object({
 // Parse and validate environment variables
 let env: z.infer<typeof envSchema>;
 
+// In Vercel serverless, don't exit on validation failure - throw instead
+const isVercel = process.env.VERCEL || process.env.VERCEL_ENV;
+
 try {
   env = envSchema.parse(process.env);
 } catch (error) {
@@ -72,6 +75,11 @@ try {
     console.error('SESSION_SECRET=another-super-secret-32-char-minimum-random-string');
     console.error('DATABASE_URL=postgresql://user:pass@localhost:5432/dbname');
     console.error('');
+  }
+  
+  // In Vercel serverless, throw instead of exit so error is returned
+  if (isVercel) {
+    throw error;
   }
   process.exit(1);
 }
