@@ -1220,14 +1220,9 @@ Return JSON: { "areas": [{ "roomType": string, "label": string, "x": number, "y"
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { Pool } = await import('pg');
     const { readFileSync, readdirSync } = await import('fs');
     const { join } = await import('path');
-    
-    const pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false }
-    });
+    const { pool } = await import('./db');
 
     const results = [];
     const client = await pool.connect();
@@ -1283,7 +1278,6 @@ Return JSON: { "areas": [{ "roomType": string, "label": string, "x": number, "y"
       res.status(500).json({ error: err.message });
     } finally {
       client.release();
-      await pool.end();
     }
   });
 
