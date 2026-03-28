@@ -24,4 +24,4 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           npm install pg
-          node .github/scripts/apply-migrations.js
+          node .github/scripts/apply-migrations.mjs
