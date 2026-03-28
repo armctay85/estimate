@@ -17,10 +17,10 @@ JWT_SECRET=R0HjP8XBoWLVQn4AbPqFsQi8pmvMeO8TEW8g/jpXoZfUwU856p/CmYIhDpLBaYdK
 SESSION_SECRET=8eznKkUuihFhxsypBiye4CD0rMwAEfJy5UtOqeemflznJs3BoCbE9i1BkGZPDYwn
 ```
 
-### Stripe (Add YOUR live keys)
+### Stripe (Add YOUR secret key & webhook)
 ```
 STRIPE_SECRET_KEY=sk_live_...
-STRIPE_PUBLISHABLE_KEY=pk_live_...
+STRIPE_PUBLISHABLE_KEY=pk_live_51Rl77qGWpl9FVP42TLZj50v0t3dETeDxUBrLnRulJCiQyHLoK6hE1jIsLTVw4SBSZQQh1cw1IJLgwWkHPi3rQ1N3007pGYWVmt
 STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
