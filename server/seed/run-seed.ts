@@ -128,7 +128,6 @@ async function seed() {
           source: rate.source,
           dataQuality: rate.dataQuality,
           confidenceScore: rate.confidenceScore,
-          costIndex: "100",
         })
         .onConflictDoUpdate({
           target: [costRates.elementId, costRates.region, costRates.buildingType, costRates.quality],
