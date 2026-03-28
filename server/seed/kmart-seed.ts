@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { elements, costRates, costSubmissions } from '../db/schema';
+import { elements, costRates, costSubmissions } from '../../shared/schema';
 import fs from 'fs';
 import path from 'path';
 
@@ -140,7 +140,7 @@ async function seedCostRates(benchmarks: BenchmarkRate[]) {
     ratesToInsert.push(baseRate);
     
     // Generate rates for other regions
-    for (const [region, factor] of Object.entries(REGION_FACTORS)) {
+    for (const [region, factor] of Object.entries(REGIONAL_FACTORS)) {
       if (region === benchmark.region) continue;
       
       ratesToInsert.push({

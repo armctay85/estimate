@@ -139,7 +139,7 @@ async function seed() {
             source: rate.source,
             dataQuality: rate.dataQuality,
             confidenceScore: rate.confidenceScore,
-            lastUpdated: new Date(),
+            updatedAt: new Date(),
           },
         });
       

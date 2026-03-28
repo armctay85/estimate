@@ -13,6 +13,9 @@ import { setupVite, serveStatic, log } from "./vite";
 // This will exit if required security variables are not set
 import securityConfig from "./config/security";
 
+import paymentRoutes from "./routes/payments";
+import { setupWebSockets } from "./websocket";
+
 const app = express();
 
 // Trust proxy for Replit environment

@@ -33,7 +33,7 @@ router.get("/elements", async (req, res) => {
     const { category, search, unit, includeInactive } = req.query;
     
     let query = db.query.elements.findMany({
-      orderBy: [asc(elements.sortOrder), asc(elements.code)],
+      orderBy: [asc(elements.code), asc(elements.code)],
     });
     
     // Build conditions
@@ -58,13 +58,13 @@ router.get("/elements", async (req, res) => {
       // Apply all conditions
       const result = await db.select().from(elements)
         .where(and(...conditions))
-        .orderBy(asc(elements.sortOrder), asc(elements.code));
+        .orderBy(asc(elements.code), asc(elements.code));
       
       return res.json(result);
     }
     
     const result = await db.select().from(elements)
-      .orderBy(asc(elements.sortOrder), asc(elements.code));
+      .orderBy(asc(elements.code), asc(elements.code));
     
     res.json(result);
   } catch (error) {
@@ -108,7 +108,7 @@ router.get("/elements/:id", async (req, res) => {
 router.get("/elements/categories/list", async (req, res) => {
   try {
     const categories = await db.select().from(elementCategories)
-      .orderBy(asc(elementCategories.sortOrder));
+      .orderBy(asc(elementCategories.code));
     
     res.json(categories);
   } catch (error) {
@@ -660,7 +660,7 @@ router.get("/regions/:region", async (req, res) => {
 router.get("/building-types", async (req, res) => {
   try {
     const results = await db.select().from(buildingTypes)
-      .orderBy(asc(buildingTypes.sortOrder));
+      .orderBy(asc(buildingTypes.name));
     
     res.json(results);
   } catch (error) {
@@ -676,7 +676,7 @@ router.get("/building-types", async (req, res) => {
 router.get("/quality-levels", async (req, res) => {
   try {
     const results = await db.select().from(qualityLevels)
-      .orderBy(asc(qualityLevels.sortOrder));
+      .orderBy(asc(qualityLevels.name));
     
     res.json(results);
   } catch (error) {
@@ -713,7 +713,7 @@ router.get("/cost-index", async (req, res) => {
     }
     
     const results = await query
-      .orderBy(desc(costIndexHistory.indexDate))
+      .orderBy(desc(costIndexHistory.year), desc(costIndexHistory.month))
       .limit(parseInt(limit as string));
     
     res.json(results);
@@ -735,9 +735,9 @@ router.get("/costs/reference", async (req, res) => {
   try {
     const [regions, types, qualities, categories] = await Promise.all([
       db.select().from(regionalFactors).orderBy(asc(regionalFactors.region)),
-      db.select().from(buildingTypes).orderBy(asc(buildingTypes.sortOrder)),
-      db.select().from(qualityLevels).orderBy(asc(qualityLevels.sortOrder)),
-      db.select().from(elementCategories).orderBy(asc(elementCategories.sortOrder)),
+      db.select().from(buildingTypes).orderBy(asc(buildingTypes.name)),
+      db.select().from(qualityLevels).orderBy(asc(qualityLevels.name)),
+      db.select().from(elementCategories).orderBy(asc(elementCategories.code)),
     ]);
     
     res.json({

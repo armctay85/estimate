@@ -269,6 +269,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/payments/webhook', handleWebhook);
   app.post('/api/payments/billing-portal', isAuthenticated, createBillingPortalSession);
 
+  // Cost database routes
+  app.use('/api/cost-database', costDatabaseRoutes);
+
   // Import and setup the forge proxy routes
   try {
     const { default: forgeProxy } = await import('./forge-proxy');

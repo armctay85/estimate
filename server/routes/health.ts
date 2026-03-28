@@ -6,7 +6,7 @@ const router = Router();
 
 // Health check endpoint
 router.get('/', async (req, res) => {
-  const health = {
+  const health: any = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     version: process.env.npm_package_version || '1.0.0',
